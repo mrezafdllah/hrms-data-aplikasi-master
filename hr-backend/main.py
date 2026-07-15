@@ -19,24 +19,26 @@ app = FastAPI(title="Aplikasi HR API")
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# Configure CORS
+origins = ["http://localhost:5173", "http://localhost:8081", "http://localhost:19006"]
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS")
+if allowed_origins_env:
+    origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+else:
+    origins.append("*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "*"], # Allow all for mobile test
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=True if "*" not in origins else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 def get_db_connection():
     try:
-        conn = psycopg2.connect(
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT"),
-            database=os.getenv("DB_DATABASE")
-        )
-        return conn
+        from db_helper import get_db_connection as connect_db
+        return connect_db()
     except Exception as e:
         print(f"Gagal koneksi ke database: {e}")
         raise HTTPException(status_code=500, detail="Database Connection Error")

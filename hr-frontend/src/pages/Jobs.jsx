@@ -11,7 +11,7 @@ const Jobs = () => {
 
   const fetchJobs = () => {
     setLoading(true);
-    apiFetch('http://localhost:8000/api/jobs')
+    apiFetch('/api/jobs')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") setJobs(data.data);
@@ -21,7 +21,7 @@ const Jobs = () => {
   };
 
   const fetchCompanies = () => {
-    apiFetch('http://localhost:8000/api/companies')
+    apiFetch('/api/companies')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") setCompanies(data.data);
@@ -33,8 +33,8 @@ const Jobs = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = editingId 
-      ? `http://localhost:8000/api/jobs/${editingId}` 
-      : 'http://localhost:8000/api/jobs';
+      ? `/api/jobs/${editingId}` 
+      : '/api/jobs';
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = { ...formData, company_id: parseInt(formData.company_id) };
@@ -61,7 +61,7 @@ const Jobs = () => {
 
   const handleDelete = (id) => {
     if (window.confirm("Hapus job ini? Semua position terkait akan ikut terhapus.")) {
-      apiFetch(`http://localhost:8000/api/jobs/${id}`, { method: 'DELETE' })
+      apiFetch(`/api/jobs/${id}`, { method: 'DELETE' })
         .then(() => fetchJobs());
     }
   };

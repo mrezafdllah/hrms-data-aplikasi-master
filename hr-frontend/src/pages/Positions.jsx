@@ -11,7 +11,7 @@ const Positions = () => {
 
   const fetchPositions = () => {
     setLoading(true);
-    apiFetch('http://localhost:8000/api/positions')
+    apiFetch('/api/positions')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") setPositions(data.data);
@@ -21,7 +21,7 @@ const Positions = () => {
   };
 
   const fetchJobs = () => {
-    apiFetch('http://localhost:8000/api/jobs')
+    apiFetch('/api/jobs')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") setJobs(data.data);
@@ -33,8 +33,8 @@ const Positions = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = editingId 
-      ? `http://localhost:8000/api/positions/${editingId}` 
-      : 'http://localhost:8000/api/positions';
+      ? `/api/positions/${editingId}` 
+      : '/api/positions';
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = { ...formData, job_id: parseInt(formData.job_id) };
@@ -61,7 +61,7 @@ const Positions = () => {
 
   const handleDelete = (id) => {
     if (window.confirm("Hapus position ini?")) {
-      apiFetch(`http://localhost:8000/api/positions/${id}`, { method: 'DELETE' })
+      apiFetch(`/api/positions/${id}`, { method: 'DELETE' })
         .then(() => fetchPositions());
     }
   };

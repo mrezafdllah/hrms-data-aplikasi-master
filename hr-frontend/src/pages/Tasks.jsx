@@ -115,7 +115,7 @@ const Tasks = () => {
 
   const fetchTasks = () => {
     setLoading(true);
-    apiFetch('http://localhost:8000/api/tasks')
+    apiFetch('/api/tasks')
       .then(res => res.json())
       .then(data => {
         if (data.status === 'Success') setTasks(data.data);
@@ -129,7 +129,7 @@ const Tasks = () => {
 
   const fetchUsers = () => {
     if (!isKaryawan) {
-      apiFetch('http://localhost:8000/api/users')
+      apiFetch('/api/users')
         .then(res => res.json())
         .then(data => {
           if (data.status === 'Success') setUsers(data.data);
@@ -175,7 +175,7 @@ const Tasks = () => {
         ? 'Apakah Anda yakin ingin menghapus tugas ini? Tindakan ini tidak dapat dibatalkan.' 
         : 'Are you sure you want to delete this task? This action cannot be undone.',
       onConfirm: () => {
-        apiFetch(`http://localhost:8000/api/tasks/${id}`, {
+        apiFetch(`/api/tasks/${id}`, {
           method: 'DELETE'
         })
           .then(res => res.json())
@@ -193,7 +193,7 @@ const Tasks = () => {
   };
 
   const handleStatusChange = (taskId, newStatus) => {
-    apiFetch(`http://localhost:8000/api/tasks/${taskId}`, {
+    apiFetch(`/api/tasks/${taskId}`, {
       method: 'PUT',
       body: JSON.stringify({ status: newStatus })
     })
@@ -211,8 +211,8 @@ const Tasks = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = editingId 
-      ? `http://localhost:8000/api/tasks/${editingId}`
-      : 'http://localhost:8000/api/tasks';
+      ? `/api/tasks/${editingId}`
+      : '/api/tasks';
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {

@@ -1,4 +1,4 @@
-import { apiFetch } from '../utils/api';
+import { apiFetch, API_BASE_URL } from '../utils/api';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
@@ -181,11 +181,11 @@ const Dashboard = () => {
 
   const fetchData = () => {
     Promise.all([
-      apiFetch('http://localhost:8000/api/dashboard-stats').then(res => res.json()),
-      apiFetch('http://localhost:8000/api/users').then(res => res.json()),
-      apiFetch('http://localhost:8000/api/schedules').then(res => res.json()),
-      apiFetch('http://localhost:8000/api/notices').then(res => res.json()),
-      apiFetch('http://localhost:8000/api/profile').then(res => res.json())
+      apiFetch('/api/dashboard-stats').then(res => res.json()),
+      apiFetch('/api/users').then(res => res.json()),
+      apiFetch('/api/schedules').then(res => res.json()),
+      apiFetch('/api/notices').then(res => res.json()),
+      apiFetch('/api/profile').then(res => res.json())
     ])
       .then(([statsData, usersData, schedulesData, noticesData, profileData]) => {
         if (statsData.status === "Success") setStats(statsData.data);
@@ -292,7 +292,7 @@ const Dashboard = () => {
         ? 'Apakah Anda yakin ingin menghapus jadwal ini? Tindakan ini tidak dapat dibatalkan.' 
         : 'Are you sure you want to delete this schedule? This action cannot be undone.',
       onConfirm: () => {
-        apiFetch(`http://localhost:8000/api/schedules/${id}`, {
+        apiFetch(`/api/schedules/${id}`, {
           method: 'DELETE'
         })
           .then(res => res.json())
@@ -312,8 +312,8 @@ const Dashboard = () => {
   const handleScheduleSubmit = (e) => {
     e.preventDefault();
     const url = editingScheduleId 
-      ? `http://localhost:8000/api/schedules/${editingScheduleId}`
-      : 'http://localhost:8000/api/schedules';
+      ? `/api/schedules/${editingScheduleId}`
+      : '/api/schedules';
     const method = editingScheduleId ? 'PUT' : 'POST';
 
     const payload = {
@@ -372,7 +372,7 @@ const Dashboard = () => {
         ? 'Apakah Anda yakin ingin menghapus pengumuman ini? Tindakan ini tidak dapat dibatalkan.' 
         : 'Are you sure you want to delete this announcement? This action cannot be undone.',
       onConfirm: () => {
-        apiFetch(`http://localhost:8000/api/notices/${id}`, {
+        apiFetch(`/api/notices/${id}`, {
           method: 'DELETE'
         })
           .then(res => res.json())
@@ -392,8 +392,8 @@ const Dashboard = () => {
   const handleNoticeSubmit = (e) => {
     e.preventDefault();
     const url = editingNoticeId 
-      ? `http://localhost:8000/api/notices/${editingNoticeId}`
-      : 'http://localhost:8000/api/notices';
+      ? `/api/notices/${editingNoticeId}`
+      : '/api/notices';
     const method = editingNoticeId ? 'PUT' : 'POST';
 
     apiFetch(url, {
@@ -538,7 +538,7 @@ const Dashboard = () => {
           {/* Sync Header Avatar Profile Picture */}
           {myProfile?.profile_picture ? (
             <img 
-              src={`http://localhost:8000${myProfile.profile_picture}`} 
+              src={`${API_BASE_URL}${myProfile.profile_picture}`} 
               alt="Avatar" 
               className="w-10 h-10 rounded-full object-cover shadow-md shadow-[#7b3fe4]/10 border border-gray-100" 
             />

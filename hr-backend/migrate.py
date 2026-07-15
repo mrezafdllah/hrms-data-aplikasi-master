@@ -6,13 +6,8 @@ load_dotenv()
 
 def migrate_db():
     try:
-        conn = psycopg2.connect(
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT"),
-            database=os.getenv("DB_DATABASE")
-        )
+        from db_helper import get_db_connection
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # Read and execute schema.sql

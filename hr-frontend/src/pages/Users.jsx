@@ -16,7 +16,7 @@ const Users = () => {
 
   const fetchUsers = () => {
     setLoading(true);
-    apiFetch('http://localhost:8000/api/users')
+    apiFetch('/api/users')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") setUsers(data.data);
@@ -26,9 +26,9 @@ const Users = () => {
   };
 
   const fetchDropdowns = () => {
-    apiFetch('http://localhost:8000/api/roles').then(r => r.json()).then(d => { if (d.status === "Success") setRoles(d.data); });
-    apiFetch('http://localhost:8000/api/companies').then(r => r.json()).then(d => { if (d.status === "Success") setCompanies(d.data); });
-    apiFetch('http://localhost:8000/api/positions').then(r => r.json()).then(d => { if (d.status === "Success") setPositions(d.data); });
+    apiFetch('/api/roles').then(r => r.json()).then(d => { if (d.status === "Success") setRoles(d.data); });
+    apiFetch('/api/companies').then(r => r.json()).then(d => { if (d.status === "Success") setCompanies(d.data); });
+    apiFetch('/api/positions').then(r => r.json()).then(d => { if (d.status === "Success") setPositions(d.data); });
   };
 
   useEffect(() => { fetchUsers(); fetchDropdowns(); }, []);
@@ -36,8 +36,8 @@ const Users = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = editingId 
-      ? `http://localhost:8000/api/users/${editingId}` 
-      : 'http://localhost:8000/api/users';
+      ? `/api/users/${editingId}` 
+      : '/api/users';
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {
@@ -79,7 +79,7 @@ const Users = () => {
 
   const handleDelete = (id) => {
     if (window.confirm("Hapus user ini?")) {
-      apiFetch(`http://localhost:8000/api/users/${id}`, { method: 'DELETE' })
+      apiFetch(`/api/users/${id}`, { method: 'DELETE' })
         .then(() => fetchUsers());
     }
   };

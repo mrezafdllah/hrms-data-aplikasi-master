@@ -10,7 +10,7 @@ const Companies = () => {
 
   const fetchCompanies = () => {
     setLoading(true);
-    apiFetch('http://localhost:8000/api/companies')
+    apiFetch('/api/companies')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") setCompanies(data.data);
@@ -24,8 +24,8 @@ const Companies = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = editingId 
-      ? `http://localhost:8000/api/companies/${editingId}` 
-      : 'http://localhost:8000/api/companies';
+      ? `/api/companies/${editingId}` 
+      : '/api/companies';
     const method = editingId ? 'PUT' : 'POST';
 
     apiFetch(url, {
@@ -52,7 +52,7 @@ const Companies = () => {
 
   const handleDelete = (id) => {
     if (window.confirm("Hapus company ini? Semua job dan position terkait akan ikut terhapus.")) {
-      apiFetch(`http://localhost:8000/api/companies/${id}`, { method: 'DELETE' })
+      apiFetch(`/api/companies/${id}`, { method: 'DELETE' })
         .then(() => fetchCompanies());
     }
   };

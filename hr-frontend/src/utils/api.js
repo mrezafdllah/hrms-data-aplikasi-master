@@ -1,3 +1,5 @@
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 export const apiFetch = async (url, options = {}) => {
   const token = localStorage.getItem('token');
   const headers = {};
@@ -12,7 +14,12 @@ export const apiFetch = async (url, options = {}) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  const response = await fetch(url, { ...options, headers });
+  // Prepend API_BASE_URL if url is relative (doesn't start with http/https)
+  const cleanUrl = url.startsWith('http') 
+    ? url 
+    : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  
+  const response = await fetch(cleanUrl, { ...options, headers });
   
   if (response.status === 401) {
     localStorage.removeItem('token');

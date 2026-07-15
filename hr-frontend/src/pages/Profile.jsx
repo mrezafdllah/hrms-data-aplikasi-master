@@ -1,4 +1,4 @@
-import { apiFetch } from '../utils/api';
+import { apiFetch, API_BASE_URL } from '../utils/api';
 import React, { useState, useEffect } from 'react';
 import { UserCircle, Camera, Check, X, Edit3 } from 'lucide-react';
 
@@ -96,7 +96,7 @@ const Profile = () => {
 
   const fetchProfile = () => {
     setLoading(true);
-    apiFetch('http://localhost:8000/api/profile')
+    apiFetch('/api/profile')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") {
@@ -121,7 +121,7 @@ const Profile = () => {
 
   const fetchPositions = () => {
     if (isAdmin) {
-      apiFetch('http://localhost:8000/api/positions')
+      apiFetch('/api/positions')
         .then(res => res.json())
         .then(data => {
           if (data.status === 'Success') setPositions(data.data);
@@ -143,7 +143,7 @@ const Profile = () => {
     fileForm.append('file', file);
 
     setUploading(true);
-    apiFetch('http://localhost:8000/api/profile/upload-photo', {
+    apiFetch('/api/profile/upload-photo', {
       method: 'POST',
       body: fileForm
     })
@@ -181,7 +181,7 @@ const Profile = () => {
       delete payload.position_id;
     }
 
-    apiFetch('http://localhost:8000/api/profile', {
+    apiFetch('/api/profile', {
       method: 'PUT',
       body: JSON.stringify(payload)
     })
@@ -247,7 +247,7 @@ const Profile = () => {
           <div className="relative group w-32 h-32 rounded-full shadow-inner border-2 border-gray-100 flex items-center justify-center overflow-hidden bg-purple-50">
             {formData.profile_picture ? (
               <img 
-                src={`http://localhost:8000${formData.profile_picture}`} 
+                src={`${API_BASE_URL}${formData.profile_picture}`} 
                 alt="Foto Profil" 
                 className="w-full h-full object-cover" 
               />

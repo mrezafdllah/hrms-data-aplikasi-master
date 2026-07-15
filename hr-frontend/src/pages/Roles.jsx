@@ -10,7 +10,7 @@ const Roles = () => {
 
   const fetchRoles = () => {
     setLoading(true);
-    apiFetch('http://localhost:8000/api/roles')
+    apiFetch('/api/roles')
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") setRoles(data.data);
@@ -24,8 +24,8 @@ const Roles = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = editingId 
-      ? `http://localhost:8000/api/roles/${editingId}` 
-      : 'http://localhost:8000/api/roles';
+      ? `/api/roles/${editingId}` 
+      : '/api/roles';
     const method = editingId ? 'PUT' : 'POST';
 
     apiFetch(url, {
@@ -47,7 +47,7 @@ const Roles = () => {
 
   const handleDelete = (id) => {
     if (window.confirm("Hapus role ini?")) {
-      apiFetch(`http://localhost:8000/api/roles/${id}`, { method: 'DELETE' })
+      apiFetch(`/api/roles/${id}`, { method: 'DELETE' })
         .then(() => fetchRoles());
     }
   };
