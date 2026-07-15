@@ -16,8 +16,10 @@ load_dotenv()
 app = FastAPI(title="Aplikasi HR API")
 
 # Create uploads folder if not exists
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+IS_VERCEL = "VERCEL" in os.environ
+UPLOAD_DIR = "/tmp/uploads" if IS_VERCEL else "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Configure CORS
 origins = ["http://localhost:5173", "http://localhost:8081", "http://localhost:19006"]
@@ -276,7 +278,7 @@ def upload_profile_picture(file: UploadFile = File(...), current_user: dict = De
     try:
         file_extension = file.filename.split(".")[-1]
         file_name = f"profile_{current_user['user_id']}.{file_extension}"
-        file_path = os.path.join("uploads", file_name)
+        file_path = os.path.join(UPLOAD_DIR, file_name)
         
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
