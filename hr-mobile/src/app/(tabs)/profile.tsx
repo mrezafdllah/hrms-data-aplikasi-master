@@ -140,7 +140,8 @@ export default function ProfileScreen() {
         }
         setLoading(false);
       })
-      .catch((error) => {
+      .catch((error: any) => {
+        if (error?.response?.status === 401) return;
         console.error('Error profile:', error);
         setLoading(false);
       });
@@ -153,7 +154,8 @@ export default function ProfileScreen() {
           setPositions(res.data.data);
         }
       })
-      .catch((error) => {
+      .catch((error: any) => {
+        if (error?.response?.status === 401) return;
         console.error('Error positions:', error);
       });
   }, []);
@@ -346,10 +348,10 @@ export default function ProfileScreen() {
               <Ionicons name="camera" size={14} color="#fff" />
             </View>
           </TouchableOpacity>
-          
-          <View style={{ mt: 10 }}>
-            <h2 style={styles.fullName}>{profile.full_name}</h2>
-            <p style={styles.emailText}>{profile.email}</p>
+
+          <View style={{ marginTop: 10 }}>
+            <Text style={styles.fullName}>{profile.full_name}</Text>
+            <Text style={styles.emailText}>{profile.email}</Text>
             <View style={styles.badgeRow}>
               <View style={[styles.statusBadge, profile.status === 'Active' ? styles.statusActive : styles.statusInactive]}>
                 <Text style={[styles.statusBadgeText, profile.status === 'Active' ? styles.statusActiveText : styles.statusInactiveText]}>
@@ -370,14 +372,14 @@ export default function ProfileScreen() {
           <View style={styles.profileCard}>
             <Text style={styles.sectionTitle}>{t.selectLanguage}</Text>
             <View style={styles.languageRow}>
-              <TouchableOpacity 
-                style={[styles.langBtn, language === 'ID' && styles.langBtnActive]} 
+              <TouchableOpacity
+                style={[styles.langBtn, language === 'ID' && styles.langBtnActive]}
                 onPress={() => toggleLanguage('ID')}
               >
                 <Text style={[styles.langBtnText, language === 'ID' && styles.langBtnTextActive]}>🇮🇩 Indonesia</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.langBtn, language === 'EN' && styles.langBtnActive]} 
+              <TouchableOpacity
+                style={[styles.langBtn, language === 'EN' && styles.langBtnActive]}
                 onPress={() => toggleLanguage('EN')}
               >
                 <Text style={[styles.langBtnText, language === 'EN' && styles.langBtnTextActive]}>🇬🇧 English</Text>
@@ -388,8 +390,8 @@ export default function ProfileScreen() {
 
         {/* Detail Profil Card */}
         <View style={styles.profileCard}>
-          <h3 style={styles.sectionTitle}>{t.accountPositionInfo}</h3>
-          
+          <Text style={styles.sectionTitle}>{t.accountPositionInfo}</Text>
+
           {isEditing ? (
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,6 +67,10 @@ const translations = {
 };
 
 export default function DashboardScreen() {
+  const { width } = useWindowDimensions();
+  const itemWidth = (width - 40 - 24) / 3; // 40 is paddingHorizontal (20 on each side), 24 is space for 2 column gaps (12 each)
+  const menuItemStyle = [styles.menuItem, { width: itemWidth }];
+
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [stats, setStats] = useState<any>(null);
@@ -106,7 +110,8 @@ export default function DashboardScreen() {
       if (profileRes.data?.status === 'Success') {
         setProfilePicture(profileRes.data.data.profile_picture);
       }
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.response?.status === 401) return;
       console.error("Dashboard API load error:", e);
     } finally {
       setLoading(false);
@@ -194,7 +199,7 @@ export default function DashboardScreen() {
         <Text style={styles.menuGridTitle}>{t.hrManagement}</Text>
         <View style={styles.menuGrid}>
           {role === 'Karyawan' ? (
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/profile')}>
+            <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/profile')}>
               <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
                 <Ionicons name="person" size={22} color="#7b3fe4" />
               </View>
@@ -202,42 +207,42 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           ) : (
             <>
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/roles')}>
+              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/roles')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
                   <Ionicons name="shield-checkmark" size={22} color="#7c3aed" />
                 </View>
                 <Text style={styles.menuItemLabel}>Roles</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/companies')}>
+              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/companies')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#eff6ff' }]}>
                   <Ionicons name="business" size={22} color="#3b82f6" />
                 </View>
                 <Text style={styles.menuItemLabel}>Companies</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/jobs')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
-                  <Ionicons name="briefcase" size={22} color="#7b3fe4" />
+              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/jobs')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdf4' }]}>
+                  <Ionicons name="briefcase" size={22} color="#10b981" />
                 </View>
                 <Text style={styles.menuItemLabel}>Jobs</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/positions')}>
+              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/positions')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fffbeb' }]}>
                   <Ionicons name="git-branch" size={22} color="#d97706" />
                 </View>
                 <Text style={styles.menuItemLabel}>Positions</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/users')}>
+              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/users')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fff1f2' }]}>
                   <Ionicons name="people" size={22} color="#f43f5e" />
                 </View>
                 <Text style={styles.menuItemLabel}>Users</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/profile')}>
+              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/profile')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdfa' }]}>
                   <Ionicons name="person" size={22} color="#0d9488" />
                 </View>
@@ -560,20 +565,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    rowGap: 16,
   },
   menuItem: {
-    width: '31%',
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#f3f4f6',
-    borderRadius: 20,
-    paddingVertical: 15,
+    borderColor: '#f1f5f9',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.01,
+    justifyContent: 'center',
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
     shadowRadius: 8,
-    elevation: 1,
+    elevation: 2,
   },
   menuIconContainer: {
     width: 44,
@@ -585,8 +592,9 @@ const styles = StyleSheet.create({
   },
   menuItemLabel: {
     fontSize: 11,
-    fontWeight: 'bold',
-    color: '#4b5563',
+    fontWeight: '600',
+    color: '#1e293b',
+    textAlign: 'center',
   },
   // Chart Card
   chartCard: {

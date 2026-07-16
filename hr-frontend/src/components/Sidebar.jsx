@@ -79,43 +79,41 @@ const Sidebar = () => {
 
       {/* Sidebar Container */}
       <div className={`fixed inset-y-0 left-0 bg-white w-64 border-r border-gray-100 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out z-10 flex flex-col justify-between`}>
-        <div>
-          {/* Logo Header */}
-          <div className="p-6 hidden md:block border-b border-gray-50">
-            <div className="flex items-center gap-3">
-              <div className="relative w-6 h-6 flex items-center justify-center">
-                <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] -translate-x-1.5"></div>
-                <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] translate-x-1"></div>
-              </div>
-              <span className="text-xl font-bold tracking-tight text-gray-900">Workwave</span>
+        {/* Logo Header */}
+        <div className="p-6 hidden md:block border-b border-gray-50">
+          <div className="flex items-center gap-3">
+            <div className="relative w-6 h-6 flex items-center justify-center">
+              <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] -translate-x-1.5"></div>
+              <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] translate-x-1"></div>
             </div>
-            <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{role}</p>
+            <span className="text-xl font-bold tracking-tight text-gray-900">Workwave</span>
           </div>
-          
-          {/* Menu Items */}
-          <nav className="mt-20 md:mt-6 px-4 space-y-1">
-            {menuItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
-                  isActive(item.path) 
-                    ? 'bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-semibold shadow-md shadow-blue-500/10' 
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                <span className={isActive(item.path) ? 'text-white' : 'text-gray-400'}>
-                  {item.icon}
-                </span>
-                {item.name}
-              </Link>
-            ))}
-          </nav>
+          <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{role}</p>
         </div>
         
+        {/* Menu Items */}
+        <nav className="mt-20 md:mt-6 px-4 space-y-1 flex-1 overflow-y-auto min-h-0">
+          {menuItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                isActive(item.path) 
+                  ? 'bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-semibold shadow-md shadow-blue-500/10' 
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              <span className={isActive(item.path) ? 'text-white' : 'text-gray-400'}>
+                {item.icon}
+              </span>
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+        
         {/* User Card & Log Out */}
-        <div className="p-4 border-t border-gray-50 bg-gray-50/50 m-4 rounded-xl">
+        <div className="p-4 border-t border-gray-50 bg-gray-50/50 m-4 rounded-xl flex-shrink-0">
           <div className="px-2 py-1.5 mb-2">
             <p className="text-sm font-semibold text-gray-800 truncate">{localStorage.getItem('name') || 'Guest'}</p>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider truncate">{role}</p>

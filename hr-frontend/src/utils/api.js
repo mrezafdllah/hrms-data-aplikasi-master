@@ -1,6 +1,9 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const apiFetch = async (url, options = {}) => {
+  // Update last active time to reset inactivity timer
+  localStorage.setItem('lastActiveTime', Date.now().toString());
+
   const token = localStorage.getItem('token');
   const headers = {};
   if (!(options.body instanceof FormData)) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
@@ -30,6 +30,60 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
+
+  // Inactivity timeout handler
+  useEffect(() => {
+    const checkSession = () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const lastActive = localStorage.getItem('lastActiveTime');
+      const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+      if (lastActive) {
+        const timeDiff = Date.now() - parseInt(lastActive, 10);
+        if (timeDiff > INACTIVITY_TIMEOUT) {
+          // Clear session
+          localStorage.removeItem('token');
+          localStorage.removeItem('role');
+          localStorage.removeItem('name');
+          localStorage.removeItem('profile_picture');
+          localStorage.removeItem('lastActiveTime');
+          window.location.href = '/login';
+          return;
+        }
+      }
+    };
+
+    // Run check immediately on mount/navigation
+    checkSession();
+
+    // Reset inactivity timestamp on user interactions
+    const resetTimer = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        localStorage.setItem('lastActiveTime', Date.now().toString());
+      }
+    };
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    // Check every 10 seconds
+    const intervalId = setInterval(checkSession, 10000);
+
+    // Initialize timer
+    resetTimer();
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+      clearInterval(intervalId);
+    };
+  }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen bg-gray-50">

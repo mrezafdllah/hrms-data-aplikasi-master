@@ -140,6 +140,7 @@ export default function TasksScreen() {
         setLoading(false);
       })
       .catch(err => {
+        if (err?.response?.status === 401) return;
         console.error('Fetch tasks error:', err);
         setLoading(false);
       });
@@ -150,7 +151,10 @@ export default function TasksScreen() {
       .then(res => {
         if (res.data?.status === 'Success') setUsers(res.data.data);
       })
-      .catch(err => console.error('Fetch users error:', err));
+      .catch(err => {
+        if (err?.response?.status === 401) return;
+        console.error('Fetch users error:', err);
+      });
   }, []);
 
   useEffect(() => {
