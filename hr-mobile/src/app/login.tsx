@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../utils/api';
 
 export default function LoginScreen() {
   const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [secureEntry, setSecureEntry] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -127,14 +129,26 @@ export default function LoginScreen() {
 
         <View style={styles.formGroup}>
           <Text style={styles.inputLabel}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#9ca3af"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="••••••••"
+              placeholderTextColor="#9ca3af"
+              secureTextEntry={secureEntry}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity 
+              style={styles.eyeButton} 
+              onPress={() => setSecureEntry(!secureEntry)}
+            >
+              <Ionicons 
+                name={secureEntry ? "eye-off-outline" : "eye-outline"} 
+                size={20} 
+                color="#6b7280" 
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Login Button */}
@@ -317,6 +331,26 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     marginBottom: 20,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#1f2937',
+  },
+  eyeButton: {
+    paddingLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inputLabel: {
     fontSize: 12,
