@@ -1,6 +1,6 @@
 import { apiFetch, API_BASE_URL } from '../utils/api';
 import React, { useState, useEffect } from 'react';
-import { UserCircle, Camera, Check, X, Edit3 } from 'lucide-react';
+import { UserCircle, Camera, Check, X, Edit3, AlertTriangle } from 'lucide-react';
 
 const translations = {
   ID: {
@@ -79,6 +79,43 @@ const Profile = () => {
     };
   }, []);
 
+  const [alertModal, setAlertModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: 'error'
+  });
+
+  const showAlert = (title, message, type = 'error') => {
+    setAlertModal({
+      show: true,
+      title,
+      message,
+      type
+    });
+  };
+
+  const formatErrorDetail = (detail) => {
+    if (!detail) return 'Terjadi kesalahan pada data';
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      return detail.map(err => {
+        const field = err.loc && err.loc.length > 1 ? err.loc[1] : '';
+        const fieldName = {
+          full_name: 'Nama Lengkap',
+          email: 'Email',
+          birth_place: 'Tempat Lahir',
+          birth_date: 'Tanggal Lahir',
+          address: 'Alamat',
+          position_id: 'Jabatan'
+        }[field] || field;
+
+        return `${fieldName ? fieldName + ': ' : ''}${err.msg}`;
+      }).join('\n');
+    }
+    return JSON.stringify(detail);
+  };
+
   const t = translations[language] || translations.ID;
 
   const [formData, setFormData] = useState({
@@ -155,13 +192,13 @@ const Profile = () => {
           fetchProfile();
           setTimeout(() => setMessage(''), 3000);
         } else {
-          alert(t.uploadFailed);
+          showAlert(language === 'ID' ? 'Gagal Unggah' : 'Upload Failed', t.uploadFailed, 'error');
         }
       })
       .catch(err => {
         setUploading(false);
         console.error(err);
-        alert(t.uploadFailed);
+        showAlert(language === 'ID' ? 'Gagal Unggah' : 'Upload Failed', t.uploadFailed, 'error');
       });
   };
 
@@ -179,7 +216,15 @@ const Profile = () => {
     const payload = { ...formData };
     if (!isAdmin) {
       delete payload.position_id;
+    } else {
+      payload.position_id = payload.position_id === "" ? null : parseInt(payload.position_id);
     }
+    
+    // Sanitize empty strings to null for strict schema types (like Optional[date] or Optional[int])
+    payload.birth_date = payload.birth_date === "" ? null : payload.birth_date;
+    payload.birth_place = payload.birth_place === "" ? null : payload.birth_place;
+    payload.address = payload.address === "" ? null : payload.address;
+    payload.profile_picture = payload.profile_picture === "" ? null : payload.profile_picture;
 
     apiFetch('/api/profile', {
       method: 'PUT',
@@ -188,17 +233,16 @@ const Profile = () => {
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") {
-          setMessage(t.successMsg);
+          showAlert(language === 'ID' ? 'Berhasil' : 'Success', t.successMsg, 'success');
           setIsEditing(false);
           fetchProfile();
-          setTimeout(() => setMessage(''), 3000);
         } else {
-          alert('Gagal memperbarui profil: ' + data.detail);
+          showAlert(language === 'ID' ? 'Gagal Perbarui' : 'Update Failed', formatErrorDetail(data.detail), 'error');
         }
       })
       .catch(err => {
         console.error(err);
-        alert('Terjadi kesalahan saat menyimpan');
+        showAlert(language === 'ID' ? 'Error' : 'Error', language === 'ID' ? 'Terjadi kesalahan saat menyimpan' : 'An error occurred while saving', 'error');
       });
   };
 
@@ -428,6 +472,40 @@ const Profile = () => {
           )}
         </div>
       </div>
+
+      {/* ====== CUSTOM ALERT MODAL ====== */}
+      {alertModal.show && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-100 flex flex-col items-center text-center space-y-4 animate-scale-up">
+            <div className={`p-3 rounded-full ${alertModal.type === 'success' ? 'bg-emerald-50 text-emerald-500' : 'bg-red-50 text-red-500'}`}>
+              {alertModal.type === 'success' ? (
+                <Check size={28} />
+              ) : (
+                <AlertTriangle size={28} />
+              )}
+            </div>
+            
+            <div className="space-y-1.5 w-full">
+              <h3 className="text-base font-extrabold text-gray-800">{alertModal.title}</h3>
+              <p className="text-xs text-gray-400 font-semibold leading-relaxed px-2 whitespace-pre-line">{alertModal.message}</p>
+            </div>
+            
+            <div className="w-full pt-2">
+              <button
+                type="button"
+                onClick={() => setAlertModal(prev => ({ ...prev, show: false }))}
+                className={`w-full text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition-colors cursor-pointer ${
+                  alertModal.type === 'success' 
+                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/10' 
+                    : 'bg-red-600 hover:bg-red-700 shadow-red-500/10'
+                }`}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
