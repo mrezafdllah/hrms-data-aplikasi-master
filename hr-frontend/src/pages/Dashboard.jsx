@@ -864,7 +864,7 @@ const Dashboard = () => {
                 <h4 className="text-xs font-bold text-gray-800 truncate w-full">{user.full_name}</h4>
                 <p className="text-[9px] text-gray-400 font-semibold truncate w-full mt-0.5">{user.position_name || '-'}</p>
                 <p style={{ display: 'none' }}>{user.id}</p>
-                <p className="text-[8px] text-gray-400 uppercase tracking-widest font-black mt-1.5">{user.company_name || 'Workwave'}</p>
+                <p className="text-[8px] text-gray-400 uppercase tracking-widest font-black mt-1.5">{user.company_name || 'CBN HRMS'}</p>
               </div>
             );
           })}

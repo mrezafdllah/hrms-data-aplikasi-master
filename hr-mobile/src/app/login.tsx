@@ -101,7 +101,7 @@ export default function LoginScreen() {
             <View style={[styles.smallSlash, styles.darkSlash, { transform: [{ rotate: '-30deg' }] }]} />
             <View style={[styles.smallSlash, styles.greenSlash, { transform: [{ rotate: '-30deg' }] }]} />
           </View>
-          <Text style={styles.logoText}>Workwave</Text>
+          <Text style={styles.logoText}>CBN HRMS</Text>
         </View>
 
         {/* Header */}

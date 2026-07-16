@@ -33,7 +33,7 @@ def init_admin():
     companies = [
         ("PT Cybers Blitz Nusantara", "Cyber 2 Tower Lt. 18, Jl. H.R. Rasuna Said, Jakarta Selatan", "021-5551234", "info@cybersblitz.com"),
         ("Blitz Digital Studio", "SCBD Lot 14, Jl. Jend. Sudirman, Jakarta Pusat", "021-5555678", "studio@blitzdigital.com"),
-        ("Workwave Tech", "Dago Bandung, Jl. Ir. H. Juanda No. 120, Bandung", "022-7778888", "contact@workwave.co")
+        ("CBN Tech", "Dago Bandung, Jl. Ir. H. Juanda No. 120, Bandung", "022-7778888", "contact@cbn.co")
     ]
     for company_name, address, phone, email in companies:
         cursor.execute("SELECT id FROM companies WHERE company_name = %s", (company_name,))

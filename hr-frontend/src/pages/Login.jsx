@@ -61,7 +61,7 @@ const Login = () => {
               <path d="M13 2L8 22H13L18 2H13Z" fill="#3a6bf6" />
             </svg>
           </div>
-          <span className="font-bold text-xl tracking-tight text-[#1e2022]">Workwave</span>
+          <span className="font-bold text-xl tracking-tight text-[#1e2022]">CBN HRMS</span>
         </div>
 
         {/* Onboarding Graphic */}
@@ -141,7 +141,7 @@ const Login = () => {
 
         {/* Footer text */}
         <div className="text-center text-xs text-gray-400 z-10">
-          © {new Date().getFullYear()} Workwave Systems. All rights reserved.
+          © {new Date().getFullYear()} PT Cybers Blitz Nusantara. All rights reserved.
         </div>
       </div>
 
@@ -154,7 +154,7 @@ const Login = () => {
               <path d="M6 2L1 22H6L11 2H6Z" fill="#7b3fe4" />
               <path d="M13 2L8 22H13L18 2H13Z" fill="#3a6bf6" />
             </svg>
-            <span className="font-bold text-xl tracking-tight text-[#1e2022]">Workwave</span>
+            <span className="font-bold text-xl tracking-tight text-[#1e2022]">CBN HRMS</span>
           </div>
 
           {/* Form Header */}
