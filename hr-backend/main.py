@@ -295,6 +295,7 @@ def update_my_profile(profile: ProfileUpdate, current_user: dict = Depends(get_c
         conn.close()
 
 @app.post("/api/upload-profile-picture")
+@app.post("/api/profile/upload-photo")
 def upload_profile_picture(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     try:
         file_extension = file.filename.split(".")[-1]
@@ -303,6 +304,17 @@ def upload_profile_picture(file: UploadFile = File(...), current_user: dict = De
         
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+            
+        # Update profile picture path in the database automatically
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE users SET profile_picture = %s WHERE id = %s;",
+            (f"/uploads/{file_name}", current_user['user_id'])
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
             
         return {"status": "Success", "file_path": f"/uploads/{file_name}"}
     except Exception as e:
