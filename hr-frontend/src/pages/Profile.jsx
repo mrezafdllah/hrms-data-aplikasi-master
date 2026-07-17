@@ -185,6 +185,32 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      showAlert(
+        language === 'ID' ? 'Format Tidak Didukung' : 'Unsupported Format',
+        language === 'ID' 
+          ? 'Format file tidak didukung. Gunakan JPG, JPEG, PNG, atau WEBP.' 
+          : 'File format not supported. Use JPG, JPEG, PNG, or WEBP.',
+        'error'
+      );
+      return;
+    }
+
+    // Validate file size (Max 2MB)
+    const maxSizeBytes = 2 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      showAlert(
+        language === 'ID' ? 'File Terlalu Besar' : 'File Too Large',
+        language === 'ID' 
+          ? 'Ukuran foto maksimal adalah 2MB.' 
+          : 'Maximum photo size is 2MB.',
+        'error'
+      );
+      return;
+    }
+
     const fileForm = new FormData();
     fileForm.append('file', file);
 
@@ -201,7 +227,7 @@ const Profile = () => {
           fetchProfile();
           setTimeout(() => setMessage(''), 3000);
         } else {
-          showAlert(language === 'ID' ? 'Gagal Unggah' : 'Upload Failed', t.uploadFailed, 'error');
+          showAlert(language === 'ID' ? 'Gagal Unggah' : 'Upload Failed', data.detail || t.uploadFailed, 'error');
         }
       })
       .catch(err => {
@@ -326,7 +352,7 @@ const Profile = () => {
               <span>{uploading ? t.uploading : t.changePhoto}</span>
               <input 
                 type="file" 
-                accept="image/*" 
+                accept="image/jpeg,image/png,image/webp" 
                 onChange={handleFileChange} 
                 className="hidden" 
                 disabled={uploading}

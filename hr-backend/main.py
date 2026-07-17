@@ -298,7 +298,25 @@ def update_my_profile(profile: ProfileUpdate, current_user: dict = Depends(get_c
 @app.post("/api/profile/upload-photo")
 def upload_profile_picture(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     try:
-        file_extension = file.filename.split(".")[-1]
+        # Validate file extension
+        file_extension = file.filename.split(".")[-1].lower()
+        if file_extension not in {"jpg", "jpeg", "png", "webp"}:
+            raise HTTPException(
+                status_code=400, 
+                detail="Format file tidak didukung. Gunakan JPG, JPEG, PNG, atau WEBP."
+            )
+            
+        # Validate file size (Max 2MB)
+        file.file.seek(0, 2)
+        file_size = file.file.tell()
+        file.file.seek(0)
+        
+        if file_size > 2 * 1024 * 1024:
+            raise HTTPException(
+                status_code=400, 
+                detail="Ukuran file terlalu besar. Maksimal 2MB."
+            )
+
         file_name = f"profile_{current_user['user_id']}.{file_extension}"
         file_path = os.path.join(UPLOAD_DIR, file_name)
         
@@ -317,6 +335,8 @@ def upload_profile_picture(file: UploadFile = File(...), current_user: dict = De
         conn.close()
             
         return {"status": "Success", "file_path": f"/uploads/{file_name}"}
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
