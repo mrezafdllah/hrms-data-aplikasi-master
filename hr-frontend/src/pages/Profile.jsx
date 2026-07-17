@@ -1,6 +1,7 @@
 import { apiFetch, API_BASE_URL } from '../utils/api';
 import React, { useState, useEffect } from 'react';
 import { UserCircle, Camera, Check, X, Edit3, AlertTriangle } from 'lucide-react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const translations = {
   ID: {
@@ -84,6 +85,14 @@ const Profile = () => {
     title: '',
     message: '',
     type: 'error'
+  });
+
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: 'update',
+    onConfirm: null
   });
 
   const showAlert = (title, message, type = 'error') => {
@@ -212,7 +221,18 @@ const Profile = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+    setConfirmModal({
+      show: true,
+      title: language === 'ID' ? 'Konfirmasi Perubahan' : 'Confirm Changes',
+      message: language === 'ID' 
+        ? 'Apakah Anda yakin ingin menyimpan perubahan profil Anda?' 
+        : 'Are you sure you want to save your profile changes?',
+      type: 'update',
+      onConfirm: () => executeSubmit()
+    });
+  };
+
+  const executeSubmit = () => {
     const payload = { ...formData };
     if (!isAdmin) {
       delete payload.position_id;
@@ -506,6 +526,16 @@ const Profile = () => {
           </div>
         </div>
       )}
+
+      {/* ====== CUSTOM CONFIRMATION MODAL ====== */}
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </div>
   );
 };

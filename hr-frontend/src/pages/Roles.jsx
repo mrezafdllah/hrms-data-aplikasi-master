@@ -1,5 +1,6 @@
 import { apiFetch } from '../utils/api';
 import React, { useState, useEffect } from 'react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Roles = () => {
   const [roles, setRoles] = useState([]);
@@ -7,6 +8,13 @@ const Roles = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ role_name: '', description: '' });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: 'update',
+    onConfirm: null
+  });
 
   const fetchRoles = () => {
     setLoading(true);
@@ -23,6 +31,18 @@ const Roles = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setConfirmModal({
+      show: true,
+      title: editingId ? 'Konfirmasi Edit Role' : 'Konfirmasi Tambah Role',
+      message: editingId
+        ? `Apakah Anda yakin ingin menyimpan perubahan data role "${formData.role_name}"?`
+        : `Apakah Anda yakin ingin menambahkan role baru "${formData.role_name}"?`,
+      type: editingId ? 'update' : 'create',
+      onConfirm: () => executeSubmit()
+    });
+  };
+
+  const executeSubmit = () => {
     const url = editingId 
       ? `/api/roles/${editingId}` 
       : '/api/roles';
@@ -46,10 +66,18 @@ const Roles = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Hapus role ini?")) {
-      apiFetch(`/api/roles/${id}`, { method: 'DELETE' })
-        .then(() => fetchRoles());
-    }
+    const role = roles.find(r => r.id === id);
+    const roleName = role ? role.role_name : '';
+    setConfirmModal({
+      show: true,
+      title: 'Konfirmasi Hapus Role',
+      message: `Apakah Anda yakin ingin menghapus role "${roleName}"?`,
+      type: 'delete',
+      onConfirm: () => {
+        apiFetch(`/api/roles/${id}`, { method: 'DELETE' })
+          .then(() => fetchRoles());
+      }
+    });
   };
 
   const openAddModal = () => {
@@ -124,6 +152,15 @@ const Roles = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </div>
   );
 };

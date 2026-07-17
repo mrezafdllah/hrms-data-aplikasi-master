@@ -1,5 +1,6 @@
 import { apiFetch } from '../utils/api';
 import React, { useState, useEffect } from 'react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Positions = () => {
   const [positions, setPositions] = useState([]);
@@ -8,6 +9,13 @@ const Positions = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ job_id: '', position_name: '', description: '' });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: 'update',
+    onConfirm: null
+  });
 
   const fetchPositions = () => {
     setLoading(true);
@@ -32,6 +40,18 @@ const Positions = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setConfirmModal({
+      show: true,
+      title: editingId ? 'Konfirmasi Edit Position' : 'Konfirmasi Tambah Position',
+      message: editingId
+        ? `Apakah Anda yakin ingin menyimpan perubahan data jabatan "${formData.position_name}"?`
+        : `Apakah Anda yakin ingin menambahkan jabatan baru "${formData.position_name}"?`,
+      type: editingId ? 'update' : 'create',
+      onConfirm: () => executeSubmit()
+    });
+  };
+
+  const executeSubmit = () => {
     const url = editingId 
       ? `/api/positions/${editingId}` 
       : '/api/positions';
@@ -60,10 +80,18 @@ const Positions = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Hapus position ini?")) {
-      apiFetch(`/api/positions/${id}`, { method: 'DELETE' })
-        .then(() => fetchPositions());
-    }
+    const pos = positions.find(p => p.id === id);
+    const posName = pos ? pos.position_name : '';
+    setConfirmModal({
+      show: true,
+      title: 'Konfirmasi Hapus Position',
+      message: `Apakah Anda yakin ingin menghapus jabatan "${posName}"?`,
+      type: 'delete',
+      onConfirm: () => {
+        apiFetch(`/api/positions/${id}`, { method: 'DELETE' })
+          .then(() => fetchPositions());
+      }
+    });
   };
 
   const openAddModal = () => {
@@ -150,6 +178,15 @@ const Positions = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </div>
   );
 };

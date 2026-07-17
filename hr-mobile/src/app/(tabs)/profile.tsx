@@ -181,6 +181,19 @@ export default function ProfileScreen() {
   };
 
   const handleSave = async () => {
+    Alert.alert(
+      language === 'ID' ? 'Konfirmasi Perubahan' : 'Confirm Changes',
+      language === 'ID' 
+        ? 'Apakah Anda yakin ingin menyimpan perubahan profil Anda?' 
+        : 'Are you sure you want to save your profile changes?',
+      [
+        { text: t.cancelBtn, style: 'cancel' },
+        { text: t.save, onPress: () => executeSave() }
+      ]
+    );
+  };
+
+  const executeSave = async () => {
     setSaving(true);
     try {
       const payload = {

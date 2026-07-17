@@ -34,6 +34,19 @@ export default function RolesScreen() {
       return;
     }
 
+    Alert.alert(
+      editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
+      editingId 
+        ? `Apakah Anda yakin ingin menyimpan perubahan data role "${formData.role_name}"?`
+        : `Apakah Anda yakin ingin menambahkan role baru "${formData.role_name}"?`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Simpan', onPress: () => executeSubmit() }
+      ]
+    );
+  };
+
+  const executeSubmit = async () => {
     try {
       if (editingId) {
         await api.put(`/roles/${editingId}`, formData);

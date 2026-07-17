@@ -38,6 +38,19 @@ export default function PositionsScreen() {
       return;
     }
 
+    Alert.alert(
+      editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
+      editingId 
+        ? `Apakah Anda yakin ingin menyimpan perubahan data jabatan "${formData.position_name}"?`
+        : `Apakah Anda yakin ingin menambahkan jabatan baru "${formData.position_name}"?`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Simpan', onPress: () => executeSubmit() }
+      ]
+    );
+  };
+
+  const executeSubmit = async () => {
     const payload = {
       ...formData,
       job_id: parseInt(formData.job_id)

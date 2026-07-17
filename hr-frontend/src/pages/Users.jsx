@@ -1,5 +1,6 @@
 import { apiFetch } from '../utils/api';
 import React, { useState, useEffect } from 'react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -12,6 +13,13 @@ const Users = () => {
   const [formData, setFormData] = useState({
     company_id: '', role_id: '', position_id: '',
     full_name: '', email: '', hashed_password: '', status: 'Active'
+  });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: 'update',
+    onConfirm: null
   });
 
   const fetchUsers = () => {
@@ -35,6 +43,18 @@ const Users = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setConfirmModal({
+      show: true,
+      title: editingId ? 'Konfirmasi Edit Karyawan' : 'Konfirmasi Tambah Karyawan',
+      message: editingId
+        ? `Apakah Anda yakin ingin menyimpan perubahan data karyawan "${formData.full_name}"?`
+        : `Apakah Anda yakin ingin menambahkan karyawan baru "${formData.full_name}"?`,
+      type: editingId ? 'update' : 'create',
+      onConfirm: () => executeSubmit()
+    });
+  };
+
+  const executeSubmit = () => {
     const url = editingId 
       ? `/api/users/${editingId}` 
       : '/api/users';
@@ -78,10 +98,18 @@ const Users = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Hapus user ini?")) {
-      apiFetch(`/api/users/${id}`, { method: 'DELETE' })
-        .then(() => fetchUsers());
-    }
+    const user = users.find(u => u.id === id);
+    const userName = user ? user.full_name : '';
+    setConfirmModal({
+      show: true,
+      title: 'Konfirmasi Hapus Karyawan',
+      message: `Apakah Anda yakin ingin menghapus karyawan "${userName}"?`,
+      type: 'delete',
+      onConfirm: () => {
+        apiFetch(`/api/users/${id}`, { method: 'DELETE' })
+          .then(() => fetchUsers());
+      }
+    });
   };
 
   const openAddModal = () => {
@@ -233,6 +261,15 @@ const Users = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </div>
   );
 };

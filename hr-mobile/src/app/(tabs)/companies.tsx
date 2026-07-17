@@ -34,6 +34,19 @@ export default function CompaniesScreen() {
       return;
     }
 
+    Alert.alert(
+      editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
+      editingId 
+        ? `Apakah Anda yakin ingin menyimpan perubahan data perusahaan "${formData.company_name}"?`
+        : `Apakah Anda yakin ingin menambahkan perusahaan baru "${formData.company_name}"?`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Simpan', onPress: () => executeSubmit() }
+      ]
+    );
+  };
+
+  const executeSubmit = async () => {
     try {
       if (editingId) {
         await api.put(`/companies/${editingId}`, formData);

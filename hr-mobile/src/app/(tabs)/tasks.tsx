@@ -233,6 +233,25 @@ export default function TasksScreen() {
       return;
     }
 
+    Alert.alert(
+      editingId 
+        ? (language === 'ID' ? 'Konfirmasi Edit Tugas' : 'Confirm Edit Task')
+        : (language === 'ID' ? 'Konfirmasi Tambah Tugas' : 'Confirm Add Task'),
+      editingId
+        ? (language === 'ID' 
+            ? `Apakah Anda yakin ingin menyimpan perubahan pada tugas "${formData.task_name}"?`
+            : `Are you sure you want to save changes to the task "${formData.task_name}"?`)
+        : (language === 'ID'
+            ? `Apakah Anda yakin ingin menambahkan tugas baru "${formData.task_name}"?`
+            : `Are you sure you want to add the new task "${formData.task_name}"?`),
+      [
+        { text: t.cancel, style: 'cancel' },
+        { text: t.save, onPress: () => executeSubmit() }
+      ]
+    );
+  };
+
+  const executeSubmit = () => {
     const url = editingId ? `/tasks/${editingId}` : '/tasks';
     const method = editingId ? 'put' : 'post';
     const payload = {

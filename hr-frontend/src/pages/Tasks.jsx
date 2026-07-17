@@ -2,6 +2,7 @@ import { apiFetch } from '../utils/api';
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { CheckCircle2, Clock, AlertCircle, Plus, Edit2, Trash2, Calendar, ClipboardList } from 'lucide-react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const COLORS = {
   'Pending': '#fbbf24',
@@ -86,6 +87,7 @@ const Tasks = () => {
     show: false,
     title: '',
     message: '',
+    type: 'update',
     onConfirm: null
   });
   
@@ -174,6 +176,7 @@ const Tasks = () => {
       message: language === 'ID' 
         ? 'Apakah Anda yakin ingin menghapus tugas ini? Tindakan ini tidak dapat dibatalkan.' 
         : 'Are you sure you want to delete this task? This action cannot be undone.',
+      type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/tasks/${id}`, {
           method: 'DELETE'
@@ -187,7 +190,6 @@ const Tasks = () => {
             }
           })
           .catch(err => console.error(err));
-        setConfirmModal(prev => ({ ...prev, show: false }));
       }
     });
   };
@@ -210,6 +212,24 @@ const Tasks = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setConfirmModal({
+      show: true,
+      title: editingId 
+        ? (language === 'ID' ? 'Konfirmasi Edit Tugas' : 'Confirm Edit Task')
+        : (language === 'ID' ? 'Konfirmasi Tambah Tugas' : 'Confirm Add Task'),
+      message: editingId
+        ? (language === 'ID' 
+            ? `Apakah Anda yakin ingin menyimpan perubahan pada tugas "${formData.task_name}"?`
+            : `Are you sure you want to save changes to the task "${formData.task_name}"?`)
+        : (language === 'ID'
+            ? `Apakah Anda yakin ingin menambahkan tugas baru "${formData.task_name}"?`
+            : `Are you sure you want to add the new task "${formData.task_name}"?`),
+      type: editingId ? 'update' : 'create',
+      onConfirm: () => executeSubmit()
+    });
+  };
+
+  const executeSubmit = () => {
     const url = editingId 
       ? `/api/tasks/${editingId}`
       : '/api/tasks';
@@ -518,38 +538,14 @@ const Tasks = () => {
           </div>
         </div>
       )}
-      {/* ====== CUSTOM CONFIRMATION MODAL ====== */}
-      {confirmModal.show && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-100 flex flex-col items-center text-center space-y-4 animate-scale-up">
-            <div className="p-3 bg-red-50 text-red-500 rounded-full">
-              <AlertTriangle size={28} />
-            </div>
-            
-            <div className="space-y-1.5 w-full">
-              <h3 className="text-base font-extrabold text-gray-800">{confirmModal.title}</h3>
-              <p className="text-xs text-gray-400 font-semibold leading-relaxed px-2">{confirmModal.message}</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2.5 w-full pt-2">
-              <button
-                type="button"
-                onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer"
-              >
-                {t.cancel || 'Batal'}
-              </button>
-              <button
-                type="button"
-                onClick={confirmModal.onConfirm}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-red-500/10 transition-colors cursor-pointer"
-              >
-                {language === 'ID' ? 'Hapus' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </div>
   );
 };

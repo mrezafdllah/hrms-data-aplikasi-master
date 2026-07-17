@@ -51,6 +51,19 @@ export default function UsersScreen() {
       return;
     }
 
+    Alert.alert(
+      editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
+      editingId 
+        ? `Apakah Anda yakin ingin menyimpan perubahan data karyawan "${formData.full_name}"?`
+        : `Apakah Anda yakin ingin menambahkan karyawan baru "${formData.full_name}"?`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Simpan', onPress: () => executeSubmit() }
+      ]
+    );
+  };
+
+  const executeSubmit = async () => {
     const payload = {
       ...formData,
       role_id: formData.role_id ? parseInt(formData.role_id) : null,

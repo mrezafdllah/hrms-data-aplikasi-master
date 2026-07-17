@@ -1,5 +1,6 @@
 import { apiFetch } from '../utils/api';
 import React, { useState, useEffect } from 'react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -8,6 +9,13 @@ const Jobs = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ company_id: '', job_name: '', description: '' });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: 'update',
+    onConfirm: null
+  });
 
   const fetchJobs = () => {
     setLoading(true);
@@ -32,6 +40,18 @@ const Jobs = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setConfirmModal({
+      show: true,
+      title: editingId ? 'Konfirmasi Edit Job' : 'Konfirmasi Tambah Job',
+      message: editingId
+        ? `Apakah Anda yakin ingin menyimpan perubahan data job "${formData.job_name}"?`
+        : `Apakah Anda yakin ingin menambahkan job baru "${formData.job_name}"?`,
+      type: editingId ? 'update' : 'create',
+      onConfirm: () => executeSubmit()
+    });
+  };
+
+  const executeSubmit = () => {
     const url = editingId 
       ? `/api/jobs/${editingId}` 
       : '/api/jobs';
@@ -60,10 +80,18 @@ const Jobs = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Hapus job ini? Semua position terkait akan ikut terhapus.")) {
-      apiFetch(`/api/jobs/${id}`, { method: 'DELETE' })
-        .then(() => fetchJobs());
-    }
+    const job = jobs.find(j => j.id === id);
+    const jobName = job ? job.job_name : '';
+    setConfirmModal({
+      show: true,
+      title: 'Konfirmasi Hapus Job',
+      message: `Apakah Anda yakin ingin menghapus job "${jobName}"?\nSemua position terkait akan ikut terhapus secara permanen.`,
+      type: 'delete',
+      onConfirm: () => {
+        apiFetch(`/api/jobs/${id}`, { method: 'DELETE' })
+          .then(() => fetchJobs());
+      }
+    });
   };
 
   const openAddModal = () => {
@@ -148,6 +176,15 @@ const Jobs = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </div>
   );
 };

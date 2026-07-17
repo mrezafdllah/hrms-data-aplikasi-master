@@ -1,5 +1,6 @@
 import { apiFetch } from '../utils/api';
 import React, { useState, useEffect } from 'react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Companies = () => {
   const [companies, setCompanies] = useState([]);
@@ -7,6 +8,13 @@ const Companies = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ company_name: '', address: '', phone: '', email: '' });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: 'update',
+    onConfirm: null
+  });
 
   const fetchCompanies = () => {
     setLoading(true);
@@ -23,6 +31,18 @@ const Companies = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setConfirmModal({
+      show: true,
+      title: editingId ? 'Konfirmasi Edit Company' : 'Konfirmasi Tambah Company',
+      message: editingId 
+        ? `Apakah Anda yakin ingin menyimpan perubahan data perusahaan "${formData.company_name}"?`
+        : `Apakah Anda yakin ingin menambahkan perusahaan baru "${formData.company_name}"?`,
+      type: editingId ? 'update' : 'create',
+      onConfirm: () => executeSubmit()
+    });
+  };
+
+  const executeSubmit = () => {
     const url = editingId 
       ? `/api/companies/${editingId}` 
       : '/api/companies';
@@ -51,10 +71,18 @@ const Companies = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Hapus company ini? Semua job dan position terkait akan ikut terhapus.")) {
-      apiFetch(`/api/companies/${id}`, { method: 'DELETE' })
-        .then(() => fetchCompanies());
-    }
+    const company = companies.find(c => c.id === id);
+    const companyName = company ? company.company_name : '';
+    setConfirmModal({
+      show: true,
+      title: 'Konfirmasi Hapus Company',
+      message: `Apakah Anda yakin ingin menghapus perusahaan "${companyName}"?\nSemua job dan position terkait akan ikut terhapus secara permanen.`,
+      type: 'delete',
+      onConfirm: () => {
+        apiFetch(`/api/companies/${id}`, { method: 'DELETE' })
+          .then(() => fetchCompanies());
+      }
+    });
   };
 
   const openAddModal = () => {
@@ -143,6 +171,15 @@ const Companies = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </div>
   );
 };
