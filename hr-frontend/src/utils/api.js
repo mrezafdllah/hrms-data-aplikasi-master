@@ -18,9 +18,10 @@ export const apiFetch = async (url, options = {}) => {
   }
   
   // Prepend API_BASE_URL if url is relative (doesn't start with http/https)
+  const cleanBaseUrl = API_BASE_URL.replace(/\/+$/, '');
   const cleanUrl = url.startsWith('http') 
     ? url 
-    : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    : `${cleanBaseUrl}/${url.replace(/^\/+/, '')}`;
   
   const response = await fetch(cleanUrl, { ...options, headers });
   
