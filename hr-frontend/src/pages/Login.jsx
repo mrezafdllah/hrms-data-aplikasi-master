@@ -15,7 +15,8 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/login`, {
+      const cleanBaseUrl = API_BASE_URL.replace(/\/+$/, '');
+      const response = await fetch(`${cleanBaseUrl}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
