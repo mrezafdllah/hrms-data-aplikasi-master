@@ -37,6 +37,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/api/health")
+def health_check():
+    try:
+        from db_helper import get_db_connection as connect_db
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'users';")
+        columns = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+        return {
+            "status": "Success",
+            "database": "Connected",
+            "users_columns": columns
+        }
+    except Exception as e:
+        return {
+            "status": "Error",
+            "database": str(e)
+        }
+
 def get_db_connection():
     try:
         from db_helper import get_db_connection as connect_db
