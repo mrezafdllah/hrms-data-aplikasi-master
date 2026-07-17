@@ -18,6 +18,22 @@ def alter_db():
         cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT;")
         cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255);")
         print("Kolom profil baru berhasil ditambahkan jika belum ada.")
+
+        # Rename password column to hashed_password in users table
+        cursor.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='password') THEN
+                ALTER TABLE users RENAME COLUMN password TO hashed_password;
+            END IF;
+        END $$;
+        """)
+        print("Kolom password berhasil diubah namanya menjadi hashed_password jika kolom lama ada.")
+
+        # Add columns to companies table for soft delete
+        cursor.execute("ALTER TABLE companies ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES users(id) ON DELETE SET NULL;")
+        cursor.execute("ALTER TABLE companies ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;")
+        print("Kolom soft delete berhasil ditambahkan ke tabel companies jika belum ada.")
         
         # Create tasks table
         cursor.execute("""

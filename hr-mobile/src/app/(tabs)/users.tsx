@@ -19,7 +19,7 @@ export default function UsersScreen() {
     position_id: '',
     full_name: '',
     email: '',
-    password: '',
+    hashed_password: '',
     status: 'Active'
   });
 
@@ -46,7 +46,7 @@ export default function UsersScreen() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!formData.full_name || !formData.email || (!editingId && !formData.password)) {
+    if (!formData.full_name || !formData.email || (!editingId && !formData.hashed_password)) {
       Alert.alert('Peringatan', 'Nama, Email, dan Password wajib diisi.');
       return;
     }
@@ -58,7 +58,7 @@ export default function UsersScreen() {
     };
 
     if (editingId) {
-      delete (payload as any).password;
+      delete (payload as any).hashed_password;
     }
 
     try {
@@ -71,7 +71,7 @@ export default function UsersScreen() {
       }
       setModalVisible(false);
       setEditingId(null);
-      setFormData({ role_id: '', position_id: '', full_name: '', email: '', password: '', status: 'Active' });
+      setFormData({ role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
       fetchData();
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Gagal menyimpan data.');
@@ -84,7 +84,7 @@ export default function UsersScreen() {
       position_id: user.position_id ? user.position_id.toString() : '',
       full_name: user.full_name,
       email: user.email,
-      password: '',
+      hashed_password: '',
       status: user.status
     });
     setEditingId(user.id);
@@ -111,7 +111,7 @@ export default function UsersScreen() {
   };
 
   const openAddModal = () => {
-    setFormData({ role_id: '', position_id: '', full_name: '', email: '', password: '', status: 'Active' });
+    setFormData({ role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
     setEditingId(null);
     setModalVisible(true);
   };
@@ -237,8 +237,8 @@ export default function UsersScreen() {
                   <Text style={styles.label}>Password</Text>
                   <TextInput
                     style={styles.input}
-                    value={formData.password}
-                    onChangeText={(text) => setFormData({ ...formData, password: text })}
+                    value={formData.hashed_password}
+                    onChangeText={(text) => setFormData({ ...formData, hashed_password: text })}
                     placeholder="Minimal 6 karakter"
                     placeholderTextColor="#9ca3af"
                     secureTextEntry

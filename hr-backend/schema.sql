@@ -21,7 +21,9 @@ CREATE TABLE companies (
     phone VARCHAR(20),
     email VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    deleted_at TIMESTAMP
 );
 
 -- 3. TABEL JOBS
@@ -51,7 +53,7 @@ CREATE TABLE users (
     position_id INTEGER REFERENCES positions(id) ON DELETE SET NULL,
     full_name VARCHAR(150) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'Active',
     birth_place VARCHAR(150),
     birth_date DATE,

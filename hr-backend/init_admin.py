@@ -129,13 +129,13 @@ def init_admin():
         hashed_pwd = get_password_hash(pwd)
         if not existing:
             cursor.execute(
-                """INSERT INTO users (role_id, position_id, full_name, email, password, status) 
+                """INSERT INTO users (role_id, position_id, full_name, email, hashed_password, status) 
                    VALUES (%s, %s, %s, %s, %s, %s);""",
                 (role_id, pos_id, name, email, hashed_pwd, "Active")
             )
         else:
             cursor.execute(
-                """UPDATE users SET role_id = %s, position_id = %s, full_name = %s, password = %s, status = 'Active' 
+                """UPDATE users SET role_id = %s, position_id = %s, full_name = %s, hashed_password = %s, status = 'Active' 
                    WHERE email = %s;""",
                 (role_id, pos_id, name, hashed_pwd, email)
             )

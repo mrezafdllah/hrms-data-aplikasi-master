@@ -98,7 +98,7 @@ class UserCreate(BaseModel):
     position_id: Optional[int] = None
     full_name: str
     email: str
-    password: str
+    hashed_password: str
     status: str = "Active"
     birth_place: Optional[str] = None
     birth_date: Optional[date] = None
@@ -196,7 +196,7 @@ def login(req: LoginRequest):
             WHERE u.email = %s;
         """, (req.email,))
         user = cursor.fetchone()
-        if not user or not verify_password(req.password, user['password']):
+        if not user or not verify_password(req.password, user['hashed_password']):
             raise HTTPException(status_code=401, detail="Email atau password salah")
             
         role_name = user.get('role_name') or 'Karyawan'
@@ -232,7 +232,7 @@ def get_my_profile(current_user: dict = Depends(get_current_user)):
             LEFT JOIN roles r ON u.role_id = r.id 
             LEFT JOIN positions p ON u.position_id = p.id 
             LEFT JOIN jobs j ON p.job_id = j.id
-            LEFT JOIN companies c ON j.company_id = c.id
+            LEFT JOIN companies c ON j.company_id = c.id AND c.deleted_at IS NULL
             WHERE u.email = %s;
         """, (current_user['email'],))
         profile = cursor.fetchone()
@@ -296,7 +296,7 @@ def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         cursor.execute("SELECT COUNT(*) FROM users;")
         total_users = cursor.fetchone()['count']
         
-        cursor.execute("SELECT COUNT(*) FROM companies;")
+        cursor.execute("SELECT COUNT(*) FROM companies WHERE deleted_at IS NULL;")
         total_companies = cursor.fetchone()['count']
         
         cursor.execute("SELECT COUNT(*) FROM positions;")
@@ -426,7 +426,7 @@ def get_all_companies(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("SELECT * FROM companies ORDER BY id DESC;")
+        cursor.execute("SELECT * FROM companies WHERE deleted_at IS NULL ORDER BY id DESC;")
         companies = cursor.fetchall()
         return {"status": "Success", "data": companies}
     except Exception as e:
@@ -476,7 +476,12 @@ def delete_company(id: int, current_user: dict = Depends(require_admin_hr_or_sup
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM companies WHERE id = %s;", (id,))
+        cursor.execute("""
+            UPDATE companies 
+            SET deleted_at = CURRENT_TIMESTAMP, 
+                deleted_by = %s 
+            WHERE id = %s;
+        """, (current_user['user_id'], id))
         conn.commit()
         return {"status": "Success", "message": "Company berhasil dihapus"}
     except Exception as e:
@@ -496,6 +501,7 @@ def get_all_jobs(current_user: dict = Depends(get_current_user)):
             SELECT j.*, c.company_name 
             FROM jobs j 
             LEFT JOIN companies c ON j.company_id = c.id 
+            WHERE c.id IS NULL OR c.deleted_at IS NULL
             ORDER BY j.id DESC;
         """)
         jobs = cursor.fetchall()
@@ -568,6 +574,7 @@ def get_all_positions(current_user: dict = Depends(get_current_user)):
             FROM positions p 
             LEFT JOIN jobs j ON p.job_id = j.id 
             LEFT JOIN companies c ON j.company_id = c.id 
+            WHERE c.id IS NULL OR c.deleted_at IS NULL
             ORDER BY p.id DESC;
         """)
         positions = cursor.fetchall()
@@ -644,7 +651,7 @@ def get_all_users(current_user: dict = Depends(require_admin_hr_or_super)):
             LEFT JOIN roles r ON u.role_id = r.id 
             LEFT JOIN positions p ON u.position_id = p.id 
             LEFT JOIN jobs j ON p.job_id = j.id
-            LEFT JOIN companies c ON j.company_id = c.id
+            LEFT JOIN companies c ON j.company_id = c.id AND c.deleted_at IS NULL
             ORDER BY u.id DESC;
         """)
         users = cursor.fetchall()
@@ -674,9 +681,9 @@ def add_user(user: UserCreate, current_user: dict = Depends(require_admin_hr_or_
                 if user.company_id and user.company_id != pos_company_id:
                     raise HTTPException(status_code=400, detail="Posisi yang dipilih tidak sesuai dengan Perusahaan yang dipilih")
 
-        hashed_pwd = get_password_hash(user.password)
+        hashed_pwd = get_password_hash(user.hashed_password)
         cursor.execute(
-            """INSERT INTO users (role_id, position_id, full_name, email, password, status, birth_place, birth_date, address, profile_picture) 
+            """INSERT INTO users (role_id, position_id, full_name, email, hashed_password, status, birth_place, birth_date, address, profile_picture) 
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;""",
             (user.role_id, user.position_id, user.full_name, user.email, hashed_pwd, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture)
         )

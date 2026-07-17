@@ -11,7 +11,7 @@ const Users = () => {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     company_id: '', role_id: '', position_id: '',
-    full_name: '', email: '', password: '', status: 'Active'
+    full_name: '', email: '', hashed_password: '', status: 'Active'
   });
 
   const fetchUsers = () => {
@@ -49,7 +49,7 @@ const Users = () => {
     
     // Remove password from update payload
     if (editingId) {
-      delete payload.password;
+      delete payload.hashed_password;
     }
 
     apiFetch(url, {
@@ -70,7 +70,7 @@ const Users = () => {
       position_id: user.position_id || '',
       full_name: user.full_name,
       email: user.email,
-      password: '',
+      hashed_password: '',
       status: user.status
     });
     setEditingId(user.id);
@@ -87,7 +87,7 @@ const Users = () => {
   const openAddModal = () => {
     setFormData({
       company_id: '', role_id: '', position_id: '',
-      full_name: '', email: '', password: '', status: 'Active'
+      full_name: '', email: '', hashed_password: '', status: 'Active'
     });
     setEditingId(null);
     setShowModal(true);
@@ -179,7 +179,7 @@ const Users = () => {
                 <div>
                   <label className="block mb-1.5">Password</label>
                   <input type="password" placeholder="Password" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
-                    value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                    value={formData.hashed_password} onChange={e => setFormData({...formData, hashed_password: e.target.value})} />
                 </div>
               )}
               <div>
