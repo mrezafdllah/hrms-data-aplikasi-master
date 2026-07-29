@@ -216,6 +216,7 @@ const Profile = () => {
     const payload = { ...formData };
     if (!isAdmin) {
       delete payload.position_id;
+      delete payload.employee_id;
     } else {
       payload.position_id = payload.position_id === "" ? null : parseInt(payload.position_id);
     }
@@ -338,14 +339,25 @@ const Profile = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{t.employeeId}</label>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">{t.employeeId}</label>
+                    {!isAdmin && (
+                      <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">Permanen</span>
+                    )}
+                  </div>
                   <input
                     type="text"
                     name="employee_id"
                     value={formData.employee_id}
                     onChange={handleChange}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                    disabled={!isAdmin}
+                    className={`w-full border rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
+                      !isAdmin 
+                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed select-none' 
+                        : 'bg-gray-50 border-gray-100 text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white'
+                    }`}
                     placeholder="EMP-001"
+                    title={!isAdmin ? "ID Karyawan hanya dapat diubah oleh Admin / Super Admin" : "Masukkan ID Karyawan"}
                   />
                 </div>
                 <div>

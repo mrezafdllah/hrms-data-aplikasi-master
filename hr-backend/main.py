@@ -276,18 +276,19 @@ def update_my_profile(profile: ProfileUpdate, current_user: dict = Depends(get_c
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        if current_user['role'] in ['Super Admin', 'Admin HR'] and profile.position_id is not None:
+        is_admin = current_user['role'] in ['Super Admin', 'Admin HR']
+        if is_admin:
             cursor.execute("""
                 UPDATE users 
-                SET employee_id = COALESCE(%s, employee_id), full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, position_id = %s, updated_at = CURRENT_TIMESTAMP
+                SET employee_id = COALESCE(%s, employee_id), full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, position_id = COALESCE(%s, position_id), updated_at = CURRENT_TIMESTAMP
                 WHERE email = %s;
             """, (profile.employee_id, profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, profile.position_id, current_user['email']))
         else:
             cursor.execute("""
                 UPDATE users 
-                SET employee_id = COALESCE(%s, employee_id), full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, updated_at = CURRENT_TIMESTAMP
+                SET full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE email = %s;
-            """, (profile.employee_id, profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, current_user['email']))
+            """, (profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, current_user['email']))
         conn.commit()
         return {"status": "Success", "message": "Profil berhasil diperbarui"}
     except Exception as e:
