@@ -1,7 +1,6 @@
 import { apiFetch, API_BASE_URL } from '../utils/api';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Bell, ChevronDown, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlertTriangle, ArrowRight, CheckCircle2, ClipboardList, AlertCircle, Plus, Edit2, Trash2, X, Check } from 'lucide-react';
 
 const AVATAR_COLORS = [
@@ -14,117 +13,60 @@ const AVATAR_COLORS = [
   'from-sky-400 to-blue-600'
 ];
 
-const translations = {
-  ID: {
-    overview: "Berikut ringkasan aktivitas Anda hari ini",
-    employee: "Karyawan",
-    active: "Aktif",
-    inactive: "Nonaktif",
-    companies: "Perusahaan",
-    registered: "Terdaftar",
-    totalEntities: "Total Entitas",
-    status: "Status",
-    positionsJobs: "Jabatan & Pekerjaan",
-    available: "Tersedia",
-    positions: "Jabatan",
-    jobs: "Pekerjaan",
-    distributionChart: "Grafik Distribusi Karyawan",
-    dailyTasks: "Status Tugas Harian",
-    taskStatsDesc: "Statistik penyelesaian tugas karyawan",
-    viewAllTasks: "Lihat Semua Tugas",
-    pending: "Tertunda",
-    inProgress: "Sedang Berjalan",
-    completed: "Selesai",
-    noTasksToday: "Belum ada tugas hari ini.",
-    scheduleForDate: "Jadwal Tanggal",
-    events: "Kegiatan",
-    noSchedules: "Tidak ada jadwal pada tanggal ini.",
-    noticeboard: "Noticeboard",
-    addNotice: "Tambah Pengumuman",
-    viewAllNotices: "Lihat Semua Pengumuman",
-    subject: "Subjek",
-    description: "Deskripsi",
-    startDate: "Tanggal Mulai",
-    endDate: "Tanggal Selesai",
-    priority: "Prioritas",
-    audience: "Audiens",
-    noNotices: "Belum ada pengumuman hari ini.",
-    addNoticeTitle: "Tambah Pengumuman Baru",
-    editNoticeTitle: "Edit Pengumuman",
-    subjectLabel: "Subject / Judul",
-    descLabel: "Deskripsi / Isi Pengumuman",
-    cancel: "Batal",
-    save: "Simpan",
-    assignedEmployee: "Karyawan Yang Ditugaskan",
-    activityName: "Nama Kegiatan / Judul",
-    activityDesc: "Deskripsi Kegiatan",
-    date: "Tanggal",
-    startTime: "Jam Mulai",
-    endTime: "Jam Selesai",
-    addScheduleTitle: "Tambah Jadwal Baru",
-    editScheduleTitle: "Edit Jadwal Kerja",
-    notifications: "Notifikasi",
-    noNotifications: "Tidak ada notifikasi baru hari ini.",
-    actionNeeded: "Action needed",
-    actionNeededDesc: "Tugas pending memerlukan perhatian Anda",
-    viewAllActions: "View all actions",
-    weekdays: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
-  },
-  EN: {
-    overview: "Here Is Your Overview For Today",
-    employee: "Employee",
-    active: "Active",
-    inactive: "Inactive",
-    companies: "Companies",
-    registered: "Registered",
-    totalEntities: "Total Entities",
-    status: "Status",
-    positionsJobs: "Positions & Jobs",
-    available: "Available",
-    positions: "Positions",
-    jobs: "Jobs",
-    distributionChart: "Employee Distribution Chart",
-    dailyTasks: "Daily Task Status",
-    taskStatsDesc: "Employee task completion statistics",
-    viewAllTasks: "View All Tasks",
-    pending: "Pending",
-    inProgress: "In Progress",
-    completed: "Completed",
-    noTasksToday: "No tasks today.",
-    scheduleForDate: "Schedule for Date",
-    events: "Events",
-    noSchedules: "No schedules on this date.",
-    noticeboard: "Noticeboard",
-    addNotice: "Add Announcement",
-    viewAllNotices: "View All Notices",
-    subject: "Subject",
-    description: "Description",
-    startDate: "Start Date",
-    endDate: "End Date",
-    priority: "Priority",
-    audience: "Audience",
-    noNotices: "No announcements today.",
-    addNoticeTitle: "Add New Announcement",
-    editNoticeTitle: "Edit Announcement",
-    subjectLabel: "Subject / Title",
-    descLabel: "Description / Announcement Content",
-    cancel: "Cancel",
-    save: "Save",
-    assignedEmployee: "Assigned Employee",
-    activityName: "Activity Name / Title",
-    activityDesc: "Activity Description",
-    date: "Date",
-    startTime: "Start Time",
-    endTime: "End Time",
-    addScheduleTitle: "Add New Schedule",
-    editScheduleTitle: "Edit Work Schedule",
-    notifications: "Notifications",
-    noNotifications: "No new notifications today.",
-    actionNeeded: "Action needed",
-    actionNeededDesc: "Pending tasks need your attention",
-    viewAllActions: "View all actions",
-    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  }
+const t = {
+  overview: "Berikut ringkasan aktivitas Anda hari ini",
+  employee: "Karyawan",
+  active: "Aktif",
+  inactive: "Nonaktif",
+  companies: "Perusahaan",
+  registered: "Terdaftar",
+  totalEntities: "Total Entitas",
+  status: "Status",
+  positionsJobs: "Jabatan & Pekerjaan",
+  available: "Tersedia",
+  positions: "Jabatan",
+  jobs: "Pekerjaan",
+  distributionChart: "Grafik Distribusi Karyawan",
+  dailyTasks: "Status Tugas Harian",
+  taskStatsDesc: "Statistik penyelesaian tugas karyawan",
+  viewAllTasks: "Lihat Semua Tugas",
+  pending: "Tertunda",
+  inProgress: "Sedang Berjalan",
+  completed: "Selesai",
+  noTasksToday: "Belum ada tugas hari ini.",
+  scheduleForDate: "Jadwal Tanggal",
+  events: "Kegiatan",
+  noSchedules: "Tidak ada jadwal pada tanggal ini.",
+  noticeboard: "Papan Pengumuman",
+  addNotice: "Tambah Pengumuman",
+  viewAllNotices: "Lihat Semua Pengumuman",
+  subject: "Subjek",
+  description: "Deskripsi",
+  startDate: "Tanggal Mulai",
+  endDate: "Tanggal Selesai",
+  priority: "Prioritas",
+  audience: "Audiens",
+  noNotices: "Belum ada pengumuman hari ini.",
+  addNoticeTitle: "Tambah Pengumuman Baru",
+  editNoticeTitle: "Edit Pengumuman",
+  subjectLabel: "Subject / Judul",
+  descLabel: "Deskripsi / Isi Pengumuman",
+  cancel: "Batal",
+  save: "Simpan",
+  assignedEmployee: "Karyawan Yang Ditugaskan",
+  activityName: "Nama Kegiatan / Judul",
+  activityDesc: "Deskripsi Kegiatan",
+  date: "Tanggal",
+  startTime: "Jam Mulai",
+  endTime: "Jam Selesai",
+  addScheduleTitle: "Tambah Jadwal Baru",
+  editScheduleTitle: "Edit Jadwal Kerja",
+  notifications: "Notifikasi",
+  noNotifications: "Tidak ada notifikasi baru hari ini.",
+  actionNeeded: "Perlu Tindakan",
+  actionNeededDesc: "Tugas pending memerlukan perhatian Anda",
+  viewAllActions: "Lihat Semua Tindakan",
+  weekdays: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
 };
 
 const Dashboard = () => {
@@ -139,8 +81,6 @@ const Dashboard = () => {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
   // Header state
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'ID');
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   
   // Schedule Modal State
@@ -176,22 +116,18 @@ const Dashboard = () => {
   const name = localStorage.getItem('name') || 'Administrator';
   const role = localStorage.getItem('role');
   const isAdmin = role === 'Super Admin' || role === 'Admin HR';
-  
-  const t = translations[language] || translations.ID;
 
   const fetchData = () => {
     Promise.all([
       apiFetch('/api/dashboard-stats').then(res => res.json()),
       apiFetch('/api/users').then(res => res.json()),
       apiFetch('/api/schedules').then(res => res.json()),
-      apiFetch('/api/notices').then(res => res.json()),
       apiFetch('/api/profile').then(res => res.json())
     ])
-      .then(([statsData, usersData, schedulesData, noticesData, profileData]) => {
+      .then(([statsData, usersData, schedulesData, profileData]) => {
         if (statsData.status === "Success") setStats(statsData.data);
         if (usersData.status === "Success") setUsers(usersData.data);
         if (schedulesData.status === "Success") setSchedules(schedulesData.data);
-        if (noticesData.status === "Success") setNotices(noticesData.data);
         if (profileData.status === "Success") {
           setMyProfile(profileData.data);
           localStorage.setItem('profile_picture', profileData.data.profile_picture || '');
@@ -246,6 +182,9 @@ const Dashboard = () => {
     return days;
   };
 
+  const monthName = calendarMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  const daysGrid = getDaysInMonth(calendarMonth);
+
   const handlePrevMonth = () => {
     setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1));
   };
@@ -287,10 +226,8 @@ const Dashboard = () => {
   const handleDeleteSchedule = (id) => {
     setConfirmModal({
       show: true,
-      title: language === 'ID' ? 'Hapus Jadwal' : 'Delete Schedule',
-      message: language === 'ID' 
-        ? 'Apakah Anda yakin ingin menghapus jadwal ini? Tindakan ini tidak dapat dibatalkan.' 
-        : 'Are you sure you want to delete this schedule? This action cannot be undone.',
+      title: 'Hapus Jadwal',
+      message: 'Apakah Anda yakin ingin menghapus jadwal ini? Tindakan ini tidak dapat dibatalkan.',
       onConfirm: () => {
         apiFetch(`/api/schedules/${id}`, {
           method: 'DELETE'
@@ -367,10 +304,8 @@ const Dashboard = () => {
   const handleDeleteNotice = (id) => {
     setConfirmModal({
       show: true,
-      title: language === 'ID' ? 'Hapus Pengumuman' : 'Delete Announcement',
-      message: language === 'ID' 
-        ? 'Apakah Anda yakin ingin menghapus pengumuman ini? Tindakan ini tidak dapat dibatalkan.' 
-        : 'Are you sure you want to delete this announcement? This action cannot be undone.',
+      title: 'Hapus Pengumuman',
+      message: 'Apakah Anda yakin ingin menghapus pengumuman ini? Tindakan ini tidak dapat dibatalkan.',
       onConfirm: () => {
         apiFetch(`/api/notices/${id}`, {
           method: 'DELETE'
@@ -412,79 +347,29 @@ const Dashboard = () => {
       .catch(err => console.error(err));
   };
 
-  const daysGrid = getDaysInMonth(calendarMonth);
-  const monthName = calendarMonth.toLocaleString(language === 'ID' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' });
-
-  // Get real tasks stats
-  const pendingCount = parseInt(stats.taskStats?.find(t => t.name === 'Pending')?.value || 0) +
-                       parseInt(stats.taskStats?.find(t => t.name === 'In Progress')?.value || 0);
-
   return (
     <div className="space-y-6 pb-12 bg-[#fcfdff] min-h-screen">
       {/* 1. TOP HEADER PANEL */}
       <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-50">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">
-            {language === 'ID' ? `Halo ${name.split(' ')[0]}!` : `Hi ${name.split(' ')[0]}!`}
+            Halo {name.split(' ')[0]}!
           </h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">
             {t.overview}
           </p>
         </div>
         <div className="flex items-center gap-4">
-          {/* Active Language Selector */}
-          <div className="relative">
-            <div 
-              onClick={() => {
-                setShowLanguageDropdown(!showLanguageDropdown);
-                setShowNotificationDropdown(false);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-sm font-semibold text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
-            >
-              <span>🌐</span>
-              <span>{language}</span>
-              <ChevronDown size={14} className="text-gray-400" />
-            </div>
-            
-            {showLanguageDropdown && (
-              <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden py-1">
-                <button 
-                  onClick={() => {
-                    setLanguage('ID');
-                    localStorage.setItem('language', 'ID');
-                    window.dispatchEvent(new Event('languageChange'));
-                    setShowLanguageDropdown(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 text-xs font-bold hover:bg-gray-50 flex items-center gap-2 ${language === 'ID' ? 'text-[#7b3fe4]' : 'text-gray-600'}`}
-                >
-                  🇮🇩 Indonesia {language === 'ID' && '✓'}
-                </button>
-                <button 
-                  onClick={() => {
-                    setLanguage('EN');
-                    localStorage.setItem('language', 'EN');
-                    window.dispatchEvent(new Event('languageChange'));
-                    setShowLanguageDropdown(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 text-xs font-bold hover:bg-gray-50 flex items-center gap-2 ${language === 'EN' ? 'text-[#7b3fe4]' : 'text-gray-600'}`}
-                >
-                  🇬🇧 English {language === 'EN' && '✓'}
-                </button>
-              </div>
-            )}
-          </div>
-
           {/* Active Notification Bell Popover */}
           <div className="relative">
             <div 
               onClick={() => {
                 setShowNotificationDropdown(!showNotificationDropdown);
-                setShowLanguageDropdown(false);
               }}
               className="p-2.5 rounded-full bg-gray-50 border border-gray-100 text-gray-500 relative cursor-pointer hover:bg-gray-100 transition-all"
             >
               <Bell size={18} />
-              {(pendingCount > 0 || selectedDateSchedules.length > 0) && (
+              {selectedDateSchedules.length > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
               )}
             </div>
@@ -493,24 +378,9 @@ const Dashboard = () => {
               <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 p-4 space-y-3">
                 <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                   <span className="font-extrabold text-xs text-gray-800 uppercase tracking-tight">{t.notifications}</span>
-                  <span className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-black">
-                    {pendingCount} {t.pending}
-                  </span>
                 </div>
                 
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                  {pendingCount > 0 && (
-                    <div className="flex gap-2.5 items-start p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                      <div className="p-1.5 bg-amber-50 rounded-lg text-amber-500">
-                        <AlertCircle size={14} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-700">{t.dailyTasks} ({t.pending})</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">{language === 'ID' ? `Ada ${pendingCount} tugas pending di dashboard Anda.` : `There are ${pendingCount} pending tasks on your dashboard.`}</p>
-                      </div>
-                    </div>
-                  )}
-
                   {selectedDateSchedules.length > 0 ? (
                     selectedDateSchedules.map(sch => (
                       <div key={sch.id} className="flex gap-2.5 items-start p-2 hover:bg-gray-50 rounded-xl transition-colors">
@@ -525,7 +395,7 @@ const Dashboard = () => {
                     ))
                   ) : null}
 
-                  {pendingCount === 0 && selectedDateSchedules.length === 0 && (
+                  {selectedDateSchedules.length === 0 && (
                     <div className="text-center py-6 text-gray-400 text-xs font-semibold">
                       {t.noNotifications}
                     </div>
@@ -550,173 +420,68 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 2. STATS ROW & STREAM GRAPH */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Employee Card */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.employee}</span>
-                <span className="text-2xl font-black text-gray-800 block mt-1.5">{stats.totalUsers || 0}</span>
-              </div>
-              <span className="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">{stats.activeUsers || 0} {t.active}</span>
+      {/* 2. STATS ROW */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Employee Card */}
+        <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-start">
+            <div>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.employee}</span>
+              <span className="text-2xl font-black text-gray-800 block mt-1.5">{stats.totalUsers || 0}</span>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-50 pt-4">
-              <div>
-                <span className="text-2xl font-bold text-emerald-500 block">{stats.activeUsers || 0}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.active}</span>
-              </div>
-              <div>
-                <span className="text-2xl font-bold text-gray-400 block">{stats.inactiveUsers || 0}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.inactive}</span>
-              </div>
-            </div>
+            <span className="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">{stats.activeUsers || 0} {t.active}</span>
           </div>
-
-          {/* Companies Card */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.companies}</span>
-                <span className="text-2xl font-black text-gray-800 block mt-1.5">{stats.totalCompanies || 0}</span>
-              </div>
-              <span className="bg-purple-50 text-[#7b3fe4] text-xs font-bold px-2.5 py-1 rounded-full">{t.registered}</span>
+          <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-50 pt-4">
+            <div>
+              <span className="text-2xl font-bold text-emerald-500 block">{stats.activeUsers || 0}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.active}</span>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-50 pt-4">
-              <div>
-                <span className="text-2xl font-bold text-[#7b3fe4] block">{stats.totalCompanies || 0}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.totalEntities}</span>
-              </div>
-              <div>
-                <span className="text-2xl font-bold text-[#3a6bf6] block">{t.active}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.status}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Positions & Jobs Card */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.positionsJobs}</span>
-                <span className="text-2xl font-black text-gray-800 block mt-1.5">{stats.totalPositions || 0}</span>
-              </div>
-              <span className="bg-amber-50 text-amber-600 text-xs font-bold px-2.5 py-1 rounded-full">{t.available}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-50 pt-4">
-              <div>
-                <span className="text-2xl font-bold text-emerald-500 block">{stats.totalPositions || 0}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.positions}</span>
-              </div>
-              <div>
-                <span className="text-2xl font-bold text-blue-500 block">{stats.totalJobs || 0}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.jobs}</span>
-              </div>
+            <div>
+              <span className="text-2xl font-bold text-gray-400 block">{stats.inactiveUsers || 0}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.inactive}</span>
             </div>
           </div>
         </div>
 
-        {/* Engagement Stream Graph (AreaChart) Card */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-between">
-          <div className="w-full text-left">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.distributionChart}</span>
+        {/* Companies Card */}
+        <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-start">
+            <div>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.companies}</span>
+              <span className="text-2xl font-black text-gray-800 block mt-1.5">{stats.totalCompanies || 0}</span>
+            </div>
+            <span className="bg-purple-50 text-[#7b3fe4] text-xs font-bold px-2.5 py-1 rounded-full">{t.registered}</span>
           </div>
-          <div className="relative w-full h-36 flex items-center justify-center my-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7b3fe4" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#7b3fe4" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" tick={{ fontSize: 8 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 8 }} />
-                <Tooltip />
-                <Area type="monotone" dataKey="value" stroke="#7b3fe4" fillOpacity={1} fill="url(#colorValue)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-center gap-3 text-[10px] w-full flex-wrap">
-            {chartData.map((item, index) => (
-              <div key={item.name} className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full block bg-[#7b3fe4]"></span>
-                <span className="text-gray-500 font-semibold">{item.name} ({item.value})</span>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-50 pt-4">
+            <div>
+              <span className="text-2xl font-bold text-[#7b3fe4] block">{stats.totalCompanies || 0}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.totalEntities}</span>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-[#3a6bf6] block">{t.active}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.status}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* TASK STATS SECTION */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-50 shadow-sm">
-        <div className="flex justify-between items-center mb-6 border-b border-gray-50 pb-3">
-          <div>
-            <h2 className="text-lg font-extrabold text-gray-800 tracking-tight">{t.dailyTasks}</h2>
-            <p className="text-gray-400 text-xs font-semibold mt-0.5">{t.taskStatsDesc}</p>
+        {/* Positions & Jobs Card */}
+        <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-start">
+            <div>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.positionsJobs}</span>
+              <span className="text-2xl font-black text-gray-800 block mt-1.5">{stats.totalPositions || 0}</span>
+            </div>
+            <span className="bg-amber-50 text-amber-600 text-xs font-bold px-2.5 py-1 rounded-full">{t.available}</span>
           </div>
-          <Link to="/tasks" className="text-[#7b3fe4] hover:text-[#3a6bf6] text-xs font-bold flex items-center gap-1">
-            {t.viewAllTasks} <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100/50 text-center">
-              <span className="text-[10px] font-bold text-amber-500 uppercase block tracking-wider">{t.pending}</span>
-              <span className="text-xl font-black text-amber-700 block mt-1">
-                {stats.taskStats?.find(t => t.name === 'Pending')?.value || 0}
-              </span>
+          <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-50 pt-4">
+            <div>
+              <span className="text-2xl font-bold text-emerald-500 block">{stats.totalPositions || 0}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.positions}</span>
             </div>
-            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 text-center">
-              <span className="text-[10px] font-bold text-blue-500 uppercase block tracking-wider">{t.inProgress}</span>
-              <span className="text-xl font-black text-blue-700 block mt-1">
-                {stats.taskStats?.find(t => t.name === 'In Progress')?.value || 0}
-              </span>
+            <div>
+              <span className="text-2xl font-bold text-blue-500 block">{stats.totalJobs || 0}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.jobs}</span>
             </div>
-            <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 text-center">
-              <span className="text-[10px] font-bold text-emerald-500 uppercase block tracking-wider">{t.completed}</span>
-              <span className="text-xl font-black text-emerald-700 block mt-1">
-                {stats.taskStats?.find(t => t.name === 'Completed')?.value || 0}
-              </span>
-            </div>
-          </div>
-
-          <div className="lg:col-span-2 h-24 w-full">
-            {stats.taskStats && stats.taskStats.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={[
-                  {
-                    name: t.pending,
-                    value: parseInt(stats.taskStats?.find(t => t.name === 'Pending')?.value || 0)
-                  },
-                  {
-                    name: t.inProgress,
-                    value: parseInt(stats.taskStats?.find(t => t.name === 'In Progress')?.value || 0)
-                  },
-                  {
-                    name: t.completed,
-                    value: parseInt(stats.taskStats?.find(t => t.name === 'Completed')?.value || 0)
-                  }
-                ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorTask" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" tick={{ fontSize: 9 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="value" stroke="#3b82f6" fillOpacity={1} fill="url(#colorTask)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-full items-center justify-center text-xs font-bold text-gray-400">
-                {t.noTasksToday}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -821,23 +586,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Real-time Action Needed Red Card (Linked to tasks) */}
-        <div className="lg:col-span-3 bg-red-600 text-white p-6 rounded-2xl shadow-lg shadow-red-500/20 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full pointer-events-none"></div>
-          
-          <div className="z-10">
-            <AlertTriangle size={32} className="text-white opacity-95 mb-4" />
-            <h3 className="text-xl font-extrabold tracking-tight">{pendingCount} {t.actionNeeded}</h3>
-            <p className="text-white/80 text-xs mt-1 font-semibold">{t.actionNeededDesc}</p>
-          </div>
-          
-          <div className="z-10 mt-6 pt-4 border-t border-white/25 flex items-center justify-between">
-            <Link to="/tasks" className="font-bold text-xs uppercase tracking-wider hover:underline text-white flex items-center gap-1.5">
-              {t.viewAllActions}
-            </Link>
-            <ArrowRight size={14} />
-          </div>
-        </div>
+        {/* Schedule list layout full column if no action card */}
       </div>
 
       {/* 4. EMPLOYEE DIRECTORY SECTION */}
@@ -878,81 +627,6 @@ const Dashboard = () => {
             Show all
             <ArrowRight size={12} />
           </Link>
-        </div>
-      </div>
-
-      {/* 5. NOTICEBOARD */}
-      <div className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/20">
-          <span className="font-extrabold text-gray-800 text-sm tracking-tight">{t.noticeboard}</span>
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <button 
-                onClick={openAddNotice} 
-                className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-[10px] py-1.5 px-3 rounded-full flex items-center gap-1 shadow-sm"
-              >
-                <Plus size={10} /> {t.addNotice}
-              </button>
-            )}
-            <span className="text-xs font-bold text-[#7b3fe4] hover:underline cursor-pointer">{t.viewAllNotices}</span>
-          </div>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
-                <th className="p-4 rounded-tl-2xl">{t.subject}</th>
-                <th className="p-4">{t.description}</th>
-                <th className="p-4">{t.startDate}</th>
-                <th className="p-4">{t.endDate}</th>
-                <th className="p-4">{t.priority}</th>
-                <th className="p-4 rounded-tr-2xl">{t.audience}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600 bg-white">
-              {notices.map((n) => (
-                <tr key={n.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-gray-800 font-bold group">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full block ${
-                          n.priority === 'High' ? 'bg-red-500' : n.priority === 'Medium' ? 'bg-blue-500' : 'bg-amber-500'
-                        }`}></span>
-                        {n.subject}
-                      </div>
-                      {isAdmin && (
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEditNotice(n)} className="p-1 hover:text-[#7b3fe4] text-gray-400">
-                            <Edit2 size={12} />
-                          </button>
-                          <button onClick={() => handleDeleteNotice(n.id)} className="p-1 hover:text-red-500 text-gray-400">
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-4 text-gray-500 font-normal">{n.description || '-'}</td>
-                  <td className="p-4">{new Date(n.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td className="p-4">{new Date(n.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td className="p-4">
-                    <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] ${
-                      n.priority === 'High' ? 'bg-red-50 text-red-600' : n.priority === 'Medium' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'
-                    }`}>
-                      {n.priority}
-                    </span>
-                  </td>
-                  <td className="p-4 text-gray-400">{n.audience}</td>
-                </tr>
-              ))}
-              {notices.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-400 font-semibold">{t.noNotices}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
         </div>
       </div>
 
@@ -1217,7 +891,7 @@ const Dashboard = () => {
                 onClick={confirmModal.onConfirm}
                 className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-red-500/10 transition-colors cursor-pointer"
               >
-                {language === 'ID' ? 'Hapus' : 'Delete'}
+                Hapus
               </button>
             </div>
           </div>

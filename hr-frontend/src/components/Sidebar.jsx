@@ -1,61 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Home, Users, Shield, Building2, Briefcase, MapPin, Menu, X, LogOut, UserCircle, CheckSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { Home, Users, Shield, Building2, Briefcase, MapPin, Menu, X, LogOut, UserCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-
-const menuTranslations = {
-  ID: {
-    summary: 'Ringkasan',
-    roles: 'Peran',
-    companies: 'Perusahaan',
-    jobs: 'Pekerjaan',
-    positions: 'Jabatan',
-    users: 'Karyawan',
-    tasks: 'Tugas Harian',
-    profile: 'Profil Saya',
-    logout: 'Keluar'
-  },
-  EN: {
-    summary: 'Summary',
-    roles: 'Roles',
-    companies: 'Companies',
-    jobs: 'Jobs',
-    positions: 'Positions',
-    users: 'Users',
-    tasks: 'Daily Tasks',
-    profile: 'My Profile',
-    logout: 'Logout'
-  }
-};
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const role = localStorage.getItem('role');
 
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'ID');
-
-  useEffect(() => {
-    const handleLangChange = () => {
-      setLanguage(localStorage.getItem('language') || 'ID');
-    };
-    window.addEventListener('languageChange', handleLangChange);
-    return () => {
-      window.removeEventListener('languageChange', handleLangChange);
-    };
-  }, []);
-
-  const t = menuTranslations[language] || menuTranslations.ID;
-
-  // Menu berdasarkan role dan terjemahan dinamis
   const allMenuItems = [
-    { path: '/', name: t.summary, icon: <Home size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },
-    { path: '/roles', name: t.roles, icon: <Shield size={18} />, roles: ['Super Admin', 'Admin HR'] },
-    { path: '/companies', name: t.companies, icon: <Building2 size={18} />, roles: ['Super Admin', 'Admin HR'] },
-    { path: '/jobs', name: t.jobs, icon: <Briefcase size={18} />, roles: ['Super Admin', 'Admin HR'] },
-    { path: '/positions', name: t.positions, icon: <MapPin size={18} />, roles: ['Super Admin', 'Admin HR'] },
-    { path: '/users', name: t.users, icon: <Users size={18} />, roles: ['Super Admin', 'Admin HR'] },
-    { path: '/tasks', name: t.tasks, icon: <CheckSquare size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },
-    { path: '/profile', name: t.profile, icon: <UserCircle size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },
+    { path: '/', name: 'Ringkasan', icon: <Home size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },
+    { path: '/roles', name: 'Peran (Roles)', icon: <Shield size={18} />, roles: ['Super Admin', 'Admin HR'] },
+    { path: '/companies', name: 'Perusahaan', icon: <Building2 size={18} />, roles: ['Super Admin', 'Admin HR'] },
+    { path: '/jobs', name: 'Pekerjaan', icon: <Briefcase size={18} />, roles: ['Super Admin', 'Admin HR'] },
+    { path: '/positions', name: 'Jabatan', icon: <MapPin size={18} />, roles: ['Super Admin', 'Admin HR'] },
+    { path: '/users', name: 'Karyawan', icon: <Users size={18} />, roles: ['Super Admin', 'Admin HR'] },
+    { path: '/profile', name: 'Profil Saya', icon: <UserCircle size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },
   ];
 
   const menuItems = allMenuItems.filter(item => item.roles.includes(role));
@@ -128,7 +87,7 @@ const Sidebar = () => {
             className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg transition-colors text-red-600 hover:bg-red-50 font-semibold text-sm cursor-pointer"
           >
             <LogOut size={16} />
-            {t.logout}
+            Keluar
           </button>
         </div>
       </div>

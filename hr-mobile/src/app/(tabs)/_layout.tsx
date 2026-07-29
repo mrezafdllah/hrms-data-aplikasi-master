@@ -49,22 +49,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="users"
         options={{
-          title: 'Users',
+          title: 'Karyawan',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'people' : 'people-outline'} size={22} color={color} />
-          ),
-        }}
-      />
-
-      {/* 3. Tasks Tab (Visible) */}
-      <Tabs.Screen
-        name="tasks"
-        options={{
-          title: 'Tugas',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'checkmark-done' : 'checkmark-done-outline'} size={22} color={color} />
           ),
         }}
       />
@@ -73,7 +61,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Profil',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
@@ -85,7 +73,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="roles"
         options={{
-          title: 'Roles',
+          title: 'Peran (Roles)',
           headerShown: false,
           href: null,
         }}
@@ -93,7 +81,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="companies"
         options={{
-          title: 'Companies',
+          title: 'Perusahaan',
           headerShown: false,
           href: null,
         }}
@@ -101,7 +89,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="jobs"
         options={{
-          title: 'Jobs',
+          title: 'Pekerjaan',
           headerShown: false,
           href: null,
         }}
@@ -109,7 +97,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="positions"
         options={{
-          title: 'Positions',
+          title: 'Jabatan',
           headerShown: false,
           href: null,
         }}

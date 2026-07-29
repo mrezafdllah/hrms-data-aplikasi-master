@@ -5,93 +5,43 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
 
-const translations = {
-  ID: {
-    loading: "Memuat Dashboard...",
-    confirmTitle: "Konfirmasi",
-    confirmLogoutMsg: "Apakah Anda yakin ingin logout?",
-    cancelBtn: "Batal",
-    logoutBtn: "Logout Sesi",
-    hrManagement: "Manajemen HR",
-    employeeDistribution: "Distribusi Karyawan",
-    realtime: "Real-time",
-    noDistribution: "Tidak ada data distribusi",
-    activeEmployees: "Karyawan Aktif",
-    readyToWork: "Siap bekerja",
-    totalJobs: "Lowongan Pekerjaan",
-    activeOpenings: "Lowongan aktif",
-    todaySchedule: "Jadwal Hari Ini",
-    noSchedules: "Tidak ada jadwal hari ini.",
-    myTasks: "Tugas Saya",
-    manageTasks: "Kelola Tugas",
-    running: "Berjalan",
-    completed: "Selesai",
-    noRunningTasks: "Tidak ada tugas berjalan.",
-    noCompletedTasks: "Tidak ada tugas selesai.",
-    noticeboard: "Papan Pengumuman (Noticeboard)",
-    noNotices: "Tidak ada pengumuman hari ini.",
-    priority: "Prioritas",
-    for: "Untuk",
-    staff: "Staf",
-    karyawan: "Karyawan",
-  },
-  EN: {
-    loading: "Loading Dashboard...",
-    confirmTitle: "Confirmation",
-    confirmLogoutMsg: "Are you sure you want to logout?",
-    cancelBtn: "Cancel",
-    logoutBtn: "Logout Session",
-    hrManagement: "HR Management",
-    employeeDistribution: "Employee Distribution",
-    realtime: "Real-time",
-    noDistribution: "No distribution data",
-    activeEmployees: "Active Employees",
-    readyToWork: "Ready to work",
-    totalJobs: "Total Jobs",
-    activeOpenings: "Active openings",
-    todaySchedule: "Today's Schedule",
-    noSchedules: "No schedules today.",
-    myTasks: "My Tasks",
-    manageTasks: "Manage Tasks",
-    running: "Running",
-    completed: "Completed",
-    noRunningTasks: "No running tasks.",
-    noCompletedTasks: "No completed tasks.",
-    noticeboard: "Noticeboard",
-    noNotices: "No announcements today.",
-    priority: "Priority",
-    for: "For",
-    staff: "Staff",
-    karyawan: "Employee",
-  }
+const t = {
+  loading: "Memuat Dashboard...",
+  confirmTitle: "Konfirmasi",
+  confirmLogoutMsg: "Apakah Anda yakin ingin logout?",
+  cancelBtn: "Batal",
+  logoutBtn: "Logout Sesi",
+  hrManagement: "Manajemen HR",
+  activeEmployees: "Karyawan Aktif",
+  readyToWork: "Siap bekerja",
+  totalJobs: "Lowongan Pekerjaan",
+  activeOpenings: "Lowongan aktif",
+  todaySchedule: "Jadwal Hari Ini",
+  noSchedules: "Tidak ada jadwal hari ini.",
+  for: "Untuk",
+  staff: "Staf",
+  karyawan: "Karyawan",
 };
 
 export default function DashboardScreen() {
   const { width } = useWindowDimensions();
-  const itemWidth = (width - 40 - 24) / 3; // 40 is paddingHorizontal (20 on each side), 24 is space for 2 column gaps (12 each)
+  const itemWidth = (width - 40 - 24) / 3;
   const menuItemStyle = [styles.menuItem, { width: itemWidth }];
 
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [stats, setStats] = useState<any>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [notices, setNotices] = useState<any[]>([]);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState<'ID' | 'EN'>('ID');
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'Today' | 'Completed'>('Today');
 
   const loadData = useCallback(async () => {
     const storedName = await AsyncStorage.getItem('name');
     const storedRole = await AsyncStorage.getItem('role');
-    const storedLang = await AsyncStorage.getItem('language');
     
     if (storedName) setName(storedName);
     if (storedRole) setRole(storedRole);
-    if (storedLang === 'EN') setLanguage('EN');
-    else setLanguage('ID');
 
     try {
       const statsRes = await api.get('/dashboard-stats');
@@ -99,12 +49,6 @@ export default function DashboardScreen() {
 
       const schedulesRes = await api.get('/schedules');
       if (schedulesRes.data?.status === 'Success') setSchedules(schedulesRes.data.data);
-
-      const tasksRes = await api.get('/tasks');
-      if (tasksRes.data?.status === 'Success') setTasks(tasksRes.data.data);
-
-      const noticesRes = await api.get('/notices');
-      if (noticesRes.data?.status === 'Success') setNotices(noticesRes.data.data);
 
       const profileRes = await api.get('/profile');
       if (profileRes.data?.status === 'Success') {
@@ -123,8 +67,6 @@ export default function DashboardScreen() {
       loadData();
     }, [loadData])
   );
-
-  const t = translations[language];
 
   const handleLogout = async () => {
     Alert.alert(t.confirmTitle, t.confirmLogoutMsg, [
@@ -187,7 +129,7 @@ export default function DashboardScreen() {
         <View style={styles.headerIcons}>
           <TouchableOpacity style={styles.iconButton}>
             <Ionicons name="notifications-outline" size={22} color="#1e2022" />
-            {(pendingTasks.length > 0 || todaySchedules.length > 0) && (
+            {todaySchedules.length > 0 && (
               <View style={styles.notificationDot} />
             )}
           </TouchableOpacity>
@@ -203,7 +145,7 @@ export default function DashboardScreen() {
               <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
                 <Ionicons name="person" size={22} color="#7b3fe4" />
               </View>
-              <Text style={styles.menuItemLabel}>{language === 'ID' ? 'Profil Saya' : 'My Profile'}</Text>
+              <Text style={styles.menuItemLabel}>Profil Saya</Text>
             </TouchableOpacity>
           ) : (
             <>
@@ -211,78 +153,44 @@ export default function DashboardScreen() {
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
                   <Ionicons name="shield-checkmark" size={22} color="#7c3aed" />
                 </View>
-                <Text style={styles.menuItemLabel}>Roles</Text>
+                <Text style={styles.menuItemLabel}>Peran</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/companies')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#eff6ff' }]}>
                   <Ionicons name="business" size={22} color="#3b82f6" />
                 </View>
-                <Text style={styles.menuItemLabel}>Companies</Text>
+                <Text style={styles.menuItemLabel}>Perusahaan</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/jobs')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdf4' }]}>
                   <Ionicons name="briefcase" size={22} color="#10b981" />
                 </View>
-                <Text style={styles.menuItemLabel}>Jobs</Text>
+                <Text style={styles.menuItemLabel}>Pekerjaan</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/positions')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fffbeb' }]}>
                   <Ionicons name="git-branch" size={22} color="#d97706" />
                 </View>
-                <Text style={styles.menuItemLabel}>Positions</Text>
+                <Text style={styles.menuItemLabel}>Jabatan</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/users')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fff1f2' }]}>
                   <Ionicons name="people" size={22} color="#f43f5e" />
                 </View>
-                <Text style={styles.menuItemLabel}>Users</Text>
+                <Text style={styles.menuItemLabel}>Karyawan</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/profile')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdfa' }]}>
                   <Ionicons name="person" size={22} color="#0d9488" />
                 </View>
-                <Text style={styles.menuItemLabel}>{language === 'ID' ? 'Profil' : 'Profile'}</Text>
+                <Text style={styles.menuItemLabel}>Profil</Text>
               </TouchableOpacity>
             </>
-          )}
-        </View>
-      </View>
-
-      {/* 3. DYNAMIC ROLE DISTRIBUTION GRAPHIC */}
-      <View style={styles.chartCard}>
-        <View style={styles.chartHeader}>
-          <Text style={styles.chartTitle}>{t.employeeDistribution}</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{t.realtime}</Text>
-          </View>
-        </View>
-
-        <View style={styles.streamContainer}>
-          {roleStats.length > 0 ? (
-            roleStats.map((item: any, index: number) => {
-              const percentage = Math.round((parseInt(item.value) / totalEmployees) * 100);
-              const colors = ['#7b3fe4', '#3b82f6', '#10b981', '#f59e0b'];
-              const color = colors[index % colors.length];
-
-              return (
-                <View key={item.name} style={styles.streamItem}>
-                  <View style={styles.streamMeta}>
-                    <Text style={styles.streamName}>{item.name}</Text>
-                    <Text style={styles.streamValue}>{item.value} ({percentage}%)</Text>
-                  </View>
-                  <View style={styles.streamTrack}>
-                    <View style={[styles.streamFill, { width: `${percentage}%`, backgroundColor: color }]} />
-                  </View>
-                </View>
-              );
-            })
-          ) : (
-            <Text style={styles.emptyText}>{t.noDistribution}</Text>
           )}
         </View>
       </View>
@@ -310,7 +218,7 @@ export default function DashboardScreen() {
       <View style={styles.scheduleSection}>
         <View style={styles.taskHeader}>
           <Text style={styles.taskTitle}>{t.todaySchedule}</Text>
-          <Text style={styles.dateLabel}>{new Date().toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' })}</Text>
+          <Text style={styles.dateLabel}>{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</Text>
         </View>
 
         <View style={styles.scheduleList}>
@@ -332,116 +240,6 @@ export default function DashboardScreen() {
             <View style={styles.taskListEmpty}>
               <Ionicons name="calendar-outline" size={32} color="#d1d5db" />
               <Text style={styles.emptyText}>{t.noSchedules}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* 6. MY TASK SECTION */}
-      <View style={styles.taskSection}>
-        <View style={styles.taskHeader}>
-          <Text style={styles.taskTitle}>{t.myTasks}</Text>
-          <TouchableOpacity onPress={() => router.push('/tasks')}>
-            <Text style={styles.viewMoreBtn}>{t.manageTasks}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Tab Selection */}
-        <View style={styles.tabBar}>
-          <TouchableOpacity 
-            style={[styles.tabItem, activeTab === 'Today' && styles.tabItemActive]}
-            onPress={() => setActiveTab('Today')}
-          >
-            <Text style={[styles.tabLabel, activeTab === 'Today' && styles.tabLabelActive]}>{t.running} ({pendingTasks.length})</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tabItem, activeTab === 'Completed' && styles.tabItemActive]}
-            onPress={() => setActiveTab('Completed')}
-          >
-            <Text style={[styles.tabLabel, activeTab === 'Completed' && styles.tabLabelActive]}>{t.completed} ({completedTasks.length})</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Task Checklist Items */}
-        {activeTab === 'Today' ? (
-          <View style={styles.taskList}>
-            {pendingTasks.length > 0 ? (
-              pendingTasks.map((t: any) => (
-                <View key={t.id} style={styles.taskItem}>
-                  <View style={[styles.checkbox, t.status === 'In Progress' && styles.checkboxProgress]}>
-                    {t.status === 'In Progress' ? (
-                      <Ionicons name="time" size={12} color="#ffffff" />
-                    ) : (
-                      <View style={styles.checkboxInner} />
-                    )}
-                  </View>
-                  <View style={styles.taskContent}>
-                    <Text style={styles.taskText}>{t.task_name}</Text>
-                    <Text style={styles.taskTime}>
-                      {t.task_date ? new Date(t.task_date).toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' }) : ''}
-                    </Text>
-                  </View>
-                </View>
-              ))
-            ) : (
-              <View style={styles.taskListEmpty}>
-                <Ionicons name="checkmark-done-circle" size={32} color="#d1d5db" />
-                <Text style={styles.emptyText}>{t.noRunningTasks}</Text>
-              </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.taskList}>
-            {completedTasks.length > 0 ? (
-              completedTasks.map((t: any) => (
-                <View key={t.id} style={styles.taskItem}>
-                  <View style={styles.checkboxActive}>
-                    <Ionicons name="checkmark" size={12} color="#ffffff" />
-                  </View>
-                  <View style={styles.taskContent}>
-                    <Text style={[styles.taskText, { textDecorationLine: 'line-through', color: '#9ca3af' }]}>{t.task_name}</Text>
-                  </View>
-                </View>
-              ))
-            ) : (
-              <View style={styles.taskListEmpty}>
-                <Ionicons name="checkmark-done-circle" size={32} color="#d1d5db" />
-                <Text style={styles.emptyText}>{t.noCompletedTasks}</Text>
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-
-      {/* 7. NOTICEBOARD SECTION */}
-      <View style={styles.noticeSection}>
-        <View style={styles.taskHeader}>
-          <Text style={styles.taskTitle}>{t.noticeboard}</Text>
-          <Ionicons name="megaphone-outline" size={16} color="#7b3fe4" />
-        </View>
-        <View style={styles.noticeList}>
-          {notices.length > 0 ? (
-            notices.map((n: any) => (
-              <View key={n.id} style={styles.noticeItem}>
-                <View style={styles.noticeMeta}>
-                  <Text style={styles.noticeSubject}>{n.subject}</Text>
-                  <View style={[styles.priorityBadge, n.priority === 'High' ? styles.priorityHigh : n.priority === 'Medium' ? styles.priorityMedium : styles.priorityLow]}>
-                    <Text style={styles.priorityText}>{n.priority}</Text>
-                  </View>
-                </View>
-                {n.description ? <Text style={styles.noticeDesc}>{n.description}</Text> : null}
-                <View style={styles.noticeFooter}>
-                  <Text style={styles.noticeDate}>
-                    {new Date(n.start_date).toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' })} - {new Date(n.end_date).toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' })}
-                  </Text>
-                  <Text style={styles.noticeAudience}>{t.for}: {n.audience}</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <View style={styles.taskListEmpty}>
-              <Ionicons name="megaphone-outline" size={32} color="#d1d5db" />
-              <Text style={styles.emptyText}>{t.noNotices}</Text>
             </View>
           )}
         </View>

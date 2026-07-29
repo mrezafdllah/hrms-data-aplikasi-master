@@ -102,22 +102,22 @@ def init_admin():
     
     # 5. Buat users jika belum ada (atau update)
     admin_users = [
-        ("Super Administrator", "admin@hr.com", "admin123", "Super Admin", None, None, None),
-        ("HR Specialist", "hr@hr.com", "hr123", "Admin HR", None, None, None),
+        ("Super Administrator", "admin@hr.com", "admin123", "Super Admin", None, None, None, "ADM-001"),
+        ("HR Specialist", "hr@hr.com", "hr123", "Admin HR", None, None, None, "HR-001"),
     ]
     
     employees = [
-        ("John Adams", "john@hr.com", "user123", "Karyawan", "Financial Analyst", "Finance", "Blitz Digital Studio"),
-        ("Emily Johnson", "emily@hr.com", "user123", "Karyawan", "Accountant", "Finance", "Blitz Digital Studio"),
-        ("Michael Brown", "michael@hr.com", "user123", "Karyawan", "Sr. Software Engineer", "Engineering", "PT Cybers Blitz Nusantara"),
-        ("Jessica Lee", "jessica@hr.com", "user123", "Karyawan", "UI/UX Designer", "Product Design", "PT Cybers Blitz Nusantara"),
-        ("David Martinez", "david@hr.com", "user123", "Karyawan", "Sr. Software Engineer", "Engineering", "PT Cybers Blitz Nusantara"),
-        ("James Clark", "james@hr.com", "user123", "Karyawan", "Frontend Developer", "Engineering", "PT Cybers Blitz Nusantara"),
-        ("Emily Davis", "emily.d@hr.com", "user123", "Karyawan", "Backend Developer", "Engineering", "PT Cybers Blitz Nusantara"),
+        ("John Adams", "john@hr.com", "user123", "Karyawan", "Financial Analyst", "Finance", "Blitz Digital Studio", "EMP-001"),
+        ("Emily Johnson", "emily@hr.com", "user123", "Karyawan", "Accountant", "Finance", "Blitz Digital Studio", "EMP-002"),
+        ("Michael Brown", "michael@hr.com", "user123", "Karyawan", "Sr. Software Engineer", "Engineering", "PT Cybers Blitz Nusantara", "EMP-003"),
+        ("Jessica Lee", "jessica@hr.com", "user123", "Karyawan", "UI/UX Designer", "Product Design", "PT Cybers Blitz Nusantara", "EMP-004"),
+        ("David Martinez", "david@hr.com", "user123", "Karyawan", "Sr. Software Engineer", "Engineering", "PT Cybers Blitz Nusantara", "EMP-005"),
+        ("James Clark", "james@hr.com", "user123", "Karyawan", "Frontend Developer", "Engineering", "PT Cybers Blitz Nusantara", "EMP-006"),
+        ("Emily Davis", "emily.d@hr.com", "user123", "Karyawan", "Backend Developer", "Engineering", "PT Cybers Blitz Nusantara", "EMP-007"),
     ]
     
     all_users = admin_users + employees
-    for name, email, pwd, role_name, pos_name, job_name, comp_name in all_users:
+    for name, email, pwd, role_name, pos_name, job_name, comp_name, emp_id in all_users:
         role_id = roles_dict.get(role_name)
         pos_id = None
         if pos_name and job_name and comp_name:
@@ -129,15 +129,15 @@ def init_admin():
         hashed_pwd = get_password_hash(pwd)
         if not existing:
             cursor.execute(
-                """INSERT INTO users (role_id, position_id, full_name, email, hashed_password, status) 
-                   VALUES (%s, %s, %s, %s, %s, %s);""",
-                (role_id, pos_id, name, email, hashed_pwd, "Active")
+                """INSERT INTO users (employee_id, role_id, position_id, full_name, email, hashed_password, status) 
+                   VALUES (%s, %s, %s, %s, %s, %s, %s);""",
+                (emp_id, role_id, pos_id, name, email, hashed_pwd, "Active")
             )
         else:
             cursor.execute(
-                """UPDATE users SET role_id = %s, position_id = %s, full_name = %s, hashed_password = %s, status = 'Active' 
+                """UPDATE users SET employee_id = COALESCE(employee_id, %s), role_id = %s, position_id = %s, full_name = %s, hashed_password = %s, status = 'Active' 
                    WHERE email = %s;""",
-                (role_id, pos_id, name, hashed_pwd, email)
+                (emp_id, role_id, pos_id, name, hashed_pwd, email)
             )
     conn.commit()
     print("Database seeding completed successfully.")

@@ -6,83 +6,43 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../../utils/api';
 
-const translations = {
-  ID: {
-    title: "Profil Saya",
-    subtitle: "Informasi akun dan data pribadi Anda",
-    editProfile: "Edit Profil",
-    cancel: "Batal",
-    save: "Simpan",
-    successMsg: "Profil berhasil diperbarui",
-    accountPositionInfo: "Informasi Akun & Jabatan",
-    fullName: "Nama Lengkap",
-    email: "Email",
-    birthPlace: "Tempat Lahir",
-    birthDate: "Tanggal Lahir",
-    address: "Alamat",
-    company: "Perusahaan (Company)",
-    job: "Pekerjaan (Job)",
-    position: "Jabatan (Position)",
-    joinedSince: "Bergabung Sejak",
-    uploadSuccess: "Foto profil berhasil diperbarui",
-    uploadFailed: "Gagal mengunggah foto profil",
-    choosePosition: "Pilih Jabatan",
-    changePhoto: "Ganti Foto",
-    uploading: "Mengunggah...",
-    placeholderAddress: "Masukkan alamat lengkap rumah Anda",
-    placeholderBirthPlace: "Contoh: Jakarta",
-    loadingMsg: "Memuat Profil...",
-    notFoundMsg: "Data profil tidak ditemukan.",
-    confirmTitle: "Konfirmasi",
-    confirmLogoutMsg: "Apakah Anda yakin ingin logout?",
-    cancelBtn: "Batal",
-    logoutBtn: "Logout Sesi",
-    selectLanguage: "Pilih Bahasa / Language",
-    permissionsDenied: "Izin Ditolak",
-    galleryPermissionMsg: "Anda perlu memberikan izin akses galeri untuk mengunggah foto.",
-    close: "Tutup",
-    active: "Aktif",
-    inactive: "Nonaktif",
-    employee: "Karyawan",
-  },
-  EN: {
-    title: "My Profile",
-    subtitle: "Your account details and personal data",
-    editProfile: "Edit Profile",
-    cancel: "Cancel",
-    save: "Save",
-    successMsg: "Profile successfully updated",
-    accountPositionInfo: "Account & Position Information",
-    fullName: "Full Name",
-    email: "Email",
-    birthPlace: "Place of Birth",
-    birthDate: "Date of Birth",
-    address: "Address",
-    company: "Company",
-    job: "Job Name",
-    position: "Position Title",
-    joinedSince: "Member Since",
-    uploadSuccess: "Profile picture successfully updated",
-    uploadFailed: "Failed to upload profile picture",
-    choosePosition: "Select Position",
-    changePhoto: "Change Photo",
-    uploading: "Uploading...",
-    placeholderAddress: "Enter your full home address",
-    placeholderBirthPlace: "Example: Jakarta",
-    loadingMsg: "Loading Profile...",
-    notFoundMsg: "Profile data not found.",
-    confirmTitle: "Confirmation",
-    confirmLogoutMsg: "Are you sure you want to logout?",
-    cancelBtn: "Cancel",
-    logoutBtn: "Logout Session",
-    selectLanguage: "Select Language / Bahasa",
-    permissionsDenied: "Permissions Denied",
-    galleryPermissionMsg: "You need to grant gallery access permission to upload photo.",
-    close: "Close",
-    active: "Active",
-    inactive: "Inactive",
-    employee: "Employee",
-  }
+const t = {
+  title: "Profil Saya",
+  subtitle: "Informasi akun dan data pribadi Anda",
+  editProfile: "Edit Profil",
+  cancel: "Batal",
+  save: "Simpan",
+  successMsg: "Profil berhasil diperbarui",
+  accountPositionInfo: "Informasi Akun & Jabatan",
+  employeeId: "ID Karyawan",
+  fullName: "Nama Lengkap",
+  email: "Email",
+  birthPlace: "Tempat Lahir",
+  birthDate: "Tanggal Lahir",
+  address: "Alamat",
+  company: "Perusahaan",
+  job: "Pekerjaan",
+  position: "Jabatan",
+  joinedSince: "Bergabung Sejak",
+  uploadSuccess: "Foto profil berhasil diperbarui",
+  uploadFailed: "Gagal mengunggah foto profil",
+  choosePosition: "Pilih Jabatan",
+  changePhoto: "Ganti Foto",
+  uploading: "Mengunggah...",
+  placeholderAddress: "Masukkan alamat lengkap rumah Anda",
+  placeholderBirthPlace: "Contoh: Jakarta",
+  loadingMsg: "Memuat Profil...",
+  notFoundMsg: "Data profil tidak ditemukan.",
+  confirmTitle: "Konfirmasi",
+  confirmLogoutMsg: "Apakah Anda yakin ingin logout?",
+  cancelBtn: "Batal",
+  logoutBtn: "Logout Sesi",
+  permissionsDenied: "Izin Ditolak",
+  galleryPermissionMsg: "Anda perlu memberikan izin akses galeri untuk mengunggah foto.",
+  close: "Tutup",
+  active: "Aktif",
+  inactive: "Nonaktif",
+  employee: "Karyawan",
 };
 
 export default function ProfileScreen() {
@@ -93,10 +53,10 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
-  const [language, setLanguage] = useState<'ID' | 'EN'>('ID');
   const router = useRouter();
 
   const [formData, setFormData] = useState({
+    employee_id: '',
     full_name: '',
     email: '',
     birth_place: '',
@@ -108,18 +68,6 @@ export default function ProfileScreen() {
 
   const role = profile?.role_name || '';
   const isAdmin = role === 'Super Admin' || role === 'Admin HR';
-  const t = translations[language];
-
-  const loadLang = useCallback(async () => {
-    const lang = await AsyncStorage.getItem('language');
-    if (lang === 'EN') setLanguage('EN');
-    else setLanguage('ID');
-  }, []);
-
-  const toggleLanguage = async (newLang: 'ID' | 'EN') => {
-    setLanguage(newLang);
-    await AsyncStorage.setItem('language', newLang);
-  };
 
   const fetchProfile = useCallback(() => {
     setLoading(true);
@@ -129,6 +77,7 @@ export default function ProfileScreen() {
           const data = res.data.data;
           setProfile(data);
           setFormData({
+            employee_id: data.employee_id || '',
             full_name: data.full_name || '',
             email: data.email || '',
             birth_place: data.birth_place || '',
@@ -182,10 +131,8 @@ export default function ProfileScreen() {
 
   const handleSave = async () => {
     Alert.alert(
-      language === 'ID' ? 'Konfirmasi Perubahan' : 'Confirm Changes',
-      language === 'ID' 
-        ? 'Apakah Anda yakin ingin menyimpan perubahan profil Anda?' 
-        : 'Are you sure you want to save your profile changes?',
+      'Konfirmasi Perubahan',
+      'Apakah Anda yakin ingin menyimpan perubahan profil Anda?',
       [
         { text: t.cancelBtn, style: 'cancel' },
         { text: t.save, onPress: () => executeSave() }
@@ -204,11 +151,11 @@ export default function ProfileScreen() {
       const res = await api.put('/profile', payload);
       if (res.data?.status === 'Success') {
         await AsyncStorage.setItem('name', formData.full_name);
-        Alert.alert(language === 'ID' ? 'Berhasil' : 'Success', t.successMsg);
+        Alert.alert('Berhasil', t.successMsg);
         setIsEditing(false);
         fetchProfile();
       } else {
-        Alert.alert(language === 'ID' ? 'Gagal' : 'Failed', res.data?.detail || 'Gagal memperbarui profil');
+        Alert.alert('Gagal', res.data?.detail || 'Gagal memperbarui profil');
       }
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Terjadi kesalahan');
@@ -270,9 +217,9 @@ export default function ProfileScreen() {
         };
         await api.put('/profile', updatePayload);
         fetchProfile();
-        Alert.alert(language === 'ID' ? 'Berhasil' : 'Success', t.uploadSuccess);
+        Alert.alert('Berhasil', t.uploadSuccess);
       } else {
-        Alert.alert(language === 'ID' ? 'Gagal' : 'Failed', t.uploadFailed);
+        Alert.alert('Gagal', t.uploadFailed);
       }
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -380,33 +327,22 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Language Selection Card */}
-        {!isEditing && (
-          <View style={styles.profileCard}>
-            <Text style={styles.sectionTitle}>{t.selectLanguage}</Text>
-            <View style={styles.languageRow}>
-              <TouchableOpacity
-                style={[styles.langBtn, language === 'ID' && styles.langBtnActive]}
-                onPress={() => toggleLanguage('ID')}
-              >
-                <Text style={[styles.langBtnText, language === 'ID' && styles.langBtnTextActive]}>🇮🇩 Indonesia</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.langBtn, language === 'EN' && styles.langBtnActive]}
-                onPress={() => toggleLanguage('EN')}
-              >
-                <Text style={[styles.langBtnText, language === 'EN' && styles.langBtnTextActive]}>🇬🇧 English</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
         {/* Detail Profil Card */}
         <View style={styles.profileCard}>
           <Text style={styles.sectionTitle}>{t.accountPositionInfo}</Text>
 
           {isEditing ? (
             <View style={styles.formContainer}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t.employeeId}</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={formData.employee_id}
+                  onChangeText={txt => setFormData(prev => ({ ...prev, employee_id: txt }))}
+                  placeholder="EMP-001"
+                />
+              </View>
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t.fullName}</Text>
                 <TextInput
@@ -495,6 +431,10 @@ export default function ProfileScreen() {
             // ===== VIEW MODE =====
             <View style={styles.detailsContainer}>
               <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>{t.employeeId}</Text>
+                <Text style={styles.detailValue}>{profile.employee_id || `EMP-${profile.id}`}</Text>
+              </View>
+              <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>{t.company}</Text>
                 <Text style={styles.detailValue}>{profile.company_name || '-'}</Text>
               </View>
@@ -510,7 +450,7 @@ export default function ProfileScreen() {
                 <Text style={styles.detailLabel}>{t.birthPlace}, {t.birthDate}</Text>
                 <Text style={styles.detailValue}>
                   {profile.birth_place || '-'}
-                  {profile.birth_date ? `, ${new Date(profile.birth_date).toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
+                  {profile.birth_date ? `, ${new Date(profile.birth_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
                 </Text>
               </View>
               <View style={styles.detailItem}>
@@ -520,7 +460,7 @@ export default function ProfileScreen() {
               <View style={[styles.detailItem, { borderBottomWidth: 0 }]}>
                 <Text style={styles.detailLabel}>{t.joinedSince}</Text>
                 <Text style={styles.detailValue}>
-                  {profile.created_at ? new Date(profile.created_at).toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                  {profile.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                 </Text>
               </View>
             </View>

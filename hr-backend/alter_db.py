@@ -17,7 +17,9 @@ def alter_db():
         cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date DATE;")
         cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT;")
         cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255);")
-        print("Kolom profil baru berhasil ditambahkan jika belum ada.")
+        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id TEXT;")
+        cursor.execute("ALTER TABLE users ALTER COLUMN employee_id TYPE TEXT;")
+        print("Kolom profil baru & employee_id (TEXT) berhasil ditambahkan jika belum ada.")
 
         # Rename password column to hashed_password in users table
         cursor.execute("""

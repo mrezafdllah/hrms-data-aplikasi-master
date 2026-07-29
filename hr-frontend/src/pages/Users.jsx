@@ -11,7 +11,7 @@ const Users = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    company_id: '', role_id: '', position_id: '',
+    employee_id: '', company_id: '', role_id: '', position_id: '',
     full_name: '', email: '', hashed_password: '', status: 'Active'
   });
   const [confirmModal, setConfirmModal] = useState({
@@ -85,6 +85,7 @@ const Users = () => {
 
   const handleEdit = (user) => {
     setFormData({
+      employee_id: user.employee_id || '',
       company_id: user.company_id || '',
       role_id: user.role_id || '',
       position_id: user.position_id || '',
@@ -114,7 +115,7 @@ const Users = () => {
 
   const openAddModal = () => {
     setFormData({
-      company_id: '', role_id: '', position_id: '',
+      employee_id: '', company_id: '', role_id: '', position_id: '',
       full_name: '', email: '', hashed_password: '', status: 'Active'
     });
     setEditingId(null);
@@ -142,12 +143,12 @@ const Users = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
-                <th className="p-4 rounded-tl-2xl">ID</th>
+                <th className="p-4 rounded-tl-2xl">ID Karyawan</th>
                 <th className="p-4">Nama Lengkap</th>
                 <th className="p-4">Email</th>
-                <th className="p-4">Role</th>
-                <th className="p-4">Company</th>
-                <th className="p-4">Position</th>
+                <th className="p-4">Peran (Role)</th>
+                <th className="p-4">Perusahaan</th>
+                <th className="p-4">Jabatan</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 rounded-tr-2xl">Aksi</th>
               </tr>
@@ -155,7 +156,7 @@ const Users = () => {
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
               {users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-[#7b3fe4] font-bold">{user.id}</td>
+                  <td className="p-4 text-[#7b3fe4] font-bold">{user.employee_id || `EMP-${user.id}`}</td>
                   <td className="p-4 font-bold text-gray-800">{user.full_name}</td>
                   <td className="p-4 text-gray-500">{user.email}</td>
                   <td className="p-4">
@@ -171,7 +172,7 @@ const Users = () => {
                   <td className="p-4 text-gray-500">{user.position_name || '-'}</td>
                   <td className="p-4">
                     <span className={`px-2.5 py-0.5 text-[9px] font-bold rounded-full ${user.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                      {user.status}
+                      {user.status === 'Active' ? 'Aktif' : 'Nonaktif'}
                     </span>
                   </td>
                   <td className="p-4 flex gap-3">
@@ -194,6 +195,11 @@ const Users = () => {
             <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Edit User" : "Tambah User"}</h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
+                <label className="block mb-1.5">ID Karyawan</label>
+                <input type="text" placeholder="Contoh: EMP-001" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                  value={formData.employee_id} onChange={e => setFormData({...formData, employee_id: e.target.value})} />
+              </div>
+              <div>
                 <label className="block mb-1.5">Nama Lengkap</label>
                 <input type="text" placeholder="Nama lengkap" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} />
@@ -211,15 +217,15 @@ const Users = () => {
                 </div>
               )}
               <div>
-                <label className="block mb-1.5">Role</label>
+                <label className="block mb-1.5">Peran (Role)</label>
                 <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.role_id} onChange={e => setFormData({...formData, role_id: e.target.value})}>
-                  <option value="">-- Pilih Role --</option>
+                  <option value="">-- Pilih Peran --</option>
                   {roles.map(r => <option key={r.id} value={r.id}>{r.role_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block mb-1.5">Company</label>
+                <label className="block mb-1.5">Perusahaan</label>
                 <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.company_id} 
                   onChange={e => {
@@ -233,15 +239,15 @@ const Users = () => {
                     }
                     setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
                   }}>
-                  <option value="">-- Pilih Company --</option>
+                  <option value="">-- Pilih Perusahaan --</option>
                   {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block mb-1.5">Position</label>
+                <label className="block mb-1.5">Jabatan</label>
                 <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.position_id} onChange={e => setFormData({...formData, position_id: e.target.value})}>
-                  <option value="">-- Pilih Position --</option>
+                  <option value="">-- Pilih Jabatan --</option>
                   {filteredPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
                 </select>
               </div>
@@ -249,8 +255,8 @@ const Users = () => {
                 <label className="block mb-1.5">Status</label>
                 <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
+                  <option value="Active">Aktif</option>
+                  <option value="Inactive">Nonaktif</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-50">

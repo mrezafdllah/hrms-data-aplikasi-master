@@ -15,6 +15,7 @@ export default function UsersScreen() {
   
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
+    employee_id: '',
     role_id: '',
     position_id: '',
     full_name: '',
@@ -84,7 +85,7 @@ export default function UsersScreen() {
       }
       setModalVisible(false);
       setEditingId(null);
-      setFormData({ role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
+      setFormData({ employee_id: '', role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
       fetchData();
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Gagal menyimpan data.');
@@ -93,6 +94,7 @@ export default function UsersScreen() {
 
   const handleEdit = (user: any) => {
     setFormData({
+      employee_id: user.employee_id || '',
       role_id: user.role_id ? user.role_id.toString() : '',
       position_id: user.position_id ? user.position_id.toString() : '',
       full_name: user.full_name,
@@ -124,7 +126,7 @@ export default function UsersScreen() {
   };
 
   const openAddModal = () => {
-    setFormData({ role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
+    setFormData({ employee_id: '', role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
     setEditingId(null);
     setModalVisible(true);
   };
@@ -148,12 +150,16 @@ export default function UsersScreen() {
             styles.statusBadge, 
             item.status === 'Active' ? styles.statusActive : styles.statusInactive
           ]}>
-            {item.status}
+            {item.status === 'Active' ? 'Aktif' : 'Nonaktif'}
           </Text>
         </View>
         <Text style={styles.userEmail}>{item.email}</Text>
         
         <View style={styles.metaContainer}>
+          <View style={styles.metaRow}>
+            <Ionicons name="card-outline" size={13} color="#7b3fe4" />
+            <Text style={[styles.metaText, { color: '#7b3fe4', fontWeight: 'bold' }]}>{item.employee_id || `EMP-${item.id}`}</Text>
+          </View>
           <View style={styles.metaRow}>
             <Ionicons name="shield-checkmark-outline" size={13} color="#9ca3af" />
             <Text style={styles.metaText}>{item.role_name || 'Tanpa Role'}</Text>
@@ -221,6 +227,17 @@ export default function UsersScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }} contentContainerStyle={{ paddingBottom: 20 }}>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>ID Karyawan</Text>
+                <TextInput
+                  style={styles.input}
+                  value={formData.employee_id}
+                  onChangeText={(text) => setFormData({ ...formData, employee_id: text })}
+                  placeholder="EMP-001"
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Nama Lengkap</Text>
                 <TextInput

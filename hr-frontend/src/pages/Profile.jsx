@@ -3,61 +3,33 @@ import React, { useState, useEffect } from 'react';
 import { UserCircle, Camera, Check, X, Edit3, AlertTriangle } from 'lucide-react';
 import ConfirmationModal from '../components/ConfirmationModal';
 
-const translations = {
-  ID: {
-    title: "Profil Saya",
-    subtitle: "Informasi akun dan data pribadi Anda",
-    editProfile: "Edit Profil",
-    cancel: "Batal",
-    saveChanges: "Simpan Perubahan",
-    successMsg: "Profil berhasil diperbarui!",
-    accountPositionInfo: "Informasi Akun & Jabatan",
-    fullName: "Nama Lengkap",
-    email: "Email",
-    birthPlace: "Tempat Lahir",
-    birthDate: "Tanggal Lahir",
-    address: "Alamat",
-    company: "Perusahaan (Company)",
-    job: "Pekerjaan (Job)",
-    position: "Jabatan (Position)",
-    joinedSince: "Bergabung Sejak",
-    uploadSuccess: "Foto profil berhasil diperbarui!",
-    uploadFailed: "Gagal mengunggah foto profil.",
-    choosePosition: "Pilih Jabatan (Khusus Admin)",
-    changePhoto: "Ganti Foto",
-    uploading: "Mengunggah...",
-    placeholderAddress: "Masukkan alamat lengkap rumah Anda",
-    placeholderBirthPlace: "Contoh: Jakarta",
-    loadingMsg: "Memuat Profil...",
-    notFoundMsg: "Data profil tidak ditemukan.",
-  },
-  EN: {
-    title: "My Profile",
-    subtitle: "Your account details and personal data",
-    editProfile: "Edit Profile",
-    cancel: "Cancel",
-    saveChanges: "Save Changes",
-    successMsg: "Profile successfully updated!",
-    accountPositionInfo: "Account & Position Information",
-    fullName: "Full Name",
-    email: "Email Address",
-    birthPlace: "Place of Birth",
-    birthDate: "Date of Birth",
-    address: "Home Address",
-    company: "Company",
-    job: "Job Name",
-    position: "Position Title",
-    joinedSince: "Member Since",
-    uploadSuccess: "Profile picture successfully updated!",
-    uploadFailed: "Failed to upload profile picture.",
-    choosePosition: "Select Position (Admin Only)",
-    changePhoto: "Change Photo",
-    uploading: "Uploading...",
-    placeholderAddress: "Enter your full home address",
-    placeholderBirthPlace: "Example: Jakarta",
-    loadingMsg: "Loading Profile...",
-    notFoundMsg: "Profile data not found.",
-  }
+const t = {
+  title: "Profil Saya",
+  subtitle: "Informasi akun dan data pribadi Anda",
+  editProfile: "Edit Profil",
+  cancel: "Batal",
+  saveChanges: "Simpan Perubahan",
+  successMsg: "Profil berhasil diperbarui!",
+  accountPositionInfo: "Informasi Akun & Jabatan",
+  employeeId: "ID Karyawan",
+  fullName: "Nama Lengkap",
+  email: "Email",
+  birthPlace: "Tempat Lahir",
+  birthDate: "Tanggal Lahir",
+  address: "Alamat",
+  company: "Perusahaan",
+  job: "Pekerjaan",
+  position: "Jabatan",
+  joinedSince: "Bergabung Sejak",
+  uploadSuccess: "Foto profil berhasil diperbarui!",
+  uploadFailed: "Gagal mengunggah foto profil.",
+  choosePosition: "Pilih Jabatan (Khusus Admin)",
+  changePhoto: "Ganti Foto",
+  uploading: "Mengunggah...",
+  placeholderAddress: "Masukkan alamat lengkap rumah Anda",
+  placeholderBirthPlace: "Contoh: Jakarta",
+  loadingMsg: "Memuat Profil...",
+  notFoundMsg: "Data profil tidak ditemukan.",
 };
 
 const Profile = () => {
@@ -67,18 +39,6 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
-  
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'ID');
-  
-  useEffect(() => {
-    const handleLangChange = () => {
-      setLanguage(localStorage.getItem('language') || 'ID');
-    };
-    window.addEventListener('languageChange', handleLangChange);
-    return () => {
-      window.removeEventListener('languageChange', handleLangChange);
-    };
-  }, []);
 
   const [alertModal, setAlertModal] = useState({
     show: false,
@@ -125,9 +85,8 @@ const Profile = () => {
     return JSON.stringify(detail);
   };
 
-  const t = translations[language] || translations.ID;
-
   const [formData, setFormData] = useState({
+    employee_id: '',
     full_name: '',
     email: '',
     birth_place: '',
@@ -148,6 +107,7 @@ const Profile = () => {
         if (data.status === "Success") {
           setProfile(data.data);
           setFormData({
+            employee_id: data.data.employee_id || '',
             full_name: data.data.full_name || '',
             email: data.data.email || '',
             birth_place: data.data.birth_place || '',
@@ -189,10 +149,8 @@ const Profile = () => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       showAlert(
-        language === 'ID' ? 'Format Tidak Didukung' : 'Unsupported Format',
-        language === 'ID' 
-          ? 'Format file tidak didukung. Gunakan JPG, JPEG, PNG, atau WEBP.' 
-          : 'File format not supported. Use JPG, JPEG, PNG, or WEBP.',
+        'Format Tidak Didukung',
+        'Format file tidak didukung. Gunakan JPG, JPEG, PNG, atau WEBP.',
         'error'
       );
       return;
@@ -202,10 +160,8 @@ const Profile = () => {
     const maxSizeBytes = 2 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       showAlert(
-        language === 'ID' ? 'File Terlalu Besar' : 'File Too Large',
-        language === 'ID' 
-          ? 'Ukuran foto maksimal adalah 2MB.' 
-          : 'Maximum photo size is 2MB.',
+        'File Terlalu Besar',
+        'Ukuran foto maksimal adalah 2MB.',
         'error'
       );
       return;
@@ -227,13 +183,13 @@ const Profile = () => {
           fetchProfile();
           setTimeout(() => setMessage(''), 3000);
         } else {
-          showAlert(language === 'ID' ? 'Gagal Unggah' : 'Upload Failed', data.detail || t.uploadFailed, 'error');
+          showAlert('Gagal Unggah', data.detail || t.uploadFailed, 'error');
         }
       })
       .catch(err => {
         setUploading(false);
         console.error(err);
-        showAlert(language === 'ID' ? 'Gagal Unggah' : 'Upload Failed', t.uploadFailed, 'error');
+        showAlert('Gagal Unggah', t.uploadFailed, 'error');
       });
   };
 
@@ -249,10 +205,8 @@ const Profile = () => {
     e.preventDefault();
     setConfirmModal({
       show: true,
-      title: language === 'ID' ? 'Konfirmasi Perubahan' : 'Confirm Changes',
-      message: language === 'ID' 
-        ? 'Apakah Anda yakin ingin menyimpan perubahan profil Anda?' 
-        : 'Are you sure you want to save your profile changes?',
+      title: 'Konfirmasi Perubahan',
+      message: 'Apakah Anda yakin ingin menyimpan perubahan profil Anda?',
       type: 'update',
       onConfirm: () => executeSubmit()
     });
@@ -279,16 +233,16 @@ const Profile = () => {
       .then(res => res.json())
       .then((data) => {
         if (data.status === "Success") {
-          showAlert(language === 'ID' ? 'Berhasil' : 'Success', t.successMsg, 'success');
+          showAlert('Berhasil', t.successMsg, 'success');
           setIsEditing(false);
           fetchProfile();
         } else {
-          showAlert(language === 'ID' ? 'Gagal Perbarui' : 'Update Failed', formatErrorDetail(data.detail), 'error');
+          showAlert('Gagal Perbarui', formatErrorDetail(data.detail), 'error');
         }
       })
       .catch(err => {
         console.error(err);
-        showAlert(language === 'ID' ? 'Error' : 'Error', language === 'ID' ? 'Terjadi kesalahan saat menyimpan' : 'An error occurred while saving', 'error');
+        showAlert('Error', 'Terjadi kesalahan saat menyimpan', 'error');
       });
   };
 
@@ -367,10 +321,10 @@ const Profile = () => {
               <span className={`px-2.5 py-0.5 text-[9px] font-bold rounded-full ${
                 profile.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
               }`}>
-                {profile.status === 'Active' ? (language === 'ID' ? 'Aktif' : 'Active') : (language === 'ID' ? 'Nonaktif' : 'Inactive')}
+                {profile.status === 'Active' ? 'Aktif' : 'Nonaktif'}
               </span>
               <span className="px-2.5 py-0.5 text-[9px] font-bold rounded-full bg-purple-50 text-[#7b3fe4]">
-                {profile.role_name || (language === 'ID' ? 'Karyawan' : 'Employee')}
+                {profile.role_name || 'Karyawan'}
               </span>
             </div>
           </div>
@@ -383,6 +337,17 @@ const Profile = () => {
           {isEditing ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{t.employeeId}</label>
+                  <input
+                    type="text"
+                    name="employee_id"
+                    value={formData.employee_id}
+                    onChange={handleChange}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                    placeholder="EMP-001"
+                  />
+                </div>
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{t.fullName}</label>
                   <input
@@ -486,6 +451,10 @@ const Profile = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-6 text-xs font-semibold text-gray-500">
               <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.employeeId}</label>
+                <p className="text-gray-800 font-bold mt-1 text-sm">{profile.employee_id || `EMP-${profile.id}`}</p>
+              </div>
+              <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.company}</label>
                 <p className="text-gray-800 font-bold mt-1 text-sm">{profile.company_name || '-'}</p>
               </div>
@@ -501,7 +470,7 @@ const Profile = () => {
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.birthPlace}, {t.birthDate}</label>
                 <p className="text-gray-800 font-bold mt-1 text-sm">
                   {profile.birth_place || '-'}
-                  {profile.birth_date ? `, ${new Date(profile.birth_date).toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
+                  {profile.birth_date ? `, ${new Date(profile.birth_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
                 </p>
               </div>
               <div className="md:col-span-2">
@@ -511,7 +480,7 @@ const Profile = () => {
               <div className="md:col-span-2 pt-3 border-t border-gray-50">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.joinedSince}</label>
                 <p className="text-gray-800 font-bold mt-1 text-sm">
-                  {profile.created_at ? new Date(profile.created_at).toLocaleDateString(language === 'ID' ? 'id-ID' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                  {profile.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                 </p>
               </div>
             </div>

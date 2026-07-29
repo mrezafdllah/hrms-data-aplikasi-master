@@ -43,39 +43,37 @@ export default function LoginScreen() {
   };
 
   if (!showForm) {
-    // SCREEN 1: ONBOARDING SCREEN (Left Phone in mockup)
+    // SCREEN 1: ONBOARDING SCREEN
     return (
       <View style={styles.onboardingContainer}>
         {/* Skip button top right */}
         <TouchableOpacity style={styles.skipButton} onPress={() => setShowForm(true)}>
-          <Text style={styles.skipText}>SKIP</Text>
+          <Text style={styles.skipText}>LEWATI</Text>
         </TouchableOpacity>
 
         {/* Giant Logo */}
         <View style={styles.giantLogoContainer}>
           <View style={styles.slashGroup}>
-            {/* Dark slash */}
             <View style={[styles.slash, styles.darkSlash, { transform: [{ rotate: '-30deg' }] }]} />
-            {/* Green slash */}
             <View style={[styles.slash, styles.greenSlash, { transform: [{ rotate: '-30deg' }] }]} />
           </View>
         </View>
 
         {/* Headline */}
         <View style={styles.onboardingContent}>
-          <Text style={styles.headlineText}>Create {'\n'}your best {'\n'}employees</Text>
+          <Text style={styles.headlineText}>Kelola SDM {'\n'}Terbaik Anda {'\n'}Sekarang</Text>
           <Text style={styles.subHeadlineText}>Digital HRMS - PT Cybers Blitz Nusantara</Text>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.onboardingFooter}>
           <TouchableOpacity style={styles.getStartedButton} onPress={() => setShowForm(true)}>
-            <Text style={styles.getStartedText}>Get Started</Text>
+            <Text style={styles.getStartedText}>Mulai Sekarang</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.signInLink} onPress={() => setShowForm(true)}>
             <Text style={styles.signInLabel}>
-              Already have an account? <Text style={styles.signInGreen}>Sign in</Text>
+              Sudah memiliki akun? <Text style={styles.signInGreen}>Masuk</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -106,8 +104,8 @@ export default function LoginScreen() {
 
         {/* Header */}
         <View style={styles.formHeader}>
-          <Text style={styles.welcomeText}>Welcome Back !</Text>
-          <Text style={styles.welcomeSubtext}>Please enter your details to sign in</Text>
+          <Text style={styles.welcomeText}>Selamat Datang Kembali!</Text>
+          <Text style={styles.welcomeSubtext}>Silakan masukkan kredensial akun Anda</Text>
         </View>
 
         {/* Error Display */}
@@ -115,10 +113,10 @@ export default function LoginScreen() {
 
         {/* Form Inputs */}
         <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Email Address</Text>
+          <Text style={styles.inputLabel}>Alamat Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="example@hr.com"
+            placeholder="admin@hr.com"
             placeholderTextColor="#9ca3af"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -128,7 +126,7 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Password</Text>
+          <Text style={styles.inputLabel}>Kata Sandi</Text>
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.passwordInput}
@@ -166,7 +164,7 @@ export default function LoginScreen() {
 
         {/* Terms text */}
         <Text style={styles.termsText}>
-          By signing in, you agree to our Terms of Service and Privacy Policy.
+          Dengan masuk, Anda menyetujui Syarat Layanan dan Kebijakan Privasi kami.
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>

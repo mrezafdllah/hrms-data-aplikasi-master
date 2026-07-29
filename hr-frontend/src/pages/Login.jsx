@@ -27,6 +27,7 @@ const Login = () => {
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('role', data.role);
         localStorage.setItem('name', data.name);
+        localStorage.setItem('lastActiveTime', Date.now().toString());
         navigate('/');
       } else {
         setError(data.detail || 'Login gagal. Periksa kembali kredensial Anda.');
@@ -125,10 +126,10 @@ const Login = () => {
           {/* Heading under illustration */}
           <div className="text-center mt-8 px-6">
             <h2 className="text-2xl font-bold text-[#1e2022] leading-tight mb-2">
-              Onboarding New Talent with Digital HRMS
+              Sistem Manajemen SDM Digital Terintegrasi
             </h2>
             <p className="text-gray-500 text-sm max-w-sm mx-auto">
-              Everything you need in an easily customizable dashboard
+              Segala kebutuhan manajemen HR Anda dalam satu dashboard
             </p>
           </div>
 
@@ -142,7 +143,7 @@ const Login = () => {
 
         {/* Footer text */}
         <div className="text-center text-xs text-gray-400 z-10">
-          © {new Date().getFullYear()} PT Cybers Blitz Nusantara. All rights reserved.
+          © {new Date().getFullYear()} PT Cybers Blitz Nusantara. Seluruh hak cipta dilindungi.
         </div>
       </div>
 
@@ -160,15 +161,14 @@ const Login = () => {
 
           {/* Form Header */}
           <div className="text-center lg:text-left mb-8">
-            {/* Double-slash logo inside the box (matching image 1) */}
             <div className="hidden lg:flex justify-start mb-6">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 2L2 22H8L14 2H8Z" fill="#7b3fe4" />
                 <path d="M17 2L11 22H17L23 2H17Z" fill="#3a6bf6" />
               </svg>
             </div>
-            <h2 className="text-3xl font-extrabold text-[#1e2022] mb-1.5 tracking-tight">Welcome Back !</h2>
-            <p className="text-gray-400 text-sm">Please enter your details</p>
+            <h2 className="text-3xl font-extrabold text-[#1e2022] mb-1.5 tracking-tight">Selamat Datang Kembali!</h2>
+            <p className="text-gray-400 text-sm">Silakan masukkan kredensial akun Anda</p>
           </div>
 
           {error && (
@@ -180,7 +180,7 @@ const Login = () => {
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                Email Address
+                Alamat Email
               </label>
               <input 
                 type="email" 
@@ -193,7 +193,7 @@ const Login = () => {
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                Password
+                Kata Sandi
               </label>
               <div className="relative">
                 <input 
@@ -226,9 +226,9 @@ const Login = () => {
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer text-gray-500">
                 <input type="checkbox" className="rounded border-gray-300 text-[#7b3fe4] focus:ring-[#7b3fe4] w-4 h-4" />
-                <span>Remember me</span>
+                <span>Ingat Saya</span>
               </label>
-              <a href="#forgot" className="text-gray-400 hover:text-gray-600 font-medium">Forgot Password?</a>
+              <a href="#forgot" className="text-gray-400 hover:text-gray-600 font-medium">Lupa Kata Sandi?</a>
             </div>
 
             <button 
@@ -236,7 +236,7 @@ const Login = () => {
               disabled={loading}
               className="w-full bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] hover:opacity-95 text-white font-semibold py-3.5 rounded-full flex items-center justify-center gap-2 transition-all hover:shadow-lg disabled:bg-gray-400 cursor-pointer text-sm shadow-md shadow-blue-500/10"
             >
-              {loading ? 'Processing...' : 'Login'}
+              {loading ? 'Memproses...' : 'Masuk'}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
               </svg>
@@ -244,13 +244,8 @@ const Login = () => {
           </form>
 
           <p className="mt-8 text-center text-xs text-gray-400 max-w-sm mx-auto leading-relaxed">
-            By creating an account, you agree to our <a href="#terms" className="text-[#3b82f6] hover:underline">Terms of Service</a> and <a href="#privacy" className="text-[#3b82f6] hover:underline">Privacy Policy</a>
+            Dengan masuk ke akun, Anda menyetujui <a href="#terms" className="text-[#3b82f6] hover:underline">Syarat Layanan</a> dan <a href="#privacy" className="text-[#3b82f6] hover:underline">Kebijakan Privasi</a> kami
           </p>
-
-          <div className="mt-8 text-center text-sm">
-            <span className="text-gray-500">Don't have an account? </span>
-            <a href="#signup" className="text-[#7b3fe4] font-bold hover:underline">Sign Up</a>
-          </div>
         </div>
       </div>
     </div>

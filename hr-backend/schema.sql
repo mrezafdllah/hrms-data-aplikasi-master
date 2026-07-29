@@ -49,6 +49,7 @@ CREATE TABLE positions (
 -- 5. TABEL USERS (Sudah disesuaikan: company_id dihapus)
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
+    employee_id TEXT,
     role_id INTEGER REFERENCES roles(id) ON DELETE SET NULL,
     position_id INTEGER REFERENCES positions(id) ON DELETE SET NULL,
     full_name VARCHAR(150) NOT NULL,

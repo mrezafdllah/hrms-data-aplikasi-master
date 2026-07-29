@@ -42,10 +42,10 @@ const Jobs = () => {
     e.preventDefault();
     setConfirmModal({
       show: true,
-      title: editingId ? 'Konfirmasi Edit Job' : 'Konfirmasi Tambah Job',
+      title: editingId ? 'Konfirmasi Edit Pekerjaan' : 'Konfirmasi Tambah Pekerjaan',
       message: editingId
-        ? `Apakah Anda yakin ingin menyimpan perubahan data job "${formData.job_name}"?`
-        : `Apakah Anda yakin ingin menambahkan job baru "${formData.job_name}"?`,
+        ? `Apakah Anda yakin ingin menyimpan perubahan data pekerjaan "${formData.job_name}"?`
+        : `Apakah Anda yakin ingin menambahkan pekerjaan baru "${formData.job_name}"?`,
       type: editingId ? 'update' : 'create',
       onConfirm: () => executeSubmit()
     });
@@ -84,8 +84,8 @@ const Jobs = () => {
     const jobName = job ? job.job_name : '';
     setConfirmModal({
       show: true,
-      title: 'Konfirmasi Hapus Job',
-      message: `Apakah Anda yakin ingin menghapus job "${jobName}"?\nSemua position terkait akan ikut terhapus secara permanen.`,
+      title: 'Konfirmasi Hapus Pekerjaan',
+      message: `Apakah Anda yakin ingin menghapus pekerjaan "${jobName}"?\nSemua jabatan (position) terkait akan ikut terhapus secara permanen.`,
       type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/jobs/${id}`, { method: 'DELETE' })
@@ -104,11 +104,11 @@ const Jobs = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen Job</h1>
+          <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen Pekerjaan (Job)</h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola divisi atau kategori pekerjaan</p>
         </div>
         <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
-          + Tambah Job
+          + Tambah Pekerjaan
         </button>
       </div>
 
@@ -118,8 +118,8 @@ const Jobs = () => {
             <thead>
               <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
                 <th className="p-4 rounded-tl-2xl">ID</th>
-                <th className="p-4">Nama Job</th>
-                <th className="p-4">Company</th>
+                <th className="p-4">Nama Pekerjaan</th>
+                <th className="p-4">Perusahaan</th>
                 <th className="p-4">Deskripsi</th>
                 <th className="p-4 rounded-tr-2xl">Aksi</th>
               </tr>
@@ -138,7 +138,7 @@ const Jobs = () => {
                 </tr>
               ))}
               {jobs.length === 0 && !loading && (
-                <tr><td colSpan="5" className="p-8 text-center text-gray-400">Belum ada data job.</td></tr>
+                <tr><td colSpan="5" className="p-8 text-center text-gray-400">Belum ada data pekerjaan.</td></tr>
               )}
             </tbody>
           </table>
@@ -148,18 +148,18 @@ const Jobs = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Edit Job" : "Tambah Job"}</h2>
+            <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Edit Pekerjaan" : "Tambah Pekerjaan"}</h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
-                <label className="block mb-1.5">Company</label>
+                <label className="block mb-1.5">Perusahaan</label>
                 <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.company_id} onChange={e => setFormData({...formData, company_id: e.target.value})}>
-                  <option value="">-- Pilih Company --</option>
+                  <option value="">-- Pilih Perusahaan --</option>
                   {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block mb-1.5">Nama Job</label>
+                <label className="block mb-1.5">Nama Pekerjaan</label>
                 <input type="text" placeholder="Contoh: Software Engineer" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.job_name} onChange={e => setFormData({...formData, job_name: e.target.value})} />
               </div>

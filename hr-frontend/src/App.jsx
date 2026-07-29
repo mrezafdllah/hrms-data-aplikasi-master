@@ -9,7 +9,6 @@ import Positions from './pages/Positions';
 import Users from './pages/Users';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
-import Tasks from './pages/Tasks';
 import './index.css';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -33,6 +32,13 @@ function App() {
 
   // Inactivity timeout handler
   useEffect(() => {
+    const resetTimer = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        localStorage.setItem('lastActiveTime', Date.now().toString());
+      }
+    };
+
     const checkSession = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -52,17 +58,8 @@ function App() {
           window.location.href = '/login';
           return;
         }
-      }
-    };
-
-    // Run check immediately on mount/navigation
-    checkSession();
-
-    // Reset inactivity timestamp on user interactions
-    const resetTimer = () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        localStorage.setItem('lastActiveTime', Date.now().toString());
+      } else {
+        resetTimer();
       }
     };
 
@@ -73,9 +70,6 @@ function App() {
 
     // Check every 10 seconds
     const intervalId = setInterval(checkSession, 10000);
-
-    // Initialize timer
-    resetTimer();
 
     return () => {
       events.forEach(event => {
@@ -124,11 +118,6 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute allowedRoles={['Super Admin', 'Admin HR', 'Karyawan']}>
               <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/tasks" element={
-            <ProtectedRoute allowedRoles={['Super Admin', 'Admin HR', 'Karyawan']}>
-              <Tasks />
             </ProtectedRoute>
           } />
         </Routes>
