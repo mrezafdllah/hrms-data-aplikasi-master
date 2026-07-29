@@ -375,21 +375,6 @@ def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         """)
         role_stats = cursor.fetchall()
 
-        if current_user['role'] == 'Karyawan':
-            cursor.execute("""
-                SELECT status as name, COUNT(*) as value 
-                FROM tasks 
-                WHERE user_id = %s
-                GROUP BY status;
-            """, (current_user['user_id'],))
-        else:
-            cursor.execute("""
-                SELECT status as name, COUNT(*) as value 
-                FROM tasks 
-                GROUP BY status;
-            """)
-        task_stats = cursor.fetchall()
-        
         return {
             "status": "Success",
             "data": {
@@ -399,8 +384,7 @@ def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
                 "totalJobs": int(total_jobs),
                 "activeUsers": int(active_users),
                 "inactiveUsers": int(inactive_users),
-                "roleStats": role_stats,
-                "taskStats": task_stats
+                "roleStats": role_stats
             }
         }
 

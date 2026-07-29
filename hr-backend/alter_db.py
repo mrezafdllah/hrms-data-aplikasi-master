@@ -37,22 +37,6 @@ def alter_db():
         cursor.execute("ALTER TABLE companies ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;")
         print("Kolom soft delete berhasil ditambahkan ke tabel companies jika belum ada.")
         
-        # Create tasks table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS tasks (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            task_name VARCHAR(255) NOT NULL,
-            description TEXT,
-            task_date DATE NOT NULL DEFAULT CURRENT_DATE,
-            status VARCHAR(50) NOT NULL DEFAULT 'Pending',
-            created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        """)
-        print("Tabel tasks berhasil dibuat jika belum ada.")
-        
         conn.commit()
         print("Migrasi database sukses!")
         cursor.close()

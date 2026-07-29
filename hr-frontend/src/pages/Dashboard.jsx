@@ -83,6 +83,19 @@ const Dashboard = () => {
   // Header state
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   
+  // Employee Directory pagination state
+  const [directoryIndex, setDirectoryIndex] = useState(0);
+  const DIRECTORY_ITEMS_PER_PAGE = 7;
+  const maxDirectoryIndex = Math.max(0, users.length - DIRECTORY_ITEMS_PER_PAGE);
+
+  const handlePrevDirectory = () => {
+    setDirectoryIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNextDirectory = () => {
+    setDirectoryIndex(prev => Math.min(maxDirectoryIndex, prev + 1));
+  };
+  
   // Schedule Modal State
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
@@ -118,19 +131,26 @@ const Dashboard = () => {
   const isAdmin = role === 'Super Admin' || role === 'Admin HR';
 
   const fetchData = () => {
-    Promise.all([
+    setLoading(true);
+    Promise.allSettled([
       apiFetch('/api/dashboard-stats').then(res => res.json()),
       apiFetch('/api/users').then(res => res.json()),
       apiFetch('/api/schedules').then(res => res.json()),
       apiFetch('/api/profile').then(res => res.json())
     ])
-      .then(([statsData, usersData, schedulesData, profileData]) => {
-        if (statsData.status === "Success") setStats(statsData.data);
-        if (usersData.status === "Success") setUsers(usersData.data);
-        if (schedulesData.status === "Success") setSchedules(schedulesData.data);
-        if (profileData.status === "Success") {
-          setMyProfile(profileData.data);
-          localStorage.setItem('profile_picture', profileData.data.profile_picture || '');
+      .then(([statsRes, usersRes, schedulesRes, profileRes]) => {
+        if (statsRes.status === 'fulfilled' && statsRes.value?.status === "Success") {
+          setStats(statsRes.value.data);
+        }
+        if (usersRes.status === 'fulfilled' && usersRes.value?.status === "Success") {
+          setUsers(usersRes.value.data);
+        }
+        if (schedulesRes.status === 'fulfilled' && schedulesRes.value?.status === "Success") {
+          setSchedules(schedulesRes.value.data);
+        }
+        if (profileRes.status === 'fulfilled' && profileRes.value?.status === "Success") {
+          setMyProfile(profileRes.value.data);
+          localStorage.setItem('profile_picture', profileRes.value.data.profile_picture || '');
         }
         setLoading(false);
       })
@@ -592,39 +612,73 @@ const Dashboard = () => {
       {/* 4. EMPLOYEE DIRECTORY SECTION */}
       <div className="bg-white p-5 rounded-2xl border border-gray-50 shadow-sm space-y-4">
         <div className="flex justify-between items-center">
-          <span className="font-extrabold text-gray-800 text-sm tracking-tight">Employee Directory</span>
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-gray-800 text-sm tracking-tight">Direktori Karyawan</span>
+            <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+              Total: {users.length}
+            </span>
+          </div>
           <div className="flex gap-1.5">
-            <button className="p-1 rounded bg-gray-50 border border-gray-100 hover:bg-gray-100 text-gray-600"><ChevronLeft size={16} /></button>
-            <button className="p-1 rounded bg-gray-50 border border-gray-100 hover:bg-gray-100 text-gray-600"><ChevronRight size={16} /></button>
+            <button 
+              onClick={handlePrevDirectory}
+              disabled={directoryIndex === 0}
+              className={`p-1.5 rounded-lg border transition-all ${
+                directoryIndex === 0 
+                  ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed opacity-50' 
+                  : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 shadow-sm cursor-pointer active:scale-95'
+              }`}
+              title="Karyawan Sebelumnya"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button 
+              onClick={handleNextDirectory}
+              disabled={directoryIndex >= maxDirectoryIndex}
+              className={`p-1.5 rounded-lg border transition-all ${
+                directoryIndex >= maxDirectoryIndex 
+                  ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed opacity-50' 
+                  : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 shadow-sm cursor-pointer active:scale-95'
+              }`}
+              title="Karyawan Selanjutnya"
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 pt-2">
-          {users.slice(0, 7).map((user, idx) => {
+          {users.slice(directoryIndex, directoryIndex + DIRECTORY_ITEMS_PER_PAGE).map((user, idx) => {
             const initials = user.full_name
               ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
               : 'U';
-            const colorClass = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+            const colorClass = AVATAR_COLORS[(directoryIndex + idx) % AVATAR_COLORS.length];
             return (
-              <div key={user.id} className="bg-gray-50/50 hover:bg-gray-50 border border-gray-100 p-4 rounded-xl flex flex-col items-center text-center transition-all">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-tr ${colorClass} text-white font-bold flex items-center justify-center text-xs mb-3 shadow-md`}>
-                  {initials}
-                </div>
-                <h4 className="text-xs font-bold text-gray-800 truncate w-full">{user.full_name}</h4>
-                <p className="text-[9px] text-gray-400 font-semibold truncate w-full mt-0.5">{user.position_name || '-'}</p>
-                <p style={{ display: 'none' }}>{user.id}</p>
-                <p className="text-[8px] text-gray-400 uppercase tracking-widest font-black mt-1.5">{user.company_name || 'CBN HRMS'}</p>
+              <div key={user.id} className="bg-gray-50/50 hover:bg-gray-50 border border-gray-100 p-4 rounded-xl flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-0.5">
+                {user.profile_picture ? (
+                  <img
+                    src={`${API_BASE_URL}${user.profile_picture}`}
+                    alt={user.full_name}
+                    className="w-12 h-12 rounded-full object-cover mb-3 shadow-md border-2 border-white"
+                  />
+                ) : (
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-tr ${colorClass} text-white font-bold flex items-center justify-center text-xs mb-3 shadow-md`}>
+                    {initials}
+                  </div>
+                )}
+                <h4 className="text-xs font-bold text-gray-800 truncate w-full" title={user.full_name}>{user.full_name}</h4>
+                <p className="text-[9px] text-gray-400 font-semibold truncate w-full mt-0.5" title={user.position_name || '-'}>{user.position_name || '-'}</p>
+                <p className="text-[8px] text-gray-400 uppercase tracking-widest font-black mt-1.5 truncate w-full" title={user.company_name || 'CBN HRMS'}>{user.company_name || 'CBN HRMS'}</p>
               </div>
             );
           })}
           {users.length === 0 && (
-            <div className="col-span-full py-8 text-center text-gray-400 text-sm">No employees found.</div>
+            <div className="col-span-full py-8 text-center text-gray-400 text-sm">Belum ada data karyawan.</div>
           )}
         </div>
 
         <div className="flex justify-start pt-2">
           <Link to="/users" className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-full flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
-            Show all
+            Lihat Semua
             <ArrowRight size={12} />
           </Link>
         </div>
