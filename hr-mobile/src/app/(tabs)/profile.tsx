@@ -550,7 +550,7 @@ export default function ProfileScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Konfirmasi Kata Sandi Baru</Text>
             <TextInput
-              style={styles.input}
+              style={styles.textInput}
               placeholder="Ulangi kata sandi baru"
               placeholderTextColor="#9ca3af"
               secureTextEntry={!showNewPassword}
@@ -1016,5 +1016,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     marginTop: 10,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    marginBottom: 20,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    paddingBottom: 12,
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1e2022',
   },
 });
