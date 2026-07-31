@@ -110,10 +110,9 @@ export default function ProfileScreen() {
   }, []);
 
   useEffect(() => {
-    loadLang();
     fetchProfile();
     fetchPositions();
-  }, [loadLang, fetchProfile, fetchPositions]);
+  }, [fetchProfile, fetchPositions]);
 
   const handleLogout = async () => {
     Alert.alert(t.confirmTitle, t.confirmLogoutMsg, [
