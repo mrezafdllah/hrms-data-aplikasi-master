@@ -506,6 +506,8 @@ export default function ProfileScreen() {
               </View>
             </View>
           )}
+        </View>
+
         {/* Change Password Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
