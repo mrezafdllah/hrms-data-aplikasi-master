@@ -116,7 +116,7 @@ export default function LoginScreen() {
           <Text style={styles.inputLabel}>Alamat Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="admin@hr.com"
+            placeholder="contoh@email.com"
             placeholderTextColor="#9ca3af"
             keyboardType="email-address"
             autoCapitalize="none"
