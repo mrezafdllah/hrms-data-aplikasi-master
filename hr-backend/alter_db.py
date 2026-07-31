@@ -19,7 +19,19 @@ def alter_db():
         cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255);")
         cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id TEXT;")
         cursor.execute("ALTER TABLE users ALTER COLUMN employee_id TYPE TEXT;")
-        print("Kolom profil baru & employee_id (TEXT) berhasil ditambahkan jika belum ada.")
+        
+        # Add UNIQUE constraint to employee_id if not present
+        cursor.execute("""
+        DO $$ 
+        BEGIN 
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint WHERE conname = 'users_employee_id_key'
+            ) THEN 
+                ALTER TABLE users ADD CONSTRAINT users_employee_id_key UNIQUE (employee_id);
+            END IF;
+        END $$;
+        """)
+        print("Kolom profil baru & constraint UNIQUE pada employee_id berhasil dipastikan.")
 
         # Rename password column to hashed_password in users table
         cursor.execute("""

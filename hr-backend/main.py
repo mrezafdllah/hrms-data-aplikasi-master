@@ -734,7 +734,12 @@ def add_user(user: UserCreate, current_user: dict = Depends(require_admin_hr_or_
         raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        err_str = str(e)
+        if "users_employee_id_key" in err_str:
+            raise HTTPException(status_code=400, detail="ID Karyawan sudah digunakan oleh karyawan lain.")
+        if "users_email_key" in err_str:
+            raise HTTPException(status_code=400, detail="Email sudah terdaftar pada sistem.")
+        raise HTTPException(status_code=500, detail=err_str)
     finally:
         cursor.close()
         conn.close()
@@ -772,7 +777,12 @@ def update_user(id: int, user: UserUpdate, current_user: dict = Depends(require_
         raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        err_str = str(e)
+        if "users_employee_id_key" in err_str:
+            raise HTTPException(status_code=400, detail="ID Karyawan sudah digunakan oleh karyawan lain.")
+        if "users_email_key" in err_str:
+            raise HTTPException(status_code=400, detail="Email sudah terdaftar pada sistem.")
+        raise HTTPException(status_code=500, detail=err_str)
     finally:
         cursor.close()
         conn.close()
