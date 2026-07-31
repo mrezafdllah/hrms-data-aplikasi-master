@@ -151,6 +151,10 @@ class ProfileUpdate(BaseModel):
     profile_picture: Optional[str] = None
     position_id: Optional[int] = None
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 # -- Schedules --
 class ScheduleCreate(BaseModel):
     user_id: int
@@ -343,6 +347,45 @@ def upload_profile_picture(file: UploadFile = File(...), current_user: dict = De
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/change-password")
+@app.post("/api/profile/change-password")
+def change_password(data: ChangePasswordRequest, current_user: dict = Depends(get_current_user)):
+    if not data.current_password or not data.new_password:
+        raise HTTPException(status_code=400, detail="Harap isi kata sandi saat ini dan kata sandi baru.")
+    
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Kata sandi baru minimal 6 karakter.")
+        
+    if data.current_password == data.new_password:
+        raise HTTPException(status_code=400, detail="Kata sandi baru tidak boleh sama dengan kata sandi saat ini.")
+        
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute("SELECT hashed_password FROM users WHERE id = %s;", (current_user['user_id'],))
+        user_db = cursor.fetchone()
+        if not user_db:
+            raise HTTPException(status_code=404, detail="Pengguna tidak ditemukan.")
+            
+        if not verify_password(data.current_password, user_db['hashed_password']):
+            raise HTTPException(status_code=400, detail="Kata sandi saat ini salah.")
+            
+        new_hashed_pwd = get_password_hash(data.new_password)
+        cursor.execute(
+            "UPDATE users SET hashed_password = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;",
+            (new_hashed_pwd, current_user['user_id'])
+        )
+        conn.commit()
+        return {"status": "Success", "message": "Kata sandi berhasil diperbarui"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
 
 # ================= DASHBOARD =================
 @app.get("/api/dashboard-stats")

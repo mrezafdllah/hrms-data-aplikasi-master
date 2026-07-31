@@ -55,6 +55,48 @@ export default function ProfileScreen() {
   const [showPositionPicker, setShowPositionPicker] = useState(false);
   const router = useRouter();
 
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
+
+  const handlePasswordChange = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Input Tidak Lengkap', 'Harap isi semua kolom kata sandi.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Konfirmasi Salah', 'Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert('Kata Sandi Lemah', 'Kata sandi baru minimal 6 karakter.');
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      const res = await api.post('/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+      if (res.data?.status === 'Success') {
+        Alert.alert('Berhasil', 'Kata sandi Anda berhasil diperbarui.');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        Alert.alert('Gagal', res.data?.detail || 'Gagal mengubah kata sandi');
+      }
+    } catch (error: any) {
+      Alert.alert('Gagal', error.response?.data?.detail || 'Terjadi kesalahan');
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
   const [formData, setFormData] = useState({
     employee_id: '',
     full_name: '',
@@ -464,6 +506,69 @@ export default function ProfileScreen() {
               </View>
             </View>
           )}
+        {/* Change Password Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="key-outline" size={18} color="#d97706" style={{ marginRight: 8 }} />
+            <Text style={styles.cardTitle}>Keamanan Akun & Kata Sandi</Text>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Kata Sandi Saat Ini</Text>
+            <View style={styles.passwordInputWrapper}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Masukkan kata sandi saat ini"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry={!showCurrentPassword}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+              />
+              <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={styles.eyeBtn}>
+                <Ionicons name={showCurrentPassword ? "eye-off-outline" : "eye-outline"} size={18} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Kata Sandi Baru</Text>
+            <View style={styles.passwordInputWrapper}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Minimal 6 karakter"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry={!showNewPassword}
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
+              <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeBtn}>
+                <Ionicons name={showNewPassword ? "eye-off-outline" : "eye-outline"} size={18} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Konfirmasi Kata Sandi Baru</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ulangi kata sandi baru"
+              placeholderTextColor="#9ca3af"
+              secureTextEntry={!showNewPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.passwordSaveBtn} onPress={handlePasswordChange} disabled={passwordSaving}>
+            {passwordSaving ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="key" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.saveBtnText}>Perbarui Kata Sandi</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Logout */}
@@ -884,5 +989,32 @@ const styles = StyleSheet.create({
   },
   langBtnTextActive: {
     color: '#ffffff',
+  },
+  passwordInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: '#1f2937',
+  },
+  eyeBtn: {
+    padding: 6,
+  },
+  passwordSaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f59e0b',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 10,
   },
 });
