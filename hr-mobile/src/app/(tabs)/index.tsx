@@ -85,9 +85,6 @@ export default function DashboardScreen() {
   const todayStr = new Date().toISOString().split('T')[0];
   const todaySchedules = schedules.filter(s => s.schedule_date.split('T')[0] === todayStr);
 
-  const pendingTasks = tasks.filter(t => t.status === 'Pending' || t.status === 'In Progress');
-  const completedTasks = tasks.filter(t => t.status === 'Completed');
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
