@@ -100,13 +100,8 @@ const Login = () => {
         </div>
 
         {/* Logo at the top left */}
-        <div className="flex items-center gap-2 z-10">
-          <div className="flex gap-1.5 items-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 2L1 22H6L11 2H6Z" fill="#7b3fe4" />
-              <path d="M13 2L8 22H13L18 2H13Z" fill="#3a6bf6" />
-            </svg>
-          </div>
+        <div className="flex items-center gap-2.5 z-10">
+          <img src="/logo.png" alt="CBN Logo" className="w-8 h-8 object-contain" />
           <span className="font-bold text-xl tracking-tight text-[#1e2022]">CBN HRMS</span>
         </div>
 
@@ -328,21 +323,15 @@ const Login = () => {
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 py-12 md:px-16 lg:px-24">
         <div className="w-full max-w-md">
           {/* Logo on Mobile */}
-          <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 2L1 22H6L11 2H6Z" fill="#7b3fe4" />
-              <path d="M13 2L8 22H13L18 2H13Z" fill="#3a6bf6" />
-            </svg>
+          <div className="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
+            <img src="/logo.png" alt="CBN Logo" className="w-8 h-8 object-contain" />
             <span className="font-bold text-xl tracking-tight text-[#1e2022]">CBN HRMS</span>
           </div>
 
           {/* Form Header */}
           <div className="text-center lg:text-left mb-8">
             <div className="hidden lg:flex justify-start mb-6">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 2L2 22H8L14 2H8Z" fill="#7b3fe4" />
-                <path d="M17 2L11 22H17L23 2H17Z" fill="#3a6bf6" />
-              </svg>
+              <img src="/logo.png" alt="CBN Logo" className="w-10 h-10 object-contain" />
             </div>
             <h2 className="text-3xl font-extrabold text-[#1e2022] mb-1.5 tracking-tight">Selamat Datang Kembali!</h2>
             <p className="text-gray-400 text-sm">Silakan masukkan kredensial akun Anda</p>

@@ -24,11 +24,8 @@ const Sidebar = () => {
     <>
       {/* Mobile menu header */}
       <div className="md:hidden p-4 bg-white shadow-sm flex justify-between items-center fixed top-0 w-full z-20 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="relative w-6 h-6 flex items-center justify-center">
-            <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] -translate-x-1.5"></div>
-            <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] translate-x-1"></div>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.png" alt="CBN Logo" className="w-7 h-7 object-contain" />
           <span className="text-lg font-bold tracking-tight text-gray-800">CBN HRMS</span>
         </div>
         <button onClick={() => setIsOpen(!isOpen)} className="text-gray-600 focus:outline-none">
@@ -41,10 +38,7 @@ const Sidebar = () => {
         {/* Logo Header */}
         <div className="p-6 hidden md:block border-b border-gray-50">
           <div className="flex items-center gap-3">
-            <div className="relative w-6 h-6 flex items-center justify-center">
-              <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] -translate-x-1.5"></div>
-              <div className="absolute w-1.5 h-5 bg-gradient-to-b from-[#7b3fe4] to-[#3a6bf6] rounded-full transform rotate-[30deg] translate-x-1"></div>
-            </div>
+            <img src="/logo.png" alt="CBN Logo" className="w-8 h-8 object-contain" />
             <span className="text-xl font-bold tracking-tight text-gray-900">CBN HRMS</span>
           </div>
           <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{role}</p>

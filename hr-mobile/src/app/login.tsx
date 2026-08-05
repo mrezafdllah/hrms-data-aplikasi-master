@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -53,10 +53,10 @@ export default function LoginScreen() {
 
         {/* Giant Logo */}
         <View style={styles.giantLogoContainer}>
-          <View style={styles.slashGroup}>
-            <View style={[styles.slash, styles.darkSlash, { transform: [{ rotate: '-30deg' }] }]} />
-            <View style={[styles.slash, styles.greenSlash, { transform: [{ rotate: '-30deg' }] }]} />
-          </View>
+          <Image 
+            source={require('../../assets/images/logo.png')} 
+            style={{ width: 120, height: 120, resizeMode: 'contain' }} 
+          />
         </View>
 
         {/* Headline */}
@@ -95,10 +95,10 @@ export default function LoginScreen() {
 
         {/* Small Logo */}
         <View style={styles.smallLogoContainer}>
-          <View style={styles.smallSlashGroup}>
-            <View style={[styles.smallSlash, styles.darkSlash, { transform: [{ rotate: '-30deg' }] }]} />
-            <View style={[styles.smallSlash, styles.greenSlash, { transform: [{ rotate: '-30deg' }] }]} />
-          </View>
+          <Image 
+            source={require('../../assets/images/logo.png')} 
+            style={{ width: 36, height: 36, resizeMode: 'contain', marginRight: 8 }} 
+          />
           <Text style={styles.logoText}>CBN HRMS</Text>
         </View>
 
