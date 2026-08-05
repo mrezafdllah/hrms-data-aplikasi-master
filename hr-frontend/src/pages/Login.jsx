@@ -55,8 +55,10 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const cleanBaseUrl = API_BASE_URL.replace(/\/+$/, '');
-      const response = await fetch(`${cleanBaseUrl}/api/login`, {
+      const cleanBaseUrl = API_BASE_URL ? API_BASE_URL.replace(/\/+$/, '') : '';
+      const loginUrl = cleanBaseUrl ? `${cleanBaseUrl}/api/login` : '/api/login';
+
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -73,7 +75,7 @@ const Login = () => {
         setError(data.detail || 'Login gagal. Periksa kembali kredensial Anda.');
       }
     } catch (err) {
-      setError('Terjadi kesalahan sistem. Tidak dapat menghubungi server.');
+      setError(`Terjadi kesalahan sistem (${err.message || 'Gagal terhubung'}). Pastikan backend berjalan dan variabel VITE_API_BASE_URL di Vercel terpasang.`);
     } finally {
       setLoading(false);
     }
