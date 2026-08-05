@@ -122,7 +122,7 @@ const Profile = () => {
 
     setPasswordLoading(true);
     try {
-      const res = await apiFetch('/change-password', {
+      const res = await apiFetch('/api/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +131,9 @@ const Profile = () => {
         })
       });
 
-      if (res.status === 'Success') {
+      const data = await res.json();
+
+      if (res.ok && data.status === 'Success') {
         showAlert('Berhasil!', 'Kata sandi Anda berhasil diperbarui.', 'success');
         setPasswordData({
           current_password: '',
@@ -139,7 +141,7 @@ const Profile = () => {
           confirm_password: ''
         });
       } else {
-        showAlert('Gagal Mengubah Kata Sandi', res.detail || 'Terjadi kesalahan');
+        showAlert('Gagal Mengubah Kata Sandi', data.detail || 'Terjadi kesalahan');
       }
     } catch (err) {
       showAlert('Gagal Mengubah Kata Sandi', err.message || 'Terjadi kesalahan koneksi');
