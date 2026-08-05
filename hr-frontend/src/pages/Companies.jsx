@@ -91,6 +91,8 @@ const Companies = () => {
     setShowModal(true);
   };
 
+  const currentRole = localStorage.getItem('role');
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
@@ -98,9 +100,11 @@ const Companies = () => {
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen Perusahaan</h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola daftar unit perusahaan terdaftar</p>
         </div>
-        <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
-          + Tambah Perusahaan
-        </button>
+        {currentRole === 'Super Admin' && (
+          <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
+            + Tambah Perusahaan
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden">
@@ -124,9 +128,15 @@ const Companies = () => {
                   <td className="p-4 text-gray-400 max-w-xs truncate">{company.address || '-'}</td>
                   <td className="p-4 text-gray-500">{company.phone || '-'}</td>
                   <td className="p-4 text-gray-500">{company.email || '-'}</td>
-                  <td className="p-4 flex gap-3">
-                    <button onClick={() => handleEdit(company)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
-                    <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
+                  <td className="p-4 flex gap-3 items-center">
+                    {currentRole === 'Super Admin' ? (
+                      <>
+                        <button onClick={() => handleEdit(company)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
+                        <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
+                      </>
+                    ) : (
+                      <span className="text-gray-400 font-medium italic text-[11px]">Hanya Baca</span>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -86,6 +86,8 @@ const Roles = () => {
     setShowModal(true);
   };
 
+  const currentRole = localStorage.getItem('role');
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
@@ -93,9 +95,11 @@ const Roles = () => {
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen Role</h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola tingkat hak akses pengguna</p>
         </div>
-        <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
-          + Tambah Role
-        </button>
+        {currentRole === 'Super Admin' && (
+          <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
+            + Tambah Role
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden">
@@ -110,17 +114,32 @@ const Roles = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
-              {roles.map((role) => (
-                <tr key={role.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-[#7b3fe4] font-bold">{role.id}</td>
-                  <td className="p-4 font-bold text-gray-800">{role.role_name}</td>
-                  <td className="p-4 text-gray-500">{role.description || '-'}</td>
-                  <td className="p-4 flex gap-3">
-                    <button onClick={() => handleEdit(role)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
-                    <button onClick={() => handleDelete(role.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
-                  </td>
-                </tr>
-              ))}
+              {roles.map((roleItem) => {
+                const isSuperAdminRole = roleItem.role_name === 'Super Admin' || roleItem.id === 1;
+                return (
+                  <tr key={roleItem.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4 text-[#7b3fe4] font-bold">{roleItem.id}</td>
+                    <td className="p-4 font-bold text-gray-800">{roleItem.role_name}</td>
+                    <td className="p-4 text-gray-500">{roleItem.description || '-'}</td>
+                    <td className="p-4 flex gap-3 items-center">
+                      {currentRole === 'Super Admin' ? (
+                        isSuperAdminRole ? (
+                          <span className="text-purple-600 font-bold bg-purple-50 px-2.5 py-1 rounded-md text-[10px] border border-purple-100">
+                            🔒 Sistem (Protected)
+                          </span>
+                        ) : (
+                          <>
+                            <button onClick={() => handleEdit(roleItem)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
+                            <button onClick={() => handleDelete(roleItem.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
+                          </>
+                        )
+                      ) : (
+                        <span className="text-gray-400 font-medium italic text-[11px]">Hanya Baca</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {roles.length === 0 && !loading && (
                 <tr><td colSpan="4" className="p-8 text-center text-gray-400">Belum ada data role.</td></tr>
               )}

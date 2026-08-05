@@ -22,6 +22,9 @@ const Users = () => {
     onConfirm: null
   });
 
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
+  const currentRole = localStorage.getItem('role');
+
   const fetchUsers = () => {
     setLoading(true);
     apiFetch('/api/users')
@@ -37,6 +40,7 @@ const Users = () => {
     apiFetch('/api/roles').then(r => r.json()).then(d => { if (d.status === "Success") setRoles(d.data); });
     apiFetch('/api/companies').then(r => r.json()).then(d => { if (d.status === "Success") setCompanies(d.data); });
     apiFetch('/api/positions').then(r => r.json()).then(d => { if (d.status === "Success") setPositions(d.data); });
+    apiFetch('/api/profile').then(r => r.json()).then(d => { if (d.status === "Success") setCurrentUserProfile(d.data); });
   };
 
   useEffect(() => { fetchUsers(); fetchDropdowns(); }, []);
@@ -114,16 +118,39 @@ const Users = () => {
   };
 
   const openAddModal = () => {
+    const defaultCompanyId = currentRole === 'Admin HR' && currentUserProfile?.company_id 
+      ? currentUserProfile.company_id.toString() 
+      : '';
+
+    const karyawanRole = roles.find(r => r.role_name === 'Karyawan');
+    const defaultRoleId = currentRole === 'Admin HR' && karyawanRole 
+      ? karyawanRole.id.toString() 
+      : (roles.find(r => r.role_name !== 'Super Admin')?.id.toString() || '');
+
     setFormData({
-      employee_id: '', company_id: '', role_id: '', position_id: '',
-      full_name: '', email: '', hashed_password: '', status: 'Active'
+      employee_id: '',
+      company_id: defaultCompanyId,
+      role_id: defaultRoleId,
+      position_id: '',
+      full_name: '',
+      email: '',
+      hashed_password: '',
+      status: 'Active'
     });
     setEditingId(null);
     setShowModal(true);
   };
 
-  const filteredPositions = formData.company_id
-    ? positions.filter(p => p.company_id === parseInt(formData.company_id))
+  // Exclude Super Admin role from form selection
+  const selectableRoles = roles.filter(r => r.role_name !== 'Super Admin');
+
+  // Filter positions by selected company
+  const activeCompanyId = currentRole === 'Admin HR' && currentUserProfile?.company_id
+    ? currentUserProfile.company_id
+    : (formData.company_id ? parseInt(formData.company_id) : null);
+
+  const filteredPositions = activeCompanyId
+    ? positions.filter(p => p.company_id === activeCompanyId)
     : positions;
 
   return (
@@ -175,9 +202,17 @@ const Users = () => {
                       {user.status === 'Active' ? 'Aktif' : 'Nonaktif'}
                     </span>
                   </td>
-                  <td className="p-4 flex gap-3">
-                    <button onClick={() => handleEdit(user)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
-                    <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
+                  <td className="p-4 flex gap-3 items-center">
+                    {(user.id === currentUserProfile?.id || user.email === currentUserProfile?.email) ? (
+                      <span className="text-purple-600 font-bold bg-purple-50 px-2.5 py-1 rounded-md text-[10px] border border-purple-100">
+                        👤 Akun Anda
+                      </span>
+                    ) : (
+                      <>
+                        <button onClick={() => handleEdit(user)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
+                        <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -218,30 +253,38 @@ const Users = () => {
               )}
               <div>
                 <label className="block mb-1.5">Peran (Role)</label>
-                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
-                  value={formData.role_id} onChange={e => setFormData({...formData, role_id: e.target.value})}>
-                  <option value="">-- Pilih Peran --</option>
-                  {roles.map(r => <option key={r.id} value={r.id}>{r.role_name}</option>)}
-                </select>
+                {currentRole === 'Admin HR' ? (
+                  <input type="text" readOnly disabled value="Karyawan" className="w-full px-3 py-2 border rounded-xl bg-gray-100 text-gray-500 font-bold cursor-not-allowed" />
+                ) : (
+                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                    value={formData.role_id} onChange={e => setFormData({...formData, role_id: e.target.value})}>
+                    <option value="">-- Pilih Peran --</option>
+                    {selectableRoles.map(r => <option key={r.id} value={r.id}>{r.role_name}</option>)}
+                  </select>
+                )}
               </div>
               <div>
                 <label className="block mb-1.5">Perusahaan</label>
-                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
-                  value={formData.company_id} 
-                  onChange={e => {
-                    const newCompanyId = e.target.value;
-                    let newPositionId = formData.position_id;
-                    if (newCompanyId && formData.position_id) {
-                      const selectedPos = positions.find(p => p.id === parseInt(formData.position_id));
-                      if (selectedPos && selectedPos.company_id !== parseInt(newCompanyId)) {
-                        newPositionId = '';
+                {currentRole === 'Admin HR' ? (
+                  <input type="text" readOnly disabled value={currentUserProfile?.company_name || 'Perusahaan Admin HR'} className="w-full px-3 py-2 border rounded-xl bg-gray-100 text-gray-500 font-bold cursor-not-allowed" />
+                ) : (
+                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                    value={formData.company_id} 
+                    onChange={e => {
+                      const newCompanyId = e.target.value;
+                      let newPositionId = formData.position_id;
+                      if (newCompanyId && formData.position_id) {
+                        const selectedPos = positions.find(p => p.id === parseInt(formData.position_id));
+                        if (selectedPos && selectedPos.company_id !== parseInt(newCompanyId)) {
+                          newPositionId = '';
+                        }
                       }
-                    }
-                    setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
-                  }}>
-                  <option value="">-- Pilih Perusahaan --</option>
-                  {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
-                </select>
+                      setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
+                    }}>
+                    <option value="">-- Pilih Perusahaan --</option>
+                    {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
+                  </select>
+                )}
               </div>
               <div>
                 <label className="block mb-1.5">Jabatan</label>

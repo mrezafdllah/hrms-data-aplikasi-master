@@ -6,6 +6,7 @@ import api from '../../utils/api';
 export default function CompaniesScreen() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ company_name: '', address: '', phone: '', email: '' });
@@ -13,6 +14,9 @@ export default function CompaniesScreen() {
   const fetchCompanies = async () => {
     setLoading(true);
     try {
+      const uRole = await AsyncStorage.getItem('role');
+      setUserRole(uRole);
+
       const response = await api.get('/companies');
       if (response.data?.status === 'Success') {
         setCompanies(response.data.data);
@@ -127,12 +131,18 @@ export default function CompaniesScreen() {
         ) : null}
       </View>
       <View style={styles.cardActions}>
-        <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
-          <Ionicons name="create-outline" size={16} color="#7b3fe4" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
-          <Ionicons name="trash-outline" size={16} color="#ef4444" />
-        </TouchableOpacity>
+        {userRole === 'Super Admin' ? (
+          <>
+            <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
+              <Ionicons name="create-outline" size={16} color="#7b3fe4" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+              <Ionicons name="trash-outline" size={16} color="#ef4444" />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <Text style={{ fontSize: 10, color: '#9ca3af', fontStyle: 'italic' }}>Hanya Baca</Text>
+        )}
       </View>
     </View>
   );
@@ -141,9 +151,11 @@ export default function CompaniesScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Perusahaan</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-          <Text style={styles.addBtnText}>+ Tambah</Text>
-        </TouchableOpacity>
+        {userRole === 'Super Admin' && (
+          <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+            <Text style={styles.addBtnText}>+ Tambah</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading ? (

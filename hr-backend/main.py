@@ -454,7 +454,7 @@ def get_all_roles(current_user: dict = Depends(get_current_user)):
         conn.close()
 
 @app.post("/api/roles")
-def add_role(role: RoleCreate, current_user: dict = Depends(require_admin_hr_or_super)):
+def add_role(role: RoleCreate, current_user: dict = Depends(require_super_admin)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -472,16 +472,23 @@ def add_role(role: RoleCreate, current_user: dict = Depends(require_admin_hr_or_
         conn.close()
 
 @app.put("/api/roles/{id}")
-def update_role(id: int, role: RoleUpdate, current_user: dict = Depends(require_admin_hr_or_super)):
+def update_role(id: int, role: RoleUpdate, current_user: dict = Depends(require_super_admin)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        cursor.execute("SELECT role_name FROM roles WHERE id = %s;", (id,))
+        role_db = cursor.fetchone()
+        if role_db and (role_db[0] == 'Super Admin' or id == 1):
+            raise HTTPException(status_code=400, detail="Role Super Admin bawaan sistem tidak dapat diubah.")
+
         cursor.execute(
             "UPDATE roles SET role_name = %s, description = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;",
             (role.role_name, role.description, id)
         )
         conn.commit()
         return {"status": "Success", "message": "Role berhasil diupdate"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -490,13 +497,20 @@ def update_role(id: int, role: RoleUpdate, current_user: dict = Depends(require_
         conn.close()
 
 @app.delete("/api/roles/{id}")
-def delete_role(id: int, current_user: dict = Depends(require_admin_hr_or_super)):
+def delete_role(id: int, current_user: dict = Depends(require_super_admin)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        cursor.execute("SELECT role_name FROM roles WHERE id = %s;", (id,))
+        role_db = cursor.fetchone()
+        if role_db and (role_db[0] == 'Super Admin' or id == 1):
+            raise HTTPException(status_code=400, detail="Role Super Admin bawaan sistem tidak dapat dihapus.")
+
         cursor.execute("DELETE FROM roles WHERE id = %s;", (id,))
         conn.commit()
         return {"status": "Success", "message": "Role berhasil dihapus"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -520,7 +534,7 @@ def get_all_companies(current_user: dict = Depends(get_current_user)):
         conn.close()
 
 @app.post("/api/companies")
-def add_company(company: CompanyCreate, current_user: dict = Depends(require_admin_hr_or_super)):
+def add_company(company: CompanyCreate, current_user: dict = Depends(require_super_admin)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -538,7 +552,7 @@ def add_company(company: CompanyCreate, current_user: dict = Depends(require_adm
         conn.close()
 
 @app.put("/api/companies/{id}")
-def update_company(id: int, company: CompanyUpdate, current_user: dict = Depends(require_admin_hr_or_super)):
+def update_company(id: int, company: CompanyUpdate, current_user: dict = Depends(require_super_admin)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -556,7 +570,7 @@ def update_company(id: int, company: CompanyUpdate, current_user: dict = Depends
         conn.close()
 
 @app.delete("/api/companies/{id}")
-def delete_company(id: int, current_user: dict = Depends(require_admin_hr_or_super)):
+def delete_company(id: int, current_user: dict = Depends(require_super_admin)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -726,7 +740,7 @@ def get_all_users(current_user: dict = Depends(require_admin_hr_or_super)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("""
+        base_query = """
             SELECT u.id, u.employee_id, u.full_name, u.email, u.status, j.company_id, u.role_id, u.position_id,
                    u.birth_place, u.birth_date, u.address, u.profile_picture,
                    u.created_at, u.updated_at,
@@ -736,8 +750,23 @@ def get_all_users(current_user: dict = Depends(require_admin_hr_or_super)):
             LEFT JOIN positions p ON u.position_id = p.id 
             LEFT JOIN jobs j ON p.job_id = j.id
             LEFT JOIN companies c ON j.company_id = c.id AND c.deleted_at IS NULL
-            ORDER BY u.id DESC;
-        """)
+        """
+        params = []
+        if current_user.get("role") == "Admin HR":
+            cursor.execute("""
+                SELECT j.company_id 
+                FROM users u 
+                LEFT JOIN positions p ON u.position_id = p.id 
+                LEFT JOIN jobs j ON p.job_id = j.id 
+                WHERE u.id = %s;
+            """, (current_user['user_id'],))
+            admin_comp = cursor.fetchone()
+            if admin_comp and admin_comp['company_id']:
+                base_query += " WHERE j.company_id = %s"
+                params.append(admin_comp['company_id'])
+
+        base_query += " ORDER BY u.id DESC;"
+        cursor.execute(base_query, params)
         users = cursor.fetchall()
         return {"status": "Success", "data": users}
     except Exception as e:
@@ -751,6 +780,20 @@ def add_user(user: UserCreate, current_user: dict = Depends(require_admin_hr_or_
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        # Block adding Super Admin role via form
+        if user.role_id:
+            cursor.execute("SELECT role_name FROM roles WHERE id = %s;", (user.role_id,))
+            r_db = cursor.fetchone()
+            if r_db and r_db[0] == 'Super Admin':
+                raise HTTPException(status_code=400, detail="Role Super Admin tidak dapat ditambahkan melalui form.")
+
+        # Admin HR automatically creates Karyawan role users
+        if current_user.get("role") == "Admin HR":
+            cursor.execute("SELECT id FROM roles WHERE role_name = 'Karyawan';")
+            karyawan_role = cursor.fetchone()
+            if karyawan_role:
+                user.role_id = karyawan_role[0]
+
         # Validasi keselarasan Company dan Position
         if user.position_id:
             cursor.execute("""
@@ -832,12 +875,16 @@ def update_user(id: int, user: UserUpdate, current_user: dict = Depends(require_
 
 @app.delete("/api/users/{id}")
 def delete_user(id: int, current_user: dict = Depends(require_admin_hr_or_super)):
+    if id == current_user['user_id']:
+        raise HTTPException(status_code=400, detail="Anda tidak dapat menghapus akun Anda sendiri dari daftar karyawan.")
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM users WHERE id = %s;", (id,))
         conn.commit()
         return {"status": "Success", "message": "User berhasil dihapus"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))

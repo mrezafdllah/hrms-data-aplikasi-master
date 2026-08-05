@@ -24,9 +24,15 @@ export default function UsersScreen() {
     status: 'Active'
   });
 
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+
   const fetchData = async () => {
     setLoading(true);
     try {
+      api.get('/profile').then(r => {
+        if (r.data?.data?.email) setCurrentUserEmail(r.data.data.email);
+      }).catch(() => {});
+
       const [usersRes, rolesRes, positionsRes] = await Promise.all([
         api.get('/users'),
         api.get('/roles'),
@@ -178,12 +184,20 @@ export default function UsersScreen() {
       </View>
       
       <View style={styles.cardActions}>
-        <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
-          <Ionicons name="create-outline" size={16} color="#7b3fe4" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
-          <Ionicons name="trash-outline" size={16} color="#ef4444" />
-        </TouchableOpacity>
+        {item.email === currentUserEmail ? (
+          <Text style={{ fontSize: 10, color: '#7b3fe4', fontWeight: 'bold', backgroundColor: '#f5f3ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+            👤 Akun Anda
+          </Text>
+        ) : (
+          <>
+            <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
+              <Ionicons name="create-outline" size={16} color="#7b3fe4" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+              <Ionicons name="trash-outline" size={16} color="#ef4444" />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -333,7 +347,7 @@ export default function UsersScreen() {
               </TouchableOpacity>
             </View>
             <FlatList
-              data={roles}
+              data={roles.filter((r: any) => r.role_name !== 'Super Admin')}
               keyExtractor={(item: any) => item.id.toString()}
               renderItem={({ item }: { item: any }) => (
                 <TouchableOpacity 

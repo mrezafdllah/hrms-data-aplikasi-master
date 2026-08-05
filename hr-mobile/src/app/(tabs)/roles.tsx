@@ -6,6 +6,7 @@ import api from '../../utils/api';
 export default function RolesScreen() {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ role_name: '', description: '' });
@@ -13,6 +14,9 @@ export default function RolesScreen() {
   const fetchRoles = async () => {
     setLoading(true);
     try {
+      const uRole = await AsyncStorage.getItem('role');
+      setUserRole(uRole);
+
       const response = await api.get('/roles');
       if (response.data?.status === 'Success') {
         setRoles(response.data.data);
@@ -95,33 +99,51 @@ export default function RolesScreen() {
     setModalVisible(true);
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.roleCard}>
-      <View style={styles.cardInfo}>
-        <View style={styles.badgeContainer}>
-          <Text style={styles.roleId}>ID: {item.id}</Text>
+  const renderItem = ({ item }: { item: any }) => {
+    const isSuperAdminRole = item.role_name === 'Super Admin' || item.id === 1;
+
+    return (
+      <View style={styles.roleCard}>
+        <View style={styles.cardInfo}>
+          <View style={styles.badgeContainer}>
+            <Text style={styles.roleId}>ID: {item.id}</Text>
+          </View>
+          <Text style={styles.roleName}>{item.role_name}</Text>
+          <Text style={styles.roleDesc}>{item.description || '-'}</Text>
         </View>
-        <Text style={styles.roleName}>{item.role_name}</Text>
-        <Text style={styles.roleDesc}>{item.description || '-'}</Text>
+        <View style={styles.cardActions}>
+          {userRole === 'Super Admin' ? (
+            isSuperAdminRole ? (
+              <Text style={{ fontSize: 10, color: '#7b3fe4', fontWeight: 'bold', backgroundColor: '#f5f3ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                🔒 Protected
+              </Text>
+            ) : (
+              <>
+                <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
+                  <Ionicons name="create-outline" size={16} color="#7b3fe4" />
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+                  <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                </TouchableOpacity>
+              </>
+            )
+          ) : (
+            <Text style={{ fontSize: 10, color: '#9ca3af', fontStyle: 'italic' }}>Hanya Baca</Text>
+          )}
+        </View>
       </View>
-      <View style={styles.cardActions}>
-        <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
-          <Ionicons name="create-outline" size={16} color="#7b3fe4" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
-          <Ionicons name="trash-outline" size={16} color="#ef4444" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Manajemen Role</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-          <Text style={styles.addBtnText}>+ Tambah</Text>
-        </TouchableOpacity>
+        {userRole === 'Super Admin' && (
+          <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+            <Text style={styles.addBtnText}>+ Tambah</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading ? (
