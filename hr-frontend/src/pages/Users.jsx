@@ -96,7 +96,8 @@ const Users = () => {
       full_name: user.full_name,
       email: user.email,
       hashed_password: '',
-      status: user.status
+      status: user.status,
+      joined_date: user.joined_date ? user.joined_date.split('T')[0] : (user.created_at ? user.created_at.split('T')[0] : '')
     });
     setEditingId(user.id);
     setShowModal(true);
@@ -135,7 +136,8 @@ const Users = () => {
       full_name: '',
       email: '',
       hashed_password: '',
-      status: 'Active'
+      status: 'Active',
+      joined_date: new Date().toISOString().split('T')[0]
     });
     setEditingId(null);
     setShowModal(true);
@@ -293,6 +295,11 @@ const Users = () => {
                   <option value="">-- Pilih Jabatan --</option>
                   {filteredPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="block mb-1.5">Tanggal Bergabung</label>
+                <input type="date" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                  value={formData.joined_date} onChange={e => setFormData({...formData, joined_date: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Status</label>

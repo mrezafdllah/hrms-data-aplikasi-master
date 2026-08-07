@@ -168,7 +168,8 @@ const Profile = () => {
             birth_date: data.data.birth_date ? data.data.birth_date.split('T')[0] : '',
             address: data.data.address || '',
             profile_picture: data.data.profile_picture || '',
-            position_id: data.data.position_id || ''
+            position_id: data.data.position_id || '',
+            joined_date: data.data.joined_date ? data.data.joined_date.split('T')[0] : ''
           });
         }
         setLoading(false);
@@ -470,20 +471,32 @@ const Profile = () => {
                 </div>
 
                 {isAdmin && (
-                  <div className="md:col-span-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{t.position}</label>
-                    <select
-                      name="position_id"
-                      value={formData.position_id}
-                      onChange={handleChange}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
-                    >
-                      <option value="">{t.choosePosition}</option>
-                      {positions.map(p => (
-                        <option key={p.id} value={p.id}>{p.position_name} ({p.job_name || '-'})</option>
-                      ))}
-                    </select>
-                  </div>
+                  <>
+                    <div className="md:col-span-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{t.position}</label>
+                      <select
+                        name="position_id"
+                        value={formData.position_id}
+                        onChange={handleChange}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                      >
+                        <option value="">{t.choosePosition}</option>
+                        {positions.map(p => (
+                          <option key={p.id} value={p.id}>{p.position_name} ({p.job_name || '-'})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{t.joinedSince}</label>
+                      <input
+                        type="date"
+                        name="joined_date"
+                        value={formData.joined_date}
+                        onChange={handleChange}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
               
@@ -499,7 +512,8 @@ const Profile = () => {
                       birth_date: profile.birth_date ? profile.birth_date.split('T')[0] : '',
                       address: profile.address || '',
                       profile_picture: profile.profile_picture || '',
-                      position_id: profile.position_id || ''
+                      position_id: profile.position_id || '',
+                      joined_date: profile.joined_date ? profile.joined_date.split('T')[0] : (profile.created_at ? profile.created_at.split('T')[0] : '')
                     });
                   }}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1 transition-all cursor-pointer"
@@ -546,7 +560,7 @@ const Profile = () => {
               <div className="md:col-span-2 pt-3 border-t border-gray-50">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.joinedSince}</label>
                 <p className="text-gray-800 font-bold mt-1 text-sm">
-                  {profile.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                  {(profile.joined_date || profile.created_at) ? new Date(profile.joined_date || profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                 </p>
               </div>
             </div>

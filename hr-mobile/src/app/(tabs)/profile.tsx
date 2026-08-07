@@ -501,7 +501,7 @@ export default function ProfileScreen() {
               <View style={[styles.detailItem, { borderBottomWidth: 0 }]}>
                 <Text style={styles.detailLabel}>{t.joinedSince}</Text>
                 <Text style={styles.detailValue}>
-                  {profile.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                  {(profile.joined_date || profile.created_at) ? new Date(profile.joined_date || profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                 </Text>
               </View>
             </View>

@@ -126,6 +126,7 @@ class UserCreate(BaseModel):
     birth_date: Optional[date] = None
     address: Optional[str] = None
     profile_picture: Optional[str] = None
+    joined_date: Optional[date] = None
 
 class UserUpdate(BaseModel):
     employee_id: Optional[str] = None
@@ -139,6 +140,7 @@ class UserUpdate(BaseModel):
     birth_date: Optional[date] = None
     address: Optional[str] = None
     profile_picture: Optional[str] = None
+    joined_date: Optional[date] = None
 
 # -- Profile --
 class ProfileUpdate(BaseModel):
@@ -150,6 +152,7 @@ class ProfileUpdate(BaseModel):
     address: Optional[str] = None
     profile_picture: Optional[str] = None
     position_id: Optional[int] = None
+    joined_date: Optional[date] = None
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
@@ -253,6 +256,7 @@ def get_my_profile(current_user: dict = Depends(get_current_user)):
     try:
         cursor.execute("""
             SELECT u.id, u.employee_id, u.full_name, u.email, u.status, u.created_at,
+                   COALESCE(u.joined_date, u.created_at::date) as joined_date,
                    u.birth_place, u.birth_date, u.address, u.profile_picture, u.position_id,
                    r.role_name, c.company_name, p.position_name,
                    j.job_name
@@ -284,9 +288,9 @@ def update_my_profile(profile: ProfileUpdate, current_user: dict = Depends(get_c
         if is_admin:
             cursor.execute("""
                 UPDATE users 
-                SET employee_id = COALESCE(%s, employee_id), full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, position_id = COALESCE(%s, position_id), updated_at = CURRENT_TIMESTAMP
+                SET employee_id = COALESCE(%s, employee_id), full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, position_id = COALESCE(%s, position_id), joined_date = COALESCE(%s, joined_date), updated_at = CURRENT_TIMESTAMP
                 WHERE email = %s;
-            """, (profile.employee_id, profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, profile.position_id, current_user['email']))
+            """, (profile.employee_id, profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, profile.position_id, profile.joined_date, current_user['email']))
         else:
             cursor.execute("""
                 UPDATE users 
@@ -742,7 +746,7 @@ def get_all_users(current_user: dict = Depends(require_admin_hr_or_super)):
     try:
         base_query = """
             SELECT u.id, u.employee_id, u.full_name, u.email, u.status, j.company_id, u.role_id, u.position_id,
-                   u.birth_place, u.birth_date, u.address, u.profile_picture,
+                   u.birth_place, u.birth_date, u.address, u.profile_picture, u.joined_date,
                    u.created_at, u.updated_at,
                    r.role_name, c.company_name, p.position_name 
             FROM users u 
@@ -810,9 +814,9 @@ def add_user(user: UserCreate, current_user: dict = Depends(require_admin_hr_or_
 
         hashed_pwd = get_password_hash(user.hashed_password)
         cursor.execute(
-            """INSERT INTO users (employee_id, role_id, position_id, full_name, email, hashed_password, status, birth_place, birth_date, address, profile_picture) 
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;""",
-            (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, hashed_pwd, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture)
+            """INSERT INTO users (employee_id, role_id, position_id, full_name, email, hashed_password, status, birth_place, birth_date, address, profile_picture, joined_date) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;""",
+            (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, hashed_pwd, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date)
         )
         conn.commit()
         return {"status": "Success", "message": "User berhasil ditambahkan"}
@@ -852,10 +856,10 @@ def update_user(id: int, user: UserUpdate, current_user: dict = Depends(require_
         cursor.execute(
             """UPDATE users SET employee_id = %s, role_id = %s, position_id = %s, 
                full_name = %s, email = %s, status = %s, 
-               birth_place = %s, birth_date = %s, address = %s, profile_picture = %s,
+               birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, joined_date = %s,
                updated_at = CURRENT_TIMESTAMP 
                WHERE id = %s;""",
-            (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, id)
+            (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date, id)
         )
         conn.commit()
         return {"status": "Success", "message": "User berhasil diupdate"}
