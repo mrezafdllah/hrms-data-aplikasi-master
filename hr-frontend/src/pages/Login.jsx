@@ -28,11 +28,23 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('remembered_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -66,6 +78,11 @@ const Login = () => {
       const data = await response.json();
       
       if (response.ok) {
+        if (rememberMe) {
+          localStorage.setItem('remembered_email', email);
+        } else {
+          localStorage.removeItem('remembered_email');
+        }
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('role', data.role);
         localStorage.setItem('name', data.name);
@@ -79,6 +96,12 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleForgotSubmit = (e) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotSuccessMsg(`Instruksi reset password telah dikirim ke Admin HR perusahaan Anda untuk email "${forgotEmail}". Silakan hubungi Admin HR perusahan Anda.`);
   };
 
   return (
@@ -393,10 +416,25 @@ const Login = () => {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer text-gray-500">
-                <input type="checkbox" className="rounded border-gray-300 text-[#7b3fe4] focus:ring-[#7b3fe4] w-4 h-4" />
-                <span>Ingat Saya</span>
+                <input 
+                  type="checkbox" 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-gray-300 text-[#7b3fe4] focus:ring-[#7b3fe4] w-4 h-4 cursor-pointer" 
+                />
+                <span className="select-none">Ingat Saya</span>
               </label>
-              <a href="#forgot" className="text-gray-400 hover:text-gray-600 font-medium">Lupa Kata Sandi?</a>
+              <button 
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotSuccessMsg('');
+                  setShowForgotModal(true);
+                }} 
+                className="text-gray-400 hover:text-[#7b3fe4] font-medium transition-colors cursor-pointer"
+              >
+                Lupa Kata Sandi?
+              </button>
             </div>
 
             <button 
@@ -416,6 +454,54 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      {/* MODAL LUPA KATA SANDI */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100 animate-fadeIn">
+            <h3 className="text-xl font-bold text-gray-800 mb-1.5">Lupa Kata Sandi?</h3>
+            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+              Untuk alasan keamanan data perusahaan, pemulihan kata sandi dilakukan melalui verifikasi Admin HR perusahaan Anda. Silakan masukkan alamat email akun Anda.
+            </p>
+
+            {forgotSuccessMsg ? (
+              <div className="bg-emerald-50 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-4 border border-emerald-100 leading-relaxed">
+                {forgotSuccessMsg}
+              </div>
+            ) : (
+              <form onSubmit={handleForgotSubmit} className="space-y-4 text-xs font-semibold text-gray-600">
+                <div>
+                  <label className="block mb-1.5 text-gray-500 uppercase tracking-wider text-[10px]">Email Terdaftar</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="Masukkan email Anda"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold py-2.5 rounded-xl shadow-md cursor-pointer transition-all hover:opacity-95"
+                >
+                  Kirim Permintaan Reset
+                </button>
+              </form>
+            )}
+
+            <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs rounded-xl cursor-pointer transition-all"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
