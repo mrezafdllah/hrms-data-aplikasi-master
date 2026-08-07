@@ -10,9 +10,26 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureEntry, setSecureEntry] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+
+  React.useEffect(() => {
+    const loadRememberedEmail = async () => {
+      try {
+        const savedEmail = await AsyncStorage.getItem('remembered_email');
+        if (savedEmail) {
+          setEmail(savedEmail);
+          setRememberMe(true);
+        }
+      } catch (e) {}
+    };
+    loadRememberedEmail();
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -26,6 +43,11 @@ export default function LoginScreen() {
     try {
       const response = await api.post('/login', { email, password });
       if (response.data && response.data.access_token) {
+        if (rememberMe) {
+          await AsyncStorage.setItem('remembered_email', email);
+        } else {
+          await AsyncStorage.removeItem('remembered_email');
+        }
         await AsyncStorage.setItem('token', response.data.access_token);
         await AsyncStorage.setItem('role', response.data.role);
         await AsyncStorage.setItem('name', response.data.name);
@@ -149,6 +171,31 @@ export default function LoginScreen() {
           </View>
         </View>
 
+        {/* Remember Me & Forgot Password Row */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <TouchableOpacity 
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} 
+            onPress={() => setRememberMe(!rememberMe)}
+          >
+            <Ionicons 
+              name={rememberMe ? "checkbox" : "square-outline"} 
+              size={20} 
+              color={rememberMe ? "#7b3fe4" : "#9ca3af"} 
+            />
+            <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '600' }}>Ingat Saya</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={() => {
+              setForgotEmail(email);
+              setForgotSuccessMsg('');
+              setShowForgotModal(true);
+            }}
+          >
+            <Text style={{ fontSize: 12, color: '#7b3fe4', fontWeight: '600' }}>Lupa Kata Sandi?</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Login Button */}
         <TouchableOpacity 
           style={styles.loginButton} 
@@ -161,6 +208,54 @@ export default function LoginScreen() {
             <Text style={styles.loginButtonText}>Masuk →</Text>
           )}
         </TouchableOpacity>
+
+        {/* Modal Lupa Kata Sandi */}
+        <Modal visible={showForgotModal} transparent animationType="fade">
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 360 }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e2022', marginBottom: 8 }}>Lupa Kata Sandi?</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 18 }}>
+                Untuk alasan keamanan data perusahaan, pemulihan kata sandi dilakukan melalui verifikasi Admin HR perusahaan Anda. Silakan masukkan alamat email akun Anda.
+              </Text>
+
+              {forgotSuccessMsg ? (
+                <View style={{ backgroundColor: '#ecfdf5', padding: 12, borderRadius: 12, marginBottom: 16 }}>
+                  <Text style={{ fontSize: 12, color: '#047857', fontWeight: '600', lineHeight: 18 }}>{forgotSuccessMsg}</Text>
+                </View>
+              ) : (
+                <View style={{ gap: 12, marginBottom: 16 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase' }}>Email Terdaftar</Text>
+                  <TextInput
+                    style={{ borderBottomWidth: 1, borderColor: '#e5e7eb', paddingVertical: 8, fontSize: 14, color: '#1e2022' }}
+                    placeholder="Masukkan email Anda"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={forgotEmail}
+                    onChangeText={setForgotEmail}
+                  />
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#7b3fe4', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 8 }}
+                    onPress={() => {
+                      if (forgotEmail) {
+                        setForgotSuccessMsg(`Instruksi reset password telah dikirim ke Admin HR perusahaan Anda untuk email "${forgotEmail}". Silakan hubungi Admin HR perusahaan Anda.`);
+                      }
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Kirim Permintaan Reset</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={{ backgroundColor: '#f3f4f6', paddingVertical: 10, borderRadius: 12, alignItems: 'center' }}
+                onPress={() => setShowForgotModal(false)}
+              >
+                <Text style={{ color: '#4b5563', fontWeight: 'bold', fontSize: 12 }}>Tutup</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* Terms text */}
         <Text style={styles.termsText}>
