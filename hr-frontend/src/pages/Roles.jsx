@@ -149,8 +149,8 @@ const Roles = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-gray-100 animate-slide-up">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in p-4">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl border border-gray-100 animate-slide-up">
             <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Edit Role" : "Tambah Role"}</h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
