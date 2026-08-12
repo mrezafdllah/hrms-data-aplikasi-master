@@ -135,7 +135,7 @@ export default function LoginScreen() {
 
         {/* Form Inputs */}
         <View style={styles.formGroup}>
-          <Text style={styles.inputLabel}>Alamat Email</Text>
+          <Text style={styles.inputLabel}>Email</Text>
           <TextInput
             style={styles.input}
             placeholder="contoh@email.com"
