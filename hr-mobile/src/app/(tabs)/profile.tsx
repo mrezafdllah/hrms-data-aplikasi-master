@@ -532,7 +532,7 @@ export default function ProfileScreen() {
                 onChangeText={setCurrentPassword}
               />
               <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showCurrentPassword ? "eye-off-outline" : "eye-outline"} size={18} color="#6b7280" />
+                <Ionicons name={showCurrentPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#6b7280" />
               </TouchableOpacity>
             </View>
           </View>
@@ -549,7 +549,7 @@ export default function ProfileScreen() {
                 onChangeText={setNewPassword}
               />
               <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showNewPassword ? "eye-off-outline" : "eye-outline"} size={18} color="#6b7280" />
+                <Ionicons name={showNewPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#6b7280" />
               </TouchableOpacity>
             </View>
           </View>
