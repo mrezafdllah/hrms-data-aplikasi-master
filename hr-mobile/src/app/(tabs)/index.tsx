@@ -14,8 +14,8 @@ const t = {
   hrManagement: "Manajemen HR",
   activeEmployees: "Karyawan Aktif",
   readyToWork: "Siap bekerja",
-  totalJobs: "Total Pekerjaan",
-  activeOpenings: "Pekerjaan terdaftar",
+  totalJobs: "Total Divisi",
+  activeOpenings: "Divisi terdaftar",
   todaySchedule: "Jadwal Hari Ini",
   noSchedules: "Tidak ada jadwal hari ini.",
   for: "Untuk",
@@ -164,7 +164,7 @@ export default function DashboardScreen() {
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdf4' }]}>
                   <Ionicons name="briefcase" size={22} color="#10b981" />
                 </View>
-                <Text style={styles.menuItemLabel}>Pekerjaan</Text>
+                <Text style={styles.menuItemLabel}>Divisi</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/positions')}>

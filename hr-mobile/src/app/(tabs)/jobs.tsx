@@ -34,15 +34,15 @@ export default function JobsScreen() {
 
   const handleSubmit = async () => {
     if (!formData.company_id || !formData.job_name) {
-      Alert.alert('Peringatan', 'Perusahaan dan nama pekerjaan wajib diisi.');
+      Alert.alert('Peringatan', 'Perusahaan dan nama divisi wajib diisi.');
       return;
     }
 
     Alert.alert(
       editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
       editingId 
-        ? `Apakah Anda yakin ingin menyimpan perubahan data pekerjaan "${formData.job_name}"?`
-        : `Apakah Anda yakin ingin menambahkan pekerjaan baru "${formData.job_name}"?`,
+        ? `Apakah Anda yakin ingin menyimpan perubahan data divisi "${formData.job_name}"?`
+        : `Apakah Anda yakin ingin menambahkan divisi baru "${formData.job_name}"?`,
       [
         { text: 'Batal', style: 'cancel' },
         { text: 'Simpan', onPress: () => executeSubmit() }
@@ -59,10 +59,10 @@ export default function JobsScreen() {
     try {
       if (editingId) {
         await api.put(`/jobs/${editingId}`, payload);
-        Alert.alert('Sukses', 'Pekerjaan berhasil diperbarui.');
+        Alert.alert('Sukses', 'Divisi berhasil diperbarui.');
       } else {
         await api.post('/jobs', payload);
-        Alert.alert('Sukses', 'Pekerjaan berhasil ditambahkan.');
+        Alert.alert('Sukses', 'Divisi berhasil ditambahkan.');
       }
       setModalVisible(false);
       setEditingId(null);
@@ -84,7 +84,7 @@ export default function JobsScreen() {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus pekerjaan ini?', [
+    Alert.alert('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus divisi ini?', [
       { text: 'Batal', style: 'cancel' },
       {
         text: 'Hapus',
@@ -92,10 +92,10 @@ export default function JobsScreen() {
         onPress: async () => {
           try {
             await api.delete(`/jobs/${id}`);
-            Alert.alert('Sukses', 'Pekerjaan berhasil dihapus.');
+            Alert.alert('Sukses', 'Divisi berhasil dihapus.');
             fetchData();
           } catch (error) {
-            Alert.alert('Error', 'Gagal menghapus pekerjaan.');
+            Alert.alert('Error', 'Gagal menghapus divisi.');
           }
         }
       }
@@ -136,7 +136,7 @@ export default function JobsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Daftar Pekerjaan</Text>
+        <Text style={styles.title}>Daftar Divisi</Text>
         <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
           <Text style={styles.addBtnText}>+ Tambah</Text>
         </TouchableOpacity>
@@ -154,7 +154,7 @@ export default function JobsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="briefcase-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>Belum ada data pekerjaan.</Text>
+              <Text style={styles.emptyText}>Belum ada data divisi.</Text>
             </View>
           }
         />
@@ -165,7 +165,7 @@ export default function JobsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingId ? 'Edit Pekerjaan' : 'Tambah Pekerjaan'}</Text>
+              <Text style={styles.modalTitle}>{editingId ? 'Edit Divisi' : 'Tambah Divisi'}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#1e2022" />
               </TouchableOpacity>
@@ -182,12 +182,12 @@ export default function JobsScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Nama Pekerjaan</Text>
+              <Text style={styles.label}>Nama Divisi</Text>
               <TextInput
                 style={styles.input}
                 value={formData.job_name}
                 onChangeText={(text) => setFormData({ ...formData, job_name: text })}
-                placeholder="Contoh: Senior Developer, HR Specialist"
+                placeholder="Contoh: Engineering, Product Design, Finance"
                 placeholderTextColor="#9ca3af"
               />
             </View>

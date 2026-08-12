@@ -119,7 +119,7 @@ const Positions = () => {
               <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
                 <th className="p-4 rounded-tl-2xl">ID</th>
                 <th className="p-4">Nama Jabatan</th>
-                <th className="p-4">Pekerjaan</th>
+                <th className="p-4">Divisi</th>
                 <th className="p-4">Perusahaan</th>
                 <th className="p-4">Deskripsi</th>
                 <th className="p-4 rounded-tr-2xl">Aksi</th>
@@ -153,10 +153,10 @@ const Positions = () => {
             <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Edit Jabatan" : "Tambah Jabatan"}</h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
-                <label className="block mb-1.5">Pekerjaan</label>
+                <label className="block mb-1.5">Divisi</label>
                 <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
                   value={formData.job_id} onChange={e => setFormData({...formData, job_id: e.target.value})}>
-                  <option value="">-- Pilih Pekerjaan --</option>
+                  <option value="">-- Pilih Divisi --</option>
                   {jobs.map(j => <option key={j.id} value={j.id}>{j.job_name} ({j.company_name})</option>)}
                 </select>
               </div>

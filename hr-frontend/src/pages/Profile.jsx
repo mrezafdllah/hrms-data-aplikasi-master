@@ -18,7 +18,7 @@ const t = {
   birthDate: "Tanggal Lahir",
   address: "Alamat",
   company: "Perusahaan",
-  job: "Pekerjaan",
+  job: "Divisi",
   position: "Jabatan",
   joinedSince: "Bergabung Sejak",
   uploadSuccess: "Foto profil berhasil diperbarui!",

@@ -34,7 +34,7 @@ export default function PositionsScreen() {
 
   const handleSubmit = async () => {
     if (!formData.job_id || !formData.position_name) {
-      Alert.alert('Peringatan', 'Pekerjaan (Job) dan nama posisi wajib diisi.');
+      Alert.alert('Peringatan', 'Divisi dan nama posisi wajib diisi.');
       return;
     }
 
@@ -110,7 +110,7 @@ export default function PositionsScreen() {
 
   const getJobName = (jobId: string) => {
     const job: any = jobs.find((j: any) => j.id.toString() === jobId);
-    return job ? `${job.job_name} (${job.company_name})` : 'Pilih Pekerjaan (Job)...';
+    return job ? `${job.job_name} (${job.company_name})` : 'Pilih Divisi...';
   };
 
   const renderItem = ({ item }: { item: any }) => (
@@ -172,10 +172,10 @@ export default function PositionsScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Pekerjaan (Job Link)</Text>
+              <Text style={styles.label}>Divisi Perusahaan</Text>
               <TouchableOpacity style={styles.selector} onPress={() => setJobModalVisible(true)}>
                 <Text style={styles.selectorText}>
-                  {formData.job_id ? getJobName(formData.job_id) : 'Pilih Pekerjaan (Job)...'}
+                  {formData.job_id ? getJobName(formData.job_id) : 'Pilih Divisi...'}
                 </Text>
                 <Ionicons name="chevron-down" size={16} color="#6b7280" />
               </TouchableOpacity>
@@ -217,7 +217,7 @@ export default function PositionsScreen() {
         <View style={styles.selectorOverlay}>
           <View style={styles.selectorContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Pilih Pekerjaan (Job)</Text>
+              <Text style={styles.modalTitle}>Pilih Divisi</Text>
               <TouchableOpacity onPress={() => setJobModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#1e2022" />
               </TouchableOpacity>

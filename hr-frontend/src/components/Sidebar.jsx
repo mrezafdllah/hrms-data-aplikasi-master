@@ -11,7 +11,7 @@ const Sidebar = () => {
     { path: '/', name: 'Ringkasan', icon: <Home size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },
     { path: '/roles', name: 'Peran (Roles)', icon: <Shield size={18} />, roles: ['Super Admin', 'Admin HR'] },
     { path: '/companies', name: 'Perusahaan', icon: <Building2 size={18} />, roles: ['Super Admin', 'Admin HR'] },
-    { path: '/jobs', name: 'Pekerjaan', icon: <Briefcase size={18} />, roles: ['Super Admin', 'Admin HR'] },
+    { path: '/jobs', name: 'Divisi', icon: <Briefcase size={18} />, roles: ['Super Admin', 'Admin HR'] },
     { path: '/positions', name: 'Jabatan', icon: <MapPin size={18} />, roles: ['Super Admin', 'Admin HR'] },
     { path: '/users', name: 'Karyawan', icon: <Users size={18} />, roles: ['Super Admin', 'Admin HR'] },
     { path: '/profile', name: 'Profil Saya', icon: <UserCircle size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },

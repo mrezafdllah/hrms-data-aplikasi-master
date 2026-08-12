@@ -89,7 +89,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="jobs"
         options={{
-          title: 'Pekerjaan',
+          title: 'Divisi',
           headerShown: false,
           href: null,
         }}
