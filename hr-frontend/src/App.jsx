@@ -82,7 +82,7 @@ function App() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {!isLoginPage && <Sidebar />}
-      <div className={`flex-1 ${!isLoginPage ? 'md:ml-64 p-8' : ''} overflow-y-auto`}>
+      <div key={location.pathname} className={`flex-1 ${!isLoginPage ? 'md:ml-64 p-8' : ''} overflow-y-auto animate-page-enter`}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={
