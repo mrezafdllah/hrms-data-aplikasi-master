@@ -528,7 +528,7 @@ def get_all_companies(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("SELECT * FROM companies WHERE deleted_at IS NULL ORDER BY id DESC;")
+        cursor.execute("SELECT * FROM companies WHERE deleted_at IS NULL ORDER BY id ASC;")
         companies = cursor.fetchall()
         return {"status": "Success", "data": companies}
     except Exception as e:
@@ -604,7 +604,7 @@ def get_all_jobs(current_user: dict = Depends(get_current_user)):
             FROM jobs j 
             LEFT JOIN companies c ON j.company_id = c.id 
             WHERE c.id IS NULL OR c.deleted_at IS NULL
-            ORDER BY j.id DESC;
+            ORDER BY j.id ASC;
         """)
         jobs = cursor.fetchall()
         return {"status": "Success", "data": jobs}
@@ -677,7 +677,7 @@ def get_all_positions(current_user: dict = Depends(get_current_user)):
             LEFT JOIN jobs j ON p.job_id = j.id 
             LEFT JOIN companies c ON j.company_id = c.id 
             WHERE c.id IS NULL OR c.deleted_at IS NULL
-            ORDER BY p.id DESC;
+            ORDER BY p.id ASC;
         """)
         positions = cursor.fetchall()
         return {"status": "Success", "data": positions}
@@ -769,7 +769,7 @@ def get_all_users(current_user: dict = Depends(require_admin_hr_or_super)):
                 base_query += " WHERE j.company_id = %s"
                 params.append(admin_comp['company_id'])
 
-        base_query += " ORDER BY u.id DESC;"
+        base_query += " ORDER BY u.employee_id ASC, u.id ASC;"
         cursor.execute(base_query, params)
         users = cursor.fetchall()
         return {"status": "Success", "data": users}
