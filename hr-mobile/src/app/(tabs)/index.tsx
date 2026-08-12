@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
+import CustomAlert from '../../components/CustomAlert';
 
 const t = {
   loading: "Memuat Dashboard...",
@@ -68,18 +69,25 @@ export default function DashboardScreen() {
     }, [loadData])
   );
 
+  // CustomAlert state
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
+
+  const showAlert = (type: string, title: string, message: string, onConfirm?: () => void) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setAlertVisible(true);
+  };
+
   const handleLogout = async () => {
-    Alert.alert(t.confirmTitle, t.confirmLogoutMsg, [
-      { text: t.cancelBtn, style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          await AsyncStorage.clear();
-          router.replace('/login');
-        }
+    showAlert(
+      'delete',
+      t.confirmTitle,
+      t.confirmLogoutMsg,
+      async () => {
+        await AsyncStorage.clear();
+        router.replace('/login');
       }
-    ]);
+    );
   };
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -247,6 +255,16 @@ export default function DashboardScreen() {
         <Ionicons name="log-out-outline" size={18} color="#ef4444" />
         <Text style={styles.logoutText}>{t.logoutBtn}</Text>
       </TouchableOpacity>
+
+      <CustomAlert
+        visible={alertVisible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertVisible(false)}
+        onConfirm={alertConfig.onConfirm}
+        confirmText="Logout"
+      />
     </ScrollView>
   );
 }

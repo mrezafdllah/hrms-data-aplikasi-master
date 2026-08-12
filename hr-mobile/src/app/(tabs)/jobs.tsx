@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
+import CustomAlert from '../../components/CustomAlert';
 
 export default function JobsScreen() {
   const [jobs, setJobs] = useState([]);
@@ -11,6 +12,15 @@ export default function JobsScreen() {
   const [companyModalVisible, setCompanyModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ company_id: '', job_name: '', description: '' });
+
+  // CustomAlert state
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
+
+  const showAlert = (type: string, title: string, message: string, onConfirm?: () => void) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setAlertVisible(true);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -22,7 +32,7 @@ export default function JobsScreen() {
       if (jobsRes.data?.status === 'Success') setJobs(jobsRes.data.data);
       if (compsRes.data?.status === 'Success') setCompanies(compsRes.data.data);
     } catch (error) {
-      Alert.alert('Error', 'Gagal memuat data.');
+      showAlert('error', 'Error', 'Gagal memuat data.');
     } finally {
       setLoading(false);
     }
@@ -34,19 +44,17 @@ export default function JobsScreen() {
 
   const handleSubmit = async () => {
     if (!formData.company_id || !formData.job_name) {
-      Alert.alert('Peringatan', 'Perusahaan dan nama divisi wajib diisi.');
+      showAlert('warning', 'Peringatan', 'Perusahaan dan nama divisi wajib diisi.');
       return;
     }
 
-    Alert.alert(
+    showAlert(
+      'confirm',
       editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
       editingId 
         ? `Apakah Anda yakin ingin menyimpan perubahan data divisi "${formData.job_name}"?`
         : `Apakah Anda yakin ingin menambahkan divisi baru "${formData.job_name}"?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Simpan', onPress: () => executeSubmit() }
-      ]
+      () => executeSubmit()
     );
   };
 
@@ -59,17 +67,17 @@ export default function JobsScreen() {
     try {
       if (editingId) {
         await api.put(`/jobs/${editingId}`, payload);
-        Alert.alert('Sukses', 'Divisi berhasil diperbarui.');
+        showAlert('success', 'Sukses', 'Divisi berhasil diperbarui.');
       } else {
         await api.post('/jobs', payload);
-        Alert.alert('Sukses', 'Divisi berhasil ditambahkan.');
+        showAlert('success', 'Sukses', 'Divisi berhasil ditambahkan.');
       }
       setModalVisible(false);
       setEditingId(null);
       setFormData({ company_id: '', job_name: '', description: '' });
       fetchData();
     } catch (error) {
-      Alert.alert('Error', 'Gagal menyimpan data.');
+      showAlert('error', 'Error', 'Gagal menyimpan data.');
     }
   };
 
@@ -84,22 +92,20 @@ export default function JobsScreen() {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus divisi ini?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete(`/jobs/${id}`);
-            Alert.alert('Sukses', 'Divisi berhasil dihapus.');
-            fetchData();
-          } catch (error) {
-            Alert.alert('Error', 'Gagal menghapus divisi.');
-          }
+    showAlert(
+      'delete',
+      'Konfirmasi Hapus',
+      'Apakah Anda yakin ingin menghapus divisi ini? Data yang dihapus tidak dapat dikembalikan.',
+      async () => {
+        try {
+          await api.delete(`/jobs/${id}`);
+          showAlert('success', 'Sukses', 'Divisi berhasil dihapus.');
+          fetchData();
+        } catch (error) {
+          showAlert('error', 'Error', 'Gagal menghapus divisi.');
         }
       }
-    ]);
+    );
   };
 
   const openAddModal = () => {
@@ -242,6 +248,15 @@ export default function JobsScreen() {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertVisible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertVisible(false)}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

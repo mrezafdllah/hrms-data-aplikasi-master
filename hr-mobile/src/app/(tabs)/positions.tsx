@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
+import CustomAlert from '../../components/CustomAlert';
 
 export default function PositionsScreen() {
   const [positions, setPositions] = useState([]);
@@ -11,6 +12,14 @@ export default function PositionsScreen() {
   const [jobModalVisible, setJobModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ job_id: '', position_name: '', description: '' });
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
+
+  const showAlert = (type: string, title: string, message: string, onConfirm?: () => void) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setAlertVisible(true);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -22,7 +31,7 @@ export default function PositionsScreen() {
       if (positionsRes.data?.status === 'Success') setPositions(positionsRes.data.data);
       if (jobsRes.data?.status === 'Success') setJobs(jobsRes.data.data);
     } catch (error) {
-      Alert.alert('Error', 'Gagal memuat data.');
+      showAlert('error', 'Error', 'Gagal memuat data.');
     } finally {
       setLoading(false);
     }
@@ -34,19 +43,17 @@ export default function PositionsScreen() {
 
   const handleSubmit = async () => {
     if (!formData.job_id || !formData.position_name) {
-      Alert.alert('Peringatan', 'Divisi dan nama posisi wajib diisi.');
+      showAlert('warning', 'Peringatan', 'Divisi dan nama posisi wajib diisi.');
       return;
     }
 
-    Alert.alert(
+    showAlert(
+      'confirm',
       editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
       editingId 
         ? `Apakah Anda yakin ingin menyimpan perubahan data jabatan "${formData.position_name}"?`
         : `Apakah Anda yakin ingin menambahkan jabatan baru "${formData.position_name}"?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Simpan', onPress: () => executeSubmit() }
-      ]
+      () => executeSubmit()
     );
   };
 
@@ -59,17 +66,17 @@ export default function PositionsScreen() {
     try {
       if (editingId) {
         await api.put(`/positions/${editingId}`, payload);
-        Alert.alert('Sukses', 'Posisi berhasil diperbarui.');
+        showAlert('success', 'Sukses', 'Posisi berhasil diperbarui.');
       } else {
         await api.post('/positions', payload);
-        Alert.alert('Sukses', 'Posisi berhasil ditambahkan.');
+        showAlert('success', 'Sukses', 'Posisi berhasil ditambahkan.');
       }
       setModalVisible(false);
       setEditingId(null);
       setFormData({ job_id: '', position_name: '', description: '' });
       fetchData();
     } catch (error) {
-      Alert.alert('Error', 'Gagal menyimpan data.');
+      showAlert('error', 'Error', 'Gagal menyimpan data.');
     }
   };
 
@@ -84,22 +91,20 @@ export default function PositionsScreen() {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus posisi ini?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete(`/positions/${id}`);
-            Alert.alert('Sukses', 'Posisi berhasil dihapus.');
-            fetchData();
-          } catch (error) {
-            Alert.alert('Error', 'Gagal menghapus posisi.');
-          }
+    showAlert(
+      'delete',
+      'Konfirmasi Hapus',
+      'Apakah Anda yakin ingin menghapus posisi ini? Data yang dihapus tidak dapat dikembalikan.',
+      async () => {
+        try {
+          await api.delete(`/positions/${id}`);
+          showAlert('success', 'Sukses', 'Posisi berhasil dihapus.');
+          fetchData();
+        } catch (error) {
+          showAlert('error', 'Error', 'Gagal menghapus posisi.');
         }
       }
-    ]);
+    );
   };
 
   const openAddModal = () => {
@@ -242,6 +247,14 @@ export default function PositionsScreen() {
           </View>
         </View>
       </Modal>
+      <CustomAlert
+        visible={alertVisible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertVisible(false)}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

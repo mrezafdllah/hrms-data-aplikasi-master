@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
+import CustomAlert from '../../components/CustomAlert';
 
 export default function CompaniesScreen() {
   const [companies, setCompanies] = useState([]);
@@ -11,6 +12,14 @@ export default function CompaniesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ company_name: '', address: '', phone: '', email: '' });
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
+
+  const showAlert = (type: string, title: string, message: string, onConfirm?: () => void) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setAlertVisible(true);
+  };
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -23,7 +32,7 @@ export default function CompaniesScreen() {
         setCompanies(response.data.data);
       }
     } catch (error) {
-      Alert.alert('Error', 'Gagal memuat data perusahaan.');
+      showAlert('error', 'Error', 'Gagal memuat data perusahaan.');
     } finally {
       setLoading(false);
     }
@@ -35,19 +44,17 @@ export default function CompaniesScreen() {
 
   const handleSubmit = async () => {
     if (!formData.company_name) {
-      Alert.alert('Peringatan', 'Nama perusahaan wajib diisi.');
+      showAlert('warning', 'Peringatan', 'Nama perusahaan wajib diisi.');
       return;
     }
 
-    Alert.alert(
+    showAlert(
+      'confirm',
       editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
       editingId 
         ? `Apakah Anda yakin ingin menyimpan perubahan data perusahaan "${formData.company_name}"?`
         : `Apakah Anda yakin ingin menambahkan perusahaan baru "${formData.company_name}"?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Simpan', onPress: () => executeSubmit() }
-      ]
+      () => executeSubmit()
     );
   };
 
@@ -55,17 +62,17 @@ export default function CompaniesScreen() {
     try {
       if (editingId) {
         await api.put(`/companies/${editingId}`, formData);
-        Alert.alert('Sukses', 'Perusahaan berhasil diperbarui.');
+        showAlert('success', 'Sukses', 'Perusahaan berhasil diperbarui.');
       } else {
         await api.post('/companies', formData);
-        Alert.alert('Sukses', 'Perusahaan berhasil ditambahkan.');
+        showAlert('success', 'Sukses', 'Perusahaan berhasil ditambahkan.');
       }
       setModalVisible(false);
       setEditingId(null);
       setFormData({ company_name: '', address: '', phone: '', email: '' });
       fetchCompanies();
     } catch (error) {
-      Alert.alert('Error', 'Gagal menyimpan data.');
+      showAlert('error', 'Error', 'Gagal menyimpan data.');
     }
   };
 
@@ -81,22 +88,20 @@ export default function CompaniesScreen() {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus perusahaan ini?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete(`/companies/${id}`);
-            Alert.alert('Sukses', 'Perusahaan berhasil dihapus.');
-            fetchCompanies();
-          } catch (error) {
-            Alert.alert('Error', 'Gagal menghapus perusahaan.');
-          }
+    showAlert(
+      'delete',
+      'Konfirmasi Hapus',
+      'Apakah Anda yakin ingin menghapus perusahaan ini? Data yang dihapus tidak dapat dikembalikan.',
+      async () => {
+        try {
+          await api.delete(`/companies/${id}`);
+          showAlert('success', 'Sukses', 'Perusahaan berhasil dihapus.');
+          fetchCompanies();
+        } catch (error) {
+          showAlert('error', 'Error', 'Gagal menghapus perusahaan.');
         }
       }
-    ]);
+    );
   };
 
   const openAddModal = () => {
@@ -244,7 +249,14 @@ export default function CompaniesScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      <CustomAlert
+        visible={alertVisible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertVisible(false)}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

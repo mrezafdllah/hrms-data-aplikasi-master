@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
+import CustomAlert from '../../components/CustomAlert';
 
 export default function RolesScreen() {
   const [roles, setRoles] = useState([]);
@@ -11,6 +12,14 @@ export default function RolesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ role_name: '', description: '' });
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
+
+  const showAlert = (type: string, title: string, message: string, onConfirm?: () => void) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setAlertVisible(true);
+  };
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -23,7 +32,7 @@ export default function RolesScreen() {
         setRoles(response.data.data);
       }
     } catch (error) {
-      Alert.alert('Error', 'Gagal memuat data role.');
+      showAlert('error', 'Error', 'Gagal memuat data role.');
     } finally {
       setLoading(false);
     }
@@ -35,19 +44,17 @@ export default function RolesScreen() {
 
   const handleSubmit = async () => {
     if (!formData.role_name) {
-      Alert.alert('Peringatan', 'Nama role wajib diisi.');
+      showAlert('warning', 'Peringatan', 'Nama role wajib diisi.');
       return;
     }
 
-    Alert.alert(
+    showAlert(
+      'confirm',
       editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
       editingId 
         ? `Apakah Anda yakin ingin menyimpan perubahan data role "${formData.role_name}"?`
         : `Apakah Anda yakin ingin menambahkan role baru "${formData.role_name}"?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Simpan', onPress: () => executeSubmit() }
-      ]
+      () => executeSubmit()
     );
   };
 
@@ -55,17 +62,17 @@ export default function RolesScreen() {
     try {
       if (editingId) {
         await api.put(`/roles/${editingId}`, formData);
-        Alert.alert('Sukses', 'Role berhasil diperbarui.');
+        showAlert('success', 'Sukses', 'Role berhasil diperbarui.');
       } else {
         await api.post('/roles', formData);
-        Alert.alert('Sukses', 'Role berhasil ditambahkan.');
+        showAlert('success', 'Sukses', 'Role berhasil ditambahkan.');
       }
       setModalVisible(false);
       setEditingId(null);
       setFormData({ role_name: '', description: '' });
       fetchRoles();
     } catch (error) {
-      Alert.alert('Error', 'Gagal menyimpan data.');
+      showAlert('error', 'Error', 'Gagal menyimpan data.');
     }
   };
 
@@ -76,22 +83,20 @@ export default function RolesScreen() {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus role ini?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete(`/roles/${id}`);
-            Alert.alert('Sukses', 'Role berhasil dihapus.');
-            fetchRoles();
-          } catch (error) {
-            Alert.alert('Error', 'Gagal menghapus role.');
-          }
+    showAlert(
+      'delete',
+      'Konfirmasi Hapus',
+      'Apakah Anda yakin ingin menghapus role ini? Data yang dihapus tidak dapat dikembalikan.',
+      async () => {
+        try {
+          await api.delete(`/roles/${id}`);
+          showAlert('success', 'Sukses', 'Role berhasil dihapus.');
+          fetchRoles();
+        } catch (error) {
+          showAlert('error', 'Error', 'Gagal menghapus role.');
         }
       }
-    ]);
+    );
   };
 
   const openAddModal = () => {
@@ -206,6 +211,15 @@ export default function RolesScreen() {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertVisible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertVisible(false)}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

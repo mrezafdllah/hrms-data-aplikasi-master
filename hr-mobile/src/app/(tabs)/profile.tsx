@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../../utils/api';
+import CustomAlert from '../../components/CustomAlert';
 
 const t = {
   title: "Profil Saya",
@@ -53,6 +54,14 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
+
+  const showAlert = (type: string, title: string, message: string, onConfirm?: () => void) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setAlertVisible(true);
+  };
   const router = useRouter();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -64,15 +73,15 @@ export default function ProfileScreen() {
 
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Input Tidak Lengkap', 'Harap isi semua kolom kata sandi.');
+      showAlert('warning', 'Input Tidak Lengkap', 'Harap isi semua kolom kata sandi.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert('Konfirmasi Salah', 'Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
+      showAlert('warning', 'Konfirmasi Salah', 'Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
       return;
     }
     if (newPassword.length < 6) {
-      Alert.alert('Kata Sandi Lemah', 'Kata sandi baru minimal 6 karakter.');
+      showAlert('warning', 'Kata Sandi Lemah', 'Kata sandi baru minimal 6 karakter.');
       return;
     }
 
@@ -83,15 +92,15 @@ export default function ProfileScreen() {
         new_password: newPassword
       });
       if (res.data?.status === 'Success') {
-        Alert.alert('Berhasil', 'Kata sandi Anda berhasil diperbarui.');
+        showAlert('success', 'Berhasil', 'Kata sandi Anda berhasil diperbarui.');
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
       } else {
-        Alert.alert('Gagal', res.data?.detail || 'Gagal mengubah kata sandi');
+        showAlert('error', 'Gagal', res.data?.detail || 'Gagal mengubah kata sandi');
       }
     } catch (error: any) {
-      Alert.alert('Gagal', error.response?.data?.detail || 'Terjadi kesalahan');
+      showAlert('error', 'Gagal', error.response?.data?.detail || 'Terjadi kesalahan');
     } finally {
       setPasswordSaving(false);
     }
@@ -157,27 +166,23 @@ export default function ProfileScreen() {
   }, [fetchProfile, fetchPositions]);
 
   const handleLogout = async () => {
-    Alert.alert(t.confirmTitle, t.confirmLogoutMsg, [
-      { text: t.cancelBtn, style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          await AsyncStorage.clear();
-          router.replace('/login');
-        }
+    showAlert(
+      'delete',
+      t.confirmTitle,
+      t.confirmLogoutMsg,
+      async () => {
+        await AsyncStorage.clear();
+        router.replace('/login');
       }
-    ]);
+    );
   };
 
   const handleSave = async () => {
-    Alert.alert(
+    showAlert(
+      'confirm',
       'Konfirmasi Perubahan',
       'Apakah Anda yakin ingin menyimpan perubahan profil Anda?',
-      [
-        { text: t.cancelBtn, style: 'cancel' },
-        { text: t.save, onPress: () => executeSave() }
-      ]
+      () => executeSave()
     );
   };
 
@@ -192,14 +197,14 @@ export default function ProfileScreen() {
       const res = await api.put('/profile', payload);
       if (res.data?.status === 'Success') {
         await AsyncStorage.setItem('name', formData.full_name);
-        Alert.alert('Berhasil', t.successMsg);
+        showAlert('success', 'Berhasil', t.successMsg);
         setIsEditing(false);
         fetchProfile();
       } else {
-        Alert.alert('Gagal', res.data?.detail || 'Gagal memperbarui profil');
+        showAlert('error', 'Gagal', res.data?.detail || 'Gagal memperbarui profil');
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Terjadi kesalahan');
+      showAlert('error', 'Error', error.response?.data?.detail || 'Terjadi kesalahan');
     } finally {
       setSaving(false);
     }
@@ -208,7 +213,7 @@ export default function ProfileScreen() {
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      Alert.alert(t.permissionsDenied, t.galleryPermissionMsg);
+      showAlert('warning', t.permissionsDenied, t.galleryPermissionMsg);
       return;
     }
 
@@ -258,13 +263,13 @@ export default function ProfileScreen() {
         };
         await api.put('/profile', updatePayload);
         fetchProfile();
-        Alert.alert('Berhasil', t.uploadSuccess);
+        showAlert('success', 'Berhasil', t.uploadSuccess);
       } else {
-        Alert.alert('Gagal', t.uploadFailed);
+        showAlert('error', 'Gagal', t.uploadFailed);
       }
     } catch (error: any) {
       console.error('Upload error:', error);
-      Alert.alert('Error', 'Terjadi kesalahan saat mengunggah foto');
+      showAlert('error', 'Error', 'Terjadi kesalahan saat mengunggah foto');
     } finally {
       setUploading(false);
     }
@@ -610,6 +615,15 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertVisible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertVisible(false)}
+        onConfirm={alertConfig.onConfirm}
+      />
     </KeyboardAvoidingView>
   );
 }

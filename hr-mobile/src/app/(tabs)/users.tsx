@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
+import CustomAlert from '../../components/CustomAlert';
 
 export default function UsersScreen() {
   const [users, setUsers] = useState([]);
@@ -26,6 +27,14 @@ export default function UsersScreen() {
 
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
+
+  const showAlert = (type: string, title: string, message: string, onConfirm?: () => void) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setAlertVisible(true);
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -42,7 +51,7 @@ export default function UsersScreen() {
       if (rolesRes.data?.status === 'Success') setRoles(rolesRes.data.data);
       if (positionsRes.data?.status === 'Success') setPositions(positionsRes.data.data);
     } catch (error) {
-      Alert.alert('Error', 'Gagal memuat data.');
+      showAlert('error', 'Error', 'Gagal memuat data.');
     } finally {
       setLoading(false);
     }
@@ -54,19 +63,17 @@ export default function UsersScreen() {
 
   const handleSubmit = async () => {
     if (!formData.full_name || !formData.email || (!editingId && !formData.hashed_password)) {
-      Alert.alert('Peringatan', 'Nama, Email, dan Password wajib diisi.');
+      showAlert('warning', 'Peringatan', 'Nama, Email, dan Password wajib diisi.');
       return;
     }
 
-    Alert.alert(
+    showAlert(
+      'confirm',
       editingId ? 'Konfirmasi Edit' : 'Konfirmasi Tambah',
       editingId 
         ? `Apakah Anda yakin ingin menyimpan perubahan data karyawan "${formData.full_name}"?`
         : `Apakah Anda yakin ingin menambahkan karyawan baru "${formData.full_name}"?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Simpan', onPress: () => executeSubmit() }
-      ]
+      () => executeSubmit()
     );
   };
 
@@ -84,17 +91,17 @@ export default function UsersScreen() {
     try {
       if (editingId) {
         await api.put(`/users/${editingId}`, payload);
-        Alert.alert('Sukses', 'User berhasil diperbarui.');
+        showAlert('success', 'Sukses', 'User berhasil diperbarui.');
       } else {
         await api.post('/users', payload);
-        Alert.alert('Sukses', 'User berhasil ditambahkan.');
+        showAlert('success', 'Sukses', 'User berhasil ditambahkan.');
       }
       setModalVisible(false);
       setEditingId(null);
       setFormData({ employee_id: '', role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
       fetchData();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Gagal menyimpan data.');
+      showAlert('error', 'Error', error.response?.data?.detail || 'Gagal menyimpan data.');
     }
   };
 
@@ -113,22 +120,20 @@ export default function UsersScreen() {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus user ini?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete(`/users/${id}`);
-            Alert.alert('Sukses', 'User berhasil dihapus.');
-            fetchData();
-          } catch (error) {
-            Alert.alert('Error', 'Gagal menghapus user.');
-          }
+    showAlert(
+      'delete',
+      'Konfirmasi Hapus',
+      'Apakah Anda yakin ingin menghapus user ini? Data yang dihapus tidak dapat dikembalikan.',
+      async () => {
+        try {
+          await api.delete(`/users/${id}`);
+          showAlert('success', 'Sukses', 'User berhasil dihapus.');
+          fetchData();
+        } catch (error) {
+          showAlert('error', 'Error', 'Gagal menghapus user.');
         }
       }
-    ]);
+    );
   };
 
   const openAddModal = () => {
@@ -395,6 +400,15 @@ export default function UsersScreen() {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertVisible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertVisible(false)}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }
