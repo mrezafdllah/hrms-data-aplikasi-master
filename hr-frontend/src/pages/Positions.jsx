@@ -52,10 +52,11 @@ const Positions = () => {
   };
 
   const executeSubmit = () => {
-    const url = editingId 
+    const isEdit = !!editingId;
+    const url = isEdit 
       ? `/api/positions/${editingId}` 
       : '/api/positions';
-    const method = editingId ? 'PUT' : 'POST';
+    const method = isEdit ? 'PUT' : 'POST';
 
     const payload = { ...formData, job_id: parseInt(formData.job_id) };
     apiFetch(url, {
@@ -66,6 +67,12 @@ const Positions = () => {
       setShowModal(false);
       setEditingId(null);
       fetchPositions();
+      setConfirmModal({
+        show: true,
+        title: 'Sukses',
+        message: isEdit ? 'Data jabatan berhasil diperbarui.' : 'Data jabatan berhasil ditambahkan.',
+        type: 'success'
+      });
     });
   };
 
@@ -89,7 +96,15 @@ const Positions = () => {
       type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/positions/${id}`, { method: 'DELETE' })
-          .then(() => fetchPositions());
+          .then(() => {
+            fetchPositions();
+            setConfirmModal({
+              show: true,
+              title: 'Sukses',
+              message: `Data jabatan "${posName}" berhasil dihapus.`,
+              type: 'success'
+            });
+          });
       }
     });
   };

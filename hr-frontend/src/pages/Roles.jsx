@@ -43,10 +43,11 @@ const Roles = () => {
   };
 
   const executeSubmit = () => {
-    const url = editingId 
+    const isEdit = !!editingId;
+    const url = isEdit 
       ? `/api/roles/${editingId}` 
       : '/api/roles';
-    const method = editingId ? 'PUT' : 'POST';
+    const method = isEdit ? 'PUT' : 'POST';
 
     apiFetch(url, {
       method,
@@ -56,6 +57,12 @@ const Roles = () => {
       setShowModal(false);
       setEditingId(null);
       fetchRoles();
+      setConfirmModal({
+        show: true,
+        title: 'Sukses',
+        message: isEdit ? 'Data role berhasil diperbarui.' : 'Data role berhasil ditambahkan.',
+        type: 'success'
+      });
     });
   };
 
@@ -75,7 +82,15 @@ const Roles = () => {
       type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/roles/${id}`, { method: 'DELETE' })
-          .then(() => fetchRoles());
+          .then(() => {
+            fetchRoles();
+            setConfirmModal({
+              show: true,
+              title: 'Sukses',
+              message: `Data role "${roleName}" berhasil dihapus.`,
+              type: 'success'
+            });
+          });
       }
     });
   };

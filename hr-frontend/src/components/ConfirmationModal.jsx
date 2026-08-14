@@ -7,7 +7,7 @@ const ConfirmationModal = ({
   onConfirm,
   title,
   message,
-  type = 'update', // 'create' | 'update' | 'delete'
+  type = 'update', // 'create' | 'update' | 'delete' | 'success'
   confirmText,
   cancelText
 }) => {
@@ -16,11 +16,13 @@ const ConfirmationModal = ({
   const getThemeConfig = () => {
     switch (type) {
       case 'create':
+      case 'success':
         return {
           icon: <CheckCircle2 size={28} />,
           iconBg: 'bg-emerald-50 text-emerald-500',
           confirmBtn: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/10',
-          defaultConfirmText: 'Simpan',
+          defaultConfirmText: type === 'success' ? 'OK' : 'Simpan',
+          singleBtn: type === 'success' || !onConfirm,
         };
       case 'delete':
         return {
@@ -28,6 +30,7 @@ const ConfirmationModal = ({
           iconBg: 'bg-red-50 text-red-500',
           confirmBtn: 'bg-red-600 hover:bg-red-700 shadow-red-500/10',
           defaultConfirmText: 'Hapus',
+          singleBtn: false,
         };
       case 'update':
       default:
@@ -36,6 +39,7 @@ const ConfirmationModal = ({
           iconBg: 'bg-blue-50 text-blue-500',
           confirmBtn: 'bg-[#7b3fe4] hover:bg-[#6930d0] shadow-[#7b3fe4]/10',
           defaultConfirmText: 'Ya, Simpan',
+          singleBtn: false,
         };
     }
   };
@@ -43,6 +47,7 @@ const ConfirmationModal = ({
   const theme = getThemeConfig();
   const displayConfirmText = confirmText || theme.defaultConfirmText;
   const displayCancelText = cancelText || 'Batal';
+  const isSingleBtn = theme.singleBtn;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in">
@@ -56,21 +61,23 @@ const ConfirmationModal = ({
           <p className="text-xs text-gray-400 font-semibold leading-relaxed px-2 whitespace-pre-line">{message}</p>
         </div>
         
-        <div className="grid grid-cols-2 gap-2.5 w-full pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer"
-          >
-            {displayCancelText}
-          </button>
+        <div className={isSingleBtn ? "w-full pt-2" : "grid grid-cols-2 gap-2.5 w-full pt-2"}>
+          {!isSingleBtn && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer w-full"
+            >
+              {displayCancelText}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
-              onConfirm();
+              if (onConfirm) onConfirm();
               onClose();
             }}
-            className={`text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition-colors cursor-pointer ${theme.confirmBtn}`}
+            className={`text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition-colors cursor-pointer w-full ${theme.confirmBtn}`}
           >
             {displayConfirmText}
           </button>

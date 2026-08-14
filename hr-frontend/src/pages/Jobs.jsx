@@ -52,10 +52,11 @@ const Jobs = () => {
   };
 
   const executeSubmit = () => {
-    const url = editingId 
+    const isEdit = !!editingId;
+    const url = isEdit 
       ? `/api/jobs/${editingId}` 
       : '/api/jobs';
-    const method = editingId ? 'PUT' : 'POST';
+    const method = isEdit ? 'PUT' : 'POST';
 
     const payload = { ...formData, company_id: parseInt(formData.company_id) };
     apiFetch(url, {
@@ -66,6 +67,12 @@ const Jobs = () => {
       setShowModal(false);
       setEditingId(null);
       fetchJobs();
+      setConfirmModal({
+        show: true,
+        title: 'Sukses',
+        message: isEdit ? 'Data divisi berhasil diperbarui.' : 'Data divisi berhasil ditambahkan.',
+        type: 'success'
+      });
     });
   };
 
@@ -89,7 +96,15 @@ const Jobs = () => {
       type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/jobs/${id}`, { method: 'DELETE' })
-          .then(() => fetchJobs());
+          .then(() => {
+            fetchJobs();
+            setConfirmModal({
+              show: true,
+              title: 'Sukses',
+              message: `Data divisi "${jobName}" berhasil dihapus.`,
+              type: 'success'
+            });
+          });
       }
     });
   };

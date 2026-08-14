@@ -43,10 +43,11 @@ const Companies = () => {
   };
 
   const executeSubmit = () => {
-    const url = editingId 
+    const isEdit = !!editingId;
+    const url = isEdit 
       ? `/api/companies/${editingId}` 
       : '/api/companies';
-    const method = editingId ? 'PUT' : 'POST';
+    const method = isEdit ? 'PUT' : 'POST';
 
     apiFetch(url, {
       method,
@@ -56,6 +57,12 @@ const Companies = () => {
       setShowModal(false);
       setEditingId(null);
       fetchCompanies();
+      setConfirmModal({
+        show: true,
+        title: 'Sukses',
+        message: isEdit ? 'Data perusahaan berhasil diperbarui.' : 'Data perusahaan berhasil ditambahkan.',
+        type: 'success'
+      });
     });
   };
 
@@ -80,7 +87,15 @@ const Companies = () => {
       type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/companies/${id}`, { method: 'DELETE' })
-          .then(() => fetchCompanies());
+          .then(() => {
+            fetchCompanies();
+            setConfirmModal({
+              show: true,
+              title: 'Sukses',
+              message: `Data perusahaan "${companyName}" berhasil dihapus.`,
+              type: 'success'
+            });
+          });
       }
     });
   };

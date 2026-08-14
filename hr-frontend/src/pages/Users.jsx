@@ -59,10 +59,11 @@ const Users = () => {
   };
 
   const executeSubmit = () => {
-    const url = editingId 
+    const isEdit = !!editingId;
+    const url = isEdit 
       ? `/api/users/${editingId}` 
       : '/api/users';
-    const method = editingId ? 'PUT' : 'POST';
+    const method = isEdit ? 'PUT' : 'POST';
 
     const payload = {
       ...formData,
@@ -84,6 +85,12 @@ const Users = () => {
       setShowModal(false);
       setEditingId(null);
       fetchUsers();
+      setConfirmModal({
+        show: true,
+        title: 'Sukses',
+        message: isEdit ? 'Data karyawan berhasil diperbarui.' : 'Data karyawan berhasil ditambahkan.',
+        type: 'success'
+      });
     });
   };
 
@@ -113,7 +120,15 @@ const Users = () => {
       type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/users/${id}`, { method: 'DELETE' })
-          .then(() => fetchUsers());
+          .then(() => {
+            fetchUsers();
+            setConfirmModal({
+              show: true,
+              title: 'Sukses',
+              message: `Data karyawan "${userName}" berhasil dihapus.`,
+              type: 'success'
+            });
+          });
       }
     });
   };
