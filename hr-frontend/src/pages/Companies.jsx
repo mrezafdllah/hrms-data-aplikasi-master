@@ -116,7 +116,7 @@ const Companies = () => {
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola daftar unit perusahaan terdaftar</p>
         </div>
         {currentRole === 'Super Admin' && (
-          <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
+          <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
             + Tambah Perusahaan
           </button>
         )}
@@ -126,7 +126,7 @@ const Companies = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
+              <tr className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold tracking-wider uppercase">
                 <th className="p-4 rounded-tl-2xl">ID</th>
                 <th className="p-4">Nama Perusahaan</th>
                 <th className="p-4">Alamat</th>
@@ -138,7 +138,7 @@ const Companies = () => {
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
               {companies.map((company) => (
                 <tr key={company.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-[#7b3fe4] font-bold">{company.id}</td>
+                  <td className="p-4 text-orange-600 font-bold">{company.id}</td>
                   <td className="p-4 font-bold text-gray-800">{company.company_name}</td>
                   <td className="p-4 text-gray-400 max-w-xs truncate">{company.address || '-'}</td>
                   <td className="p-4 text-gray-500">{company.phone || '-'}</td>
@@ -146,7 +146,7 @@ const Companies = () => {
                   <td className="p-4 flex gap-3 items-center">
                     {currentRole === 'Super Admin' ? (
                       <>
-                        <button onClick={() => handleEdit(company)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
+                        <button onClick={() => handleEdit(company)} className="text-orange-600 hover:text-orange-700 font-bold cursor-pointer">Edit</button>
                         <button onClick={() => handleDelete(company.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
                       </>
                     ) : (
@@ -170,27 +170,38 @@ const Companies = () => {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
                 <label className="block mb-1.5">Nama Perusahaan</label>
-                <input type="text" placeholder="Nama perusahaan" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="text" placeholder="Nama perusahaan" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Alamat</label>
-                <textarea placeholder="Alamat lengkap" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" rows="2"
+                <textarea placeholder="Alamat lengkap" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" rows="2"
                   value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Telepon</label>
-                <input type="text" placeholder="Nomor telepon" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="text" placeholder="Nomor telepon" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Email</label>
-                <input type="email" placeholder="Email perusahaan" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="email" placeholder="Email perusahaan" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
               </div>
-              <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-50">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl cursor-pointer">Batal</button>
-                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white rounded-xl shadow-md shadow-blue-500/10 cursor-pointer">Simpan</button>
+              <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-gray-50">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2.5 bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all"
+                >
+                  Simpan
+                </button>
               </div>
             </form>
           </div>

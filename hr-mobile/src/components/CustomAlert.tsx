@@ -52,19 +52,19 @@ const getTheme = (type: AlertType) => {
     case 'confirm':
       return {
         icon: 'help-circle' as const,
-        iconColor: '#7b3fe4',
-        iconBg: '#f5f3ff',
-        accentColor: '#7b3fe4',
-        btnGradient: ['#7b3fe4', '#6930d0'],
+        iconColor: '#f97316',
+        iconBg: '#fff7ed',
+        accentColor: '#f97316',
+        btnGradient: ['#f97316', '#ea580c'],
       };
     case 'info':
     default:
       return {
         icon: 'information-circle' as const,
-        iconColor: '#3b82f6',
-        iconBg: '#eff6ff',
-        accentColor: '#3b82f6',
-        btnGradient: ['#3b82f6', '#2563eb'],
+        iconColor: '#f97316',
+        iconBg: '#fff7ed',
+        accentColor: '#f97316',
+        btnGradient: ['#f97316', '#ea580c'],
       };
   }
 };
@@ -186,7 +186,9 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
+    borderWidth: 1,
     paddingVertical: 13,
     borderRadius: 14,
     alignItems: 'center',
@@ -194,14 +196,14 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#6b7280',
+    color: '#ef4444',
   },
   confirmBtn: {
     flex: 1,
     paddingVertical: 13,
     borderRadius: 14,
     alignItems: 'center',
-    shadowColor: '#7b3fe4',
+    shadowColor: '#f97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

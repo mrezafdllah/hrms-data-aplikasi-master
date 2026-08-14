@@ -168,7 +168,7 @@ const Dashboard = () => {
     return (
       <div className="flex h-screen items-center justify-center font-semibold text-gray-500 bg-[#f8fafc]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#7b3fe4] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           <span>Memuat Statistik...</span>
         </div>
       </div>
@@ -430,10 +430,10 @@ const Dashboard = () => {
             <img 
               src={`${API_BASE_URL}${myProfile.profile_picture}`} 
               alt="Avatar" 
-              className="w-10 h-10 rounded-full object-cover shadow-md shadow-[#7b3fe4]/10 border border-gray-100" 
+              className="w-10 h-10 rounded-full object-cover shadow-md shadow-orange-500/10 border border-gray-100" 
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7b3fe4] to-[#3a6bf6] flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-500/10">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-orange-500/20">
               {name.charAt(0).toUpperCase()}
             </div>
           )}
@@ -470,15 +470,15 @@ const Dashboard = () => {
               <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">{t.companies}</span>
               <span className="text-2xl font-black text-gray-800 block mt-1.5">{stats.totalCompanies || 0}</span>
             </div>
-            <span className="bg-purple-50 text-[#7b3fe4] text-xs font-bold px-2.5 py-1 rounded-full">{t.registered}</span>
+            <span className="bg-orange-50 text-orange-600 border border-orange-100 text-xs font-bold px-2.5 py-1 rounded-full">{t.registered}</span>
           </div>
           <div className="grid grid-cols-2 gap-4 mt-6 border-t border-gray-50 pt-4">
             <div>
-              <span className="text-2xl font-bold text-[#7b3fe4] block">{stats.totalCompanies || 0}</span>
+              <span className="text-2xl font-bold text-orange-600 block">{stats.totalCompanies || 0}</span>
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.totalEntities}</span>
             </div>
             <div>
-              <span className="text-2xl font-bold text-[#3a6bf6] block">{t.active}</span>
+              <span className="text-2xl font-bold text-amber-500 block">{t.active}</span>
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.status}</span>
             </div>
           </div>
@@ -537,15 +537,15 @@ const Dashboard = () => {
                   onClick={() => setSelectedDate(day)}
                   className={`p-2 rounded-full relative w-8 h-8 flex items-center justify-center mx-auto transition-all ${
                     isSelected 
-                      ? 'bg-[#7b3fe4] text-white font-bold shadow-md shadow-[#7b3fe4]/25' 
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-md shadow-orange-500/20' 
                       : isToday 
-                        ? 'bg-[#ff5f2d] text-white font-bold shadow-md shadow-[#ff5f2d]/20'
+                        ? 'bg-orange-600 text-white font-bold shadow-md shadow-orange-500/20'
                         : 'hover:bg-gray-50 text-gray-700'
                   }`}
                 >
                   {day.getDate()}
                   {hasEvents && !isSelected && !isToday && (
-                    <span className="absolute bottom-1 w-1 h-1 bg-[#7b3fe4] rounded-full"></span>
+                    <span className="absolute bottom-1 w-1 h-1 bg-orange-500 rounded-full"></span>
                   )}
                 </button>
               );
@@ -562,7 +562,7 @@ const Dashboard = () => {
               {isAdmin && (
                 <button 
                   onClick={openAddSchedule} 
-                  className="p-1.5 rounded-lg bg-[#7b3fe4]/10 hover:bg-[#7b3fe4]/20 text-[#7b3fe4] transition-colors"
+                  className="p-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-100 transition-colors cursor-pointer"
                 >
                   <Plus size={14} />
                 </button>
@@ -586,10 +586,10 @@ const Dashboard = () => {
                     </div>
                     {isAdmin && (
                       <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEditSchedule(sch)} className="p-1 hover:text-[#7b3fe4] text-gray-400">
+                        <button onClick={() => openEditSchedule(sch)} className="p-1 hover:text-orange-600 text-gray-400 cursor-pointer">
                           <Edit2 size={12} />
                         </button>
-                        <button onClick={() => handleDeleteSchedule(sch.id)} className="p-1 hover:text-red-500 text-gray-400">
+                        <button onClick={() => handleDeleteSchedule(sch.id)} className="p-1 hover:text-red-500 text-gray-400 cursor-pointer">
                           <Trash2 size={12} />
                         </button>
                       </div>
@@ -678,7 +678,7 @@ const Dashboard = () => {
           </div>
 
           <div className="flex justify-start pt-2">
-            <Link to="/users" className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-full flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
+            <Link to="/users" className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-full flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
               Lihat Semua
               <ArrowRight size={12} />
             </Link>
@@ -774,25 +774,52 @@ const Dashboard = () => {
                   </label>
                   <input
                     type="time"
-                    value={scheduleForm.end_time}
-                    onChange={e => setScheduleForm(prev => ({ ...prev, end_time: e.target.value }))}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-2 py-2 text-gray-700 focus:outline-none"
-                    required
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, start_time: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-end pt-3 border-t border-gray-100">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                  {t.scheduleType}
+                </label>
+                <select
+                  value={scheduleForm.schedule_type}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, schedule_type: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                >
+                  <option value="Meeting">Meeting</option>
+                  <option value="Shift">Shift Kerja</option>
+                  <option value="Dinas">Perjalanan Dinas</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                  {t.locationNotes}
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Ruang Rapat Lt. 2 / Zoom Link"
+                  value={scheduleForm.notes}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                />
+              </div>
+
+              <div className="flex gap-2.5 justify-end pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowScheduleModal(false)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl"
+                  className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold py-2 px-4 rounded-xl transition-all cursor-pointer"
                 >
                   {t.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="bg-[#7b3fe4] hover:bg-[#6832ca] text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1 shadow-md"
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1 shadow-md shadow-orange-500/20 cursor-pointer transition-all"
                 >
                   <Check size={14} /> {t.save}
                 </button>
@@ -818,101 +845,43 @@ const Dashboard = () => {
             <form onSubmit={handleNoticeSubmit} className="space-y-4 text-xs font-semibold text-gray-600">
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                  {t.subjectLabel}
+                  {t.noticeTitleLabel}
                 </label>
                 <input
                   type="text"
-                  value={noticeForm.subject}
-                  onChange={e => setNoticeForm(prev => ({ ...prev, subject: e.target.value }))}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-gray-700 focus:outline-none"
-                  placeholder="Masukkan judul pengumuman"
                   required
+                  placeholder="Judul pengumuman"
+                  value={noticeForm.title}
+                  onChange={(e) => setNoticeForm({ ...noticeForm, title: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
                 />
               </div>
 
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                  {t.descLabel}
+                  {t.noticeContentLabel}
                 </label>
                 <textarea
-                  value={noticeForm.description}
-                  onChange={e => setNoticeForm(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-gray-700 focus:outline-none resize-none"
-                  placeholder="Masukkan isi pengumuman lengkap"
-                  rows={3}
                   required
+                  rows="4"
+                  placeholder="Isi pengumuman..."
+                  value={noticeForm.content}
+                  onChange={(e) => setNoticeForm({ ...noticeForm, content: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white resize-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                    {t.startDate}
-                  </label>
-                  <input
-                    type="date"
-                    value={noticeForm.start_date}
-                    onChange={e => setNoticeForm(prev => ({ ...prev, start_date: e.target.value }))}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-2 py-2 text-gray-700 focus:outline-none"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                    {t.endDate}
-                  </label>
-                  <input
-                    type="date"
-                    value={noticeForm.end_date}
-                    onChange={e => setNoticeForm(prev => ({ ...prev, end_date: e.target.value }))}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-2 py-2 text-gray-700 focus:outline-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                    {t.priority}
-                  </label>
-                  <select
-                    value={noticeForm.priority}
-                    onChange={e => setNoticeForm(prev => ({ ...prev, priority: e.target.value }))}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-gray-700 focus:outline-none"
-                    required
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                    {t.audience}
-                  </label>
-                  <input
-                    type="text"
-                    value={noticeForm.audience}
-                    onChange={e => setNoticeForm(prev => ({ ...prev, audience: e.target.value }))}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-gray-700 focus:outline-none"
-                    placeholder="Contoh: All Departments"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end pt-3 border-t border-gray-100">
+              <div className="flex gap-2.5 justify-end pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowNoticeModal(false)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl"
+                  className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold py-2 px-4 rounded-xl transition-all cursor-pointer"
                 >
                   {t.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="bg-[#7b3fe4] hover:bg-[#6832ca] text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1 shadow-md"
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1 shadow-md shadow-orange-500/20 cursor-pointer transition-all"
                 >
                   <Check size={14} /> {t.save}
                 </button>

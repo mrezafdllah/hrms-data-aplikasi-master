@@ -168,8 +168,8 @@ export default function UsersScreen() {
         
         <View style={styles.metaContainer}>
           <View style={styles.metaRow}>
-            <Ionicons name="card-outline" size={13} color="#7b3fe4" />
-            <Text style={[styles.metaText, { color: '#7b3fe4', fontWeight: 'bold' }]}>{item.employee_id || `EMP-${item.id}`}</Text>
+            <Ionicons name="card-outline" size={13} color="#f97316" />
+            <Text style={[styles.metaText, { color: '#f97316', fontWeight: 'bold' }]}>{item.employee_id || `EMP-${item.id}`}</Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name="shield-checkmark-outline" size={13} color="#9ca3af" />
@@ -190,13 +190,13 @@ export default function UsersScreen() {
       
       <View style={styles.cardActions}>
         {item.email === currentUserEmail ? (
-          <Text style={{ fontSize: 10, color: '#7b3fe4', fontWeight: 'bold', backgroundColor: '#f5f3ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+          <Text style={{ fontSize: 10, color: '#f97316', fontWeight: 'bold', backgroundColor: '#fff7ed', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
             👤 Akun Anda
           </Text>
         ) : (
           <>
             <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
-              <Ionicons name="create-outline" size={16} color="#7b3fe4" />
+              <Ionicons name="create-outline" size={16} color="#f97316" />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
               <Ionicons name="trash-outline" size={16} color="#ef4444" />
@@ -217,7 +217,7 @@ export default function UsersScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#7b3fe4" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#f97316" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={users}
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     color: '#1e2022',
   },
   addBtn: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 9999,
@@ -490,8 +490,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   statusActive: {
-    backgroundColor: '#f5f3ff',
-    color: '#7b3fe4',
+    backgroundColor: '#fff7ed',
+    color: '#f97316',
   },
   statusInactive: {
     backgroundColor: '#fef2f2',
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editBtn: {
-    backgroundColor: '#f5f3ff',
+    backgroundColor: '#fff7ed',
   },
   deleteBtn: {
     backgroundColor: '#fef2f2',
@@ -611,8 +611,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusOptionActive: {
-    backgroundColor: '#f5f3ff',
-    borderColor: '#7b3fe4',
+    backgroundColor: '#fff7ed',
+    borderColor: '#f97316',
   },
   statusOptionActiveRed: {
     backgroundColor: '#fef2f2',
@@ -624,17 +624,17 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   statusOptionTextActive: {
-    color: '#7b3fe4',
+    color: '#f97316',
   },
   statusOptionTextActiveRed: {
     color: '#ef4444',
   },
   submitBtn: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingVertical: 16,
     borderRadius: 9999,
     alignItems: 'center',
-    shadowColor: '#7b3fe4',
+    shadowColor: '#f97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,

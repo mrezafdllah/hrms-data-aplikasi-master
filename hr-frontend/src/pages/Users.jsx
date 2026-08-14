@@ -177,7 +177,7 @@ const Users = () => {
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen User</h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola pengguna dan penugasan jabatan karyawan</p>
         </div>
-        <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
+        <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
           + Tambah User
         </button>
       </div>
@@ -186,7 +186,7 @@ const Users = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
+              <tr className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold tracking-wider uppercase">
                 <th className="p-4 rounded-tl-2xl">ID Karyawan</th>
                 <th className="p-4">Nama Lengkap</th>
                 <th className="p-4">Email</th>
@@ -200,13 +200,13 @@ const Users = () => {
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
               {users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-[#7b3fe4] font-bold">{user.employee_id || `EMP-${user.id}`}</td>
+                  <td className="p-4 text-orange-600 font-bold">{user.employee_id || `EMP-${user.id}`}</td>
                   <td className="p-4 font-bold text-gray-800">{user.full_name}</td>
                   <td className="p-4 text-gray-500">{user.email}</td>
                   <td className="p-4">
                     <span className={`px-2.5 py-0.5 text-[9px] font-bold rounded-full ${
-                      user.role_name === 'Super Admin' ? 'bg-purple-50 text-[#7b3fe4]' : 
-                      user.role_name === 'Admin HR' ? 'bg-blue-50 text-[#3a6bf6]' : 
+                      user.role_name === 'Super Admin' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 
+                      user.role_name === 'Admin HR' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 
                       'bg-gray-50 text-gray-500'
                     }`}>
                       {user.role_name || '-'}
@@ -221,12 +221,12 @@ const Users = () => {
                   </td>
                   <td className="p-4 flex gap-3 items-center">
                     {(user.id === currentUserProfile?.id || user.email === currentUserProfile?.email) ? (
-                      <span className="text-purple-600 font-bold bg-purple-50 px-2.5 py-1 rounded-md text-[10px] border border-purple-100">
+                      <span className="text-orange-600 font-bold bg-orange-50 px-2.5 py-1 rounded-md text-[10px] border border-orange-100">
                         👤 Akun Anda
                       </span>
                     ) : (
                       <>
-                        <button onClick={() => handleEdit(user)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
+                        <button onClick={() => handleEdit(user)} className="text-orange-600 hover:text-orange-700 font-bold cursor-pointer">Edit</button>
                         <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
                       </>
                     )}
@@ -248,23 +248,23 @@ const Users = () => {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
                 <label className="block mb-1.5">ID Karyawan</label>
-                <input type="text" placeholder="Contoh: EMP-001" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="text" placeholder="Contoh: EMP-001" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.employee_id} onChange={e => setFormData({...formData, employee_id: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Nama Lengkap</label>
-                <input type="text" placeholder="Nama lengkap" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="text" placeholder="Nama lengkap" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Email</label>
-                <input type="email" placeholder="Email" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="email" placeholder="Email" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
               </div>
               {!editingId && (
                 <div>
                   <label className="block mb-1.5">Password</label>
-                  <input type="password" placeholder="Password" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                  <input type="password" placeholder="Password" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                     value={formData.hashed_password} onChange={e => setFormData({...formData, hashed_password: e.target.value})} />
                 </div>
               )}
@@ -273,7 +273,7 @@ const Users = () => {
                 {currentRole === 'Admin HR' ? (
                   <input type="text" readOnly disabled value="Karyawan" className="w-full px-3 py-2 border rounded-xl bg-gray-100 text-gray-500 font-bold cursor-not-allowed" />
                 ) : (
-                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                     value={formData.role_id} onChange={e => setFormData({...formData, role_id: e.target.value})}>
                     <option value="">-- Pilih Peran --</option>
                     {selectableRoles.map(r => <option key={r.id} value={r.id}>{r.role_name}</option>)}
@@ -285,7 +285,7 @@ const Users = () => {
                 {currentRole === 'Admin HR' ? (
                   <input type="text" readOnly disabled value={currentUserProfile?.company_name || 'Perusahaan Admin HR'} className="w-full px-3 py-2 border rounded-xl bg-gray-100 text-gray-500 font-bold cursor-not-allowed" />
                 ) : (
-                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                     value={formData.company_id} 
                     onChange={e => {
                       const newCompanyId = e.target.value;
@@ -305,7 +305,7 @@ const Users = () => {
               </div>
               <div>
                 <label className="block mb-1.5">Jabatan</label>
-                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.position_id} onChange={e => setFormData({...formData, position_id: e.target.value})}>
                   <option value="">-- Pilih Jabatan --</option>
                   {filteredPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
@@ -313,20 +313,31 @@ const Users = () => {
               </div>
               <div>
                 <label className="block mb-1.5">Tanggal Bergabung</label>
-                <input type="date" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="date" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.joined_date} onChange={e => setFormData({...formData, joined_date: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Status</label>
-                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
                   <option value="Active">Aktif</option>
                   <option value="Inactive">Nonaktif</option>
                 </select>
               </div>
-              <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-50">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl cursor-pointer">Batal</button>
-                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white rounded-xl shadow-md shadow-blue-500/10 cursor-pointer">Simpan</button>
+              <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-gray-50">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2.5 bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all"
+                >
+                  Simpan
+                </button>
               </div>
             </form>
           </div>

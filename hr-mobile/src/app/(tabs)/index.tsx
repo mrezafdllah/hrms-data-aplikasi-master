@@ -96,7 +96,7 @@ export default function DashboardScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#7b3fe4" />
+        <ActivityIndicator size="large" color="#f97316" />
         <Text style={styles.loadingText}>{t.loading}</Text>
       </View>
     );
@@ -147,16 +147,16 @@ export default function DashboardScreen() {
         <View style={styles.menuGrid}>
           {role === 'Karyawan' ? (
             <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/profile')}>
-              <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
-                <Ionicons name="person" size={22} color="#7b3fe4" />
+              <View style={[styles.menuIconContainer, { backgroundColor: '#fff7ed' }]}>
+                <Ionicons name="person" size={22} color="#f97316" />
               </View>
               <Text style={styles.menuItemLabel}>Profil Saya</Text>
             </TouchableOpacity>
           ) : (
             <>
               <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/roles')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
-                  <Ionicons name="shield-checkmark" size={22} color="#7c3aed" />
+                <View style={[styles.menuIconContainer, { backgroundColor: '#fff7ed' }]}>
+                  <Ionicons name="shield-checkmark" size={22} color="#f97316" />
                 </View>
                 <Text style={styles.menuItemLabel}>Peran</Text>
               </TouchableOpacity>
@@ -305,10 +305,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#7b3fe4',
+    shadowColor: '#f97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     color: '#1e2022',
   },
   badge: {
-    backgroundColor: '#f5f3ff',
+    backgroundColor: '#fff7ed',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 9,
     fontWeight: 'bold',
-    color: '#7b3fe4',
+    color: '#f97316',
   },
   streamContainer: {
     gap: 14,
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#7b3fe4',
+    color: '#f97316',
   },
   timeSubText: {
     fontSize: 9,
@@ -591,8 +591,8 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#7b3fe4',
-    backgroundColor: '#f5f3ff',
+    color: '#f97316',
+    backgroundColor: '#fff7ed',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   viewMoreBtn: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#7b3fe4',
+    color: '#f97316',
   },
   tabBar: {
     flexDirection: 'row',
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
   },
   noticeAudience: {
     fontSize: 9,
-    color: '#7b3fe4',
+    color: '#f97316',
     fontWeight: '700',
   },
   logoutButton: {

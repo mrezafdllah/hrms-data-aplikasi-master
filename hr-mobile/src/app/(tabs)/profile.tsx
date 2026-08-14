@@ -304,7 +304,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#7b3fe4" />
+        <ActivityIndicator size="large" color="#f97316" />
         <Text style={styles.loadingText}>{t.loadingMsg}</Text>
       </View>
     );
@@ -601,7 +601,7 @@ export default function ProfileScreen() {
                   }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.userOptionText, String(p.id) === String(formData.position_id) && { color: '#7b3fe4' }]}>
+                    <Text style={[styles.userOptionText, String(p.id) === String(formData.position_id) && { color: '#f97316' }]}>
                       {p.position_name}
                     </Text>
                     <Text style={styles.userOptionRole}>{p.job_name || '-'}</Text>
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
   editBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -715,14 +715,14 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#f5f3ff',
+    backgroundColor: '#fff7ed',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#ede9fe',
+    borderColor: '#ffedd5',
   },
   avatarText: {
-    color: '#7b3fe4',
+    color: '#f97316',
     fontSize: 38,
     fontWeight: 'bold',
   },
@@ -730,7 +730,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
     color: '#ef4444',
   },
   roleBadge: {
-    backgroundColor: '#f5f3ff',
+    backgroundColor: '#fff7ed',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
   roleBadgeText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#7b3fe4',
+    color: '#f97316',
   },
   // Profile Details Card
   profileCard: {
@@ -884,7 +884,9 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
+    borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -893,12 +895,12 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6b7280',
+    color: '#ef4444',
   },
   saveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -996,7 +998,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   langBtnActive: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
   },
   langBtnText: {
     fontSize: 13,

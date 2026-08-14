@@ -306,7 +306,7 @@ const Profile = () => {
     return (
       <div className="flex h-screen items-center justify-center font-semibold text-gray-500 bg-[#f8fafc]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#7b3fe4] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           <span>{t.loadingMsg}</span>
         </div>
       </div>
@@ -328,7 +328,7 @@ const Profile = () => {
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer"
           >
             <Edit3 size={14} /> {t.editProfile}
           </button>
@@ -344,7 +344,7 @@ const Profile = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Foto Profil Card */}
         <div className="bg-white rounded-2xl border border-gray-50 shadow-sm p-6 flex flex-col items-center justify-center text-center">
-          <div className="relative group w-32 h-32 rounded-full shadow-inner border-2 border-gray-100 flex items-center justify-center overflow-hidden bg-purple-50">
+          <div className="relative group w-32 h-32 rounded-full shadow-inner border-2 border-gray-100 flex items-center justify-center overflow-hidden bg-orange-50">
             {formData.profile_picture ? (
               <img 
                 src={`${API_BASE_URL}${formData.profile_picture}`} 
@@ -352,7 +352,7 @@ const Profile = () => {
                 className="w-full h-full object-cover" 
               />
             ) : (
-              <span className="text-5xl font-black text-[#7b3fe4]">
+              <span className="text-5xl font-black text-orange-600">
                 {profile.full_name?.charAt(0)?.toUpperCase()}
               </span>
             )}
@@ -379,7 +379,7 @@ const Profile = () => {
               }`}>
                 {profile.status === 'Active' ? 'Aktif' : 'Nonaktif'}
               </span>
-              <span className="px-2.5 py-0.5 text-[9px] font-bold rounded-full bg-purple-50 text-[#7b3fe4]">
+              <span className="px-2.5 py-0.5 text-[9px] font-bold rounded-full bg-orange-50 text-orange-600 border border-orange-100">
                 {profile.role_name || 'Karyawan'}
               </span>
             </div>
@@ -396,9 +396,6 @@ const Profile = () => {
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">{t.employeeId}</label>
-                    {!isAdmin && (
-                      <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">Permanen</span>
-                    )}
                   </div>
                   <input
                     type="text"
@@ -408,11 +405,29 @@ const Profile = () => {
                     disabled={!isAdmin}
                     className={`w-full border rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
                       !isAdmin 
-                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed select-none' 
-                        : 'bg-gray-50 border-gray-100 text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white'
+                        ? 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed' 
+                        : 'bg-gray-50 border-gray-100 text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white'
                     }`}
-                    placeholder="EMP-001"
-                    title={!isAdmin ? "ID Karyawan hanya dapat diubah oleh Admin / Super Admin" : "Masukkan ID Karyawan"}
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">{t.email}</label>
+                    {!isAdmin && (
+                      <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">Permanen</span>
+                    )}
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    disabled={!isAdmin}
+                    className={`w-full border rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
+                      !isAdmin 
+                        ? 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed' 
+                        : 'bg-gray-50 border-gray-100 text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white'
+                    }`}
                   />
                 </div>
                 <div>
@@ -422,19 +437,8 @@ const Profile = () => {
                     name="full_name"
                     value={formData.full_name}
                     onChange={handleChange}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
                     required
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{t.email}</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
-                    required
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
@@ -444,7 +448,7 @@ const Profile = () => {
                     name="birth_place"
                     value={formData.birth_place}
                     onChange={handleChange}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                     placeholder={t.placeholderBirthPlace}
                   />
                 </div>
@@ -455,7 +459,7 @@ const Profile = () => {
                     name="birth_date"
                     value={formData.birth_date}
                     onChange={handleChange}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -465,7 +469,7 @@ const Profile = () => {
                     value={formData.address}
                     onChange={handleChange}
                     rows="3"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all resize-none"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white transition-all resize-none"
                     placeholder={t.placeholderAddress}
                   />
                 </div>
@@ -478,7 +482,7 @@ const Profile = () => {
                         name="position_id"
                         value={formData.position_id}
                         onChange={handleChange}
-                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                       >
                         <option value="">{t.choosePosition}</option>
                         {positions.map(p => (
@@ -493,14 +497,14 @@ const Profile = () => {
                         name="joined_date"
                         value={formData.joined_date}
                         onChange={handleChange}
-                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                        className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                       />
                     </div>
                   </>
                 )}
               </div>
               
-              <div className="flex gap-2 justify-end pt-3 border-t border-gray-50">
+              <div className="flex gap-2.5 justify-end pt-3 border-t border-gray-50">
                 <button
                   type="button"
                   onClick={() => {
@@ -516,13 +520,13 @@ const Profile = () => {
                       joined_date: profile.joined_date ? profile.joined_date.split('T')[0] : (profile.created_at ? profile.created_at.split('T')[0] : '')
                     });
                   }}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1 transition-all cursor-pointer"
+                  className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1 transition-all cursor-pointer"
                 >
                   <X size={14} /> {t.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer"
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer"
                 >
                   <Check size={14} /> {t.saveChanges}
                 </button>
@@ -589,7 +593,7 @@ const Profile = () => {
                 required
                 value={passwordData.current_password}
                 onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
                 placeholder="Masukkan kata sandi saat ini"
               />
               <button
@@ -611,7 +615,7 @@ const Profile = () => {
                   required
                   value={passwordData.new_password}
                   onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
                   placeholder="Minimal 6 karakter"
                 />
                 <button
@@ -631,7 +635,7 @@ const Profile = () => {
                 required
                 value={passwordData.confirm_password}
                 onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-[#7b3fe4] focus:bg-white transition-all"
+                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
                 placeholder="Ulangi kata sandi baru"
               />
             </div>

@@ -7,7 +7,7 @@ export default function TabLayout() {
     <Tabs 
       screenOptions={{ 
         headerShown: true, 
-        tabBarActiveTintColor: '#7b3fe4', // Purple brand theme matching website
+        tabBarActiveTintColor: '#f97316', // CBN Orange brand theme matching logo
         tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
           backgroundColor: '#ffffff',

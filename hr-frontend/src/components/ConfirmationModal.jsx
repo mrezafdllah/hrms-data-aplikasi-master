@@ -36,8 +36,8 @@ const ConfirmationModal = ({
       default:
         return {
           icon: <HelpCircle size={28} />,
-          iconBg: 'bg-blue-50 text-blue-500',
-          confirmBtn: 'bg-[#7b3fe4] hover:bg-[#6930d0] shadow-[#7b3fe4]/10',
+          iconBg: 'bg-orange-50 text-orange-500',
+          confirmBtn: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-orange-500/20',
           defaultConfirmText: 'Ya, Simpan',
           singleBtn: false,
         };
@@ -66,7 +66,7 @@ const ConfirmationModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer w-full"
+              className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer w-full"
             >
               {displayCancelText}
             </button>

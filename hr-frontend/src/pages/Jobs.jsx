@@ -122,7 +122,7 @@ const Jobs = () => {
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen Divisi</h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola divisi atau unit kerja perusahaan</p>
         </div>
-        <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
+        <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
           + Tambah Divisi
         </button>
       </div>
@@ -131,7 +131,7 @@ const Jobs = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
+              <tr className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold tracking-wider uppercase">
                 <th className="p-4 rounded-tl-2xl">ID</th>
                 <th className="p-4">Nama Divisi</th>
                 <th className="p-4">Perusahaan</th>
@@ -142,12 +142,12 @@ const Jobs = () => {
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
               {jobs.map((job) => (
                 <tr key={job.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-[#7b3fe4] font-bold">{job.id}</td>
+                  <td className="p-4 text-orange-600 font-bold">{job.id}</td>
                   <td className="p-4 font-bold text-gray-800">{job.job_name}</td>
                   <td className="p-4 text-gray-500">{job.company_name || '-'}</td>
                   <td className="p-4 text-gray-400 max-w-xs truncate">{job.description || '-'}</td>
                   <td className="p-4 flex gap-3">
-                    <button onClick={() => handleEdit(job)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
+                    <button onClick={() => handleEdit(job)} className="text-orange-600 hover:text-orange-700 font-bold cursor-pointer">Edit</button>
                     <button onClick={() => handleDelete(job.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
                   </td>
                 </tr>
@@ -167,7 +167,7 @@ const Jobs = () => {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
                 <label className="block mb-1.5">Perusahaan</label>
-                <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.company_id} onChange={e => setFormData({...formData, company_id: e.target.value})}>
                   <option value="">-- Pilih Perusahaan --</option>
                   {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
@@ -175,17 +175,28 @@ const Jobs = () => {
               </div>
               <div>
                 <label className="block mb-1.5">Nama Divisi</label>
-                <input type="text" placeholder="Contoh: Engineering" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="text" placeholder="Contoh: Engineering" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.job_name} onChange={e => setFormData({...formData, job_name: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Deskripsi</label>
-                <textarea placeholder="Deskripsi job" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" rows="3"
+                <textarea placeholder="Deskripsi job" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" rows="3"
                   value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
               </div>
-              <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-50">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl cursor-pointer">Batal</button>
-                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white rounded-xl shadow-md shadow-blue-500/10 cursor-pointer">Simpan</button>
+              <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-gray-50">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2.5 bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all"
+                >
+                  Simpan
+                </button>
               </div>
             </form>
           </div>

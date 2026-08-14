@@ -52,8 +52,8 @@ const Sidebar = () => {
               to={item.path}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
                 isActive(item.path) 
-                  ? 'bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-semibold shadow-md shadow-blue-500/10' 
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-md shadow-orange-500/20' 
+                  : 'text-gray-500 hover:bg-orange-50/50 hover:text-orange-600'
               }`}
               onClick={() => setIsOpen(false)}
             >

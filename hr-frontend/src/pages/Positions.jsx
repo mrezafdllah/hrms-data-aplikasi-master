@@ -122,7 +122,7 @@ const Positions = () => {
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen Jabatan (Position)</h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola jabatan atau spesialisasi peran karyawan</p>
         </div>
-        <button onClick={openAddModal} className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer">
+        <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
           + Tambah Jabatan
         </button>
       </div>
@@ -131,7 +131,7 @@ const Positions = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white text-xs font-bold tracking-wider uppercase">
+              <tr className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold tracking-wider uppercase">
                 <th className="p-4 rounded-tl-2xl">ID</th>
                 <th className="p-4">Nama Jabatan</th>
                 <th className="p-4">Divisi</th>
@@ -143,13 +143,13 @@ const Positions = () => {
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
               {positions.map((pos) => (
                 <tr key={pos.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-[#7b3fe4] font-bold">{pos.id}</td>
+                  <td className="p-4 text-orange-600 font-bold">{pos.id}</td>
                   <td className="p-4 font-bold text-gray-800">{pos.position_name}</td>
                   <td className="p-4 text-gray-500">{pos.job_name || '-'}</td>
                   <td className="p-4 text-gray-500">{pos.company_name || '-'}</td>
                   <td className="p-4 text-gray-400 max-w-xs truncate">{pos.description || '-'}</td>
                   <td className="p-4 flex gap-3">
-                    <button onClick={() => handleEdit(pos)} className="text-[#7b3fe4] hover:text-[#3a6bf6] font-bold cursor-pointer">Edit</button>
+                    <button onClick={() => handleEdit(pos)} className="text-orange-600 hover:text-orange-700 font-bold cursor-pointer">Edit</button>
                     <button onClick={() => handleDelete(pos.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">Hapus</button>
                   </td>
                 </tr>
@@ -169,7 +169,7 @@ const Positions = () => {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
                 <label className="block mb-1.5">Divisi</label>
-                <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.job_id} onChange={e => setFormData({...formData, job_id: e.target.value})}>
                   <option value="">-- Pilih Divisi --</option>
                   {jobs.map(j => <option key={j.id} value={j.id}>{j.job_name} ({j.company_name})</option>)}
@@ -177,17 +177,28 @@ const Positions = () => {
               </div>
               <div>
                 <label className="block mb-1.5">Nama Jabatan</label>
-                <input type="text" placeholder="Contoh: Junior Developer" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" 
+                <input type="text" placeholder="Contoh: Junior Developer" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.position_name} onChange={e => setFormData({...formData, position_name: e.target.value})} />
               </div>
               <div>
                 <label className="block mb-1.5">Deskripsi</label>
-                <textarea placeholder="Deskripsi position" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white text-gray-700" rows="3"
+                <textarea placeholder="Deskripsi position" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" rows="3"
                   value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
               </div>
-              <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-50">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl cursor-pointer">Batal</button>
-                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white rounded-xl shadow-md shadow-blue-500/10 cursor-pointer">Simpan</button>
+              <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-gray-50">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2.5 bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all"
+                >
+                  Simpan
+                </button>
               </div>
             </form>
           </div>

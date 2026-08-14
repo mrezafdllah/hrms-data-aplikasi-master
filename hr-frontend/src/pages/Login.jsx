@@ -8,19 +8,19 @@ const SLIDES = [
     badge: "HR Master System",
     title: "Sistem Manajemen SDM Digital Terintegrasi",
     subtitle: "Kelola seluruh data karyawan, struktur posisi jabatan, dan profil perusahaan secara terpusat.",
-    badgeColor: "bg-purple-100 text-[#7b3fe4]"
+    badgeColor: "bg-orange-100 text-orange-600"
   },
   {
     badge: "Multi-Role Security",
     title: "Otorisasi Akses Berbasis Peran Terstruktur",
     subtitle: "Keamanan data tinggi dengan kontrol hak akses teratur, terenkripsi, dan terproteksi secara menyeluruh.",
-    badgeColor: "bg-blue-100 text-[#3a6bf6]"
+    badgeColor: "bg-amber-100 text-amber-600"
   },
   {
     badge: "Web & Mobile Portal",
     title: "Aksesibilitas Multi-Platform Kapan Saja",
     subtitle: "Akses informasi HR dengan fleksibel melalui Web Portal dan Portal Mobile Karyawan.",
-    badgeColor: "bg-orange-100 text-[#ff5f2d]"
+    badgeColor: "bg-orange-100 text-orange-600"
   }
 ];
 
@@ -137,10 +137,10 @@ const Login = () => {
               /* SLIDE 1: HR Master System */
               <div className="relative w-full h-full flex items-center justify-center transition-all duration-700 ease-in-out">
                 {/* Clock background ring */}
-                <div className="absolute w-72 h-72 rounded-full border border-dashed border-purple-300 flex items-center justify-center animate-spin" style={{ animationDuration: '50s' }}>
-                  <div className="absolute top-0 w-3 h-3 rounded-full bg-[#7b3fe4]"></div>
+                <div className="absolute w-72 h-72 rounded-full border border-dashed border-orange-300 flex items-center justify-center animate-spin" style={{ animationDuration: '50s' }}>
+                  <div className="absolute top-0 w-3 h-3 rounded-full bg-orange-500"></div>
                 </div>
-                <div className="absolute w-60 h-60 rounded-full border border-purple-100 bg-purple-50/40"></div>
+                <div className="absolute w-60 h-60 rounded-full border border-orange-100 bg-orange-50/40"></div>
 
                 {/* Illustration Avatar (with complete arms & hands) */}
                 <svg className="w-64 h-64 z-10 drop-shadow-md" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -153,26 +153,26 @@ const Login = () => {
                   <circle cx="106" cy="46" r="4" stroke="#1e2022" strokeWidth="1.5" fill="#fff" />
                   <line x1="98" y1="46" x2="102" y2="46" stroke="#1e2022" strokeWidth="1.5" />
                   {/* Body / Orange Coat */}
-                  <path d="M72 76C72 66 82 62 100 62C118 62 128 66 128 76V136H72V76Z" fill="#ff5f2d" stroke="#1e2022" strokeWidth="3" />
+                  <path d="M72 76C72 66 82 62 100 62C118 62 128 66 128 76V136H72V76Z" fill="#f97316" stroke="#1e2022" strokeWidth="3" />
                   {/* White Shirt Collar */}
                   <path d="M92 62L100 74L108 62" stroke="#1e2022" strokeWidth="2" fill="#fff" />
                   
                   {/* Left Arm & Sleeve */}
                   <path d="M72 78 Q56 94 66 112" stroke="#1e2022" strokeWidth="8" strokeLinecap="round" />
-                  <path d="M72 78 Q56 94 66 112" stroke="#ff5f2d" strokeWidth="4" strokeLinecap="round" />
+                  <path d="M72 78 Q56 94 66 112" stroke="#f97316" strokeWidth="4" strokeLinecap="round" />
                   {/* Left Hand */}
                   <circle cx="66" cy="112" r="4" fill="#fff" stroke="#1e2022" strokeWidth="2" />
 
                   {/* Right Arm & Sleeve */}
                   <path d="M128 78 Q144 94 134 112" stroke="#1e2022" strokeWidth="8" strokeLinecap="round" />
-                  <path d="M128 78 Q144 94 134 112" stroke="#ff5f2d" strokeWidth="4" strokeLinecap="round" />
+                  <path d="M128 78 Q144 94 134 112" stroke="#f97316" strokeWidth="4" strokeLinecap="round" />
                   {/* Right Hand */}
                   <circle cx="134" cy="112" r="4" fill="#fff" stroke="#1e2022" strokeWidth="2" />
 
                   {/* Tablet / Clipboard held by hands */}
                   <rect x="74" y="92" width="52" height="42" rx="4" fill="#fff" stroke="#1e2022" strokeWidth="2.5" />
-                  <rect x="90" y="88" width="20" height="6" rx="2" fill="#7b3fe4" />
-                  <line x1="82" y1="104" x2="118" y2="104" stroke="#7b3fe4" strokeWidth="2.5" strokeLinecap="round" />
+                  <rect x="90" y="88" width="20" height="6" rx="2" fill="#f97316" />
+                  <line x1="82" y1="104" x2="118" y2="104" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" />
                   <line x1="82" y1="114" x2="112" y2="114" stroke="#1e2022" strokeWidth="1.5" strokeLinecap="round" />
                   <line x1="82" y1="122" x2="104" y2="122" stroke="#1e2022" strokeWidth="1.5" strokeLinecap="round" />
 
@@ -183,15 +183,15 @@ const Login = () => {
                 </svg>
 
                 {/* Float details card UI */}
-                <div className="absolute top-2 left-2 bg-white rounded-xl p-3 shadow-lg border border-purple-100 flex flex-col gap-1.5 w-36 animate-bounce" style={{ animationDuration: '3.5s' }}>
+                <div className="absolute top-2 left-2 bg-white rounded-xl p-3 shadow-lg border border-orange-100 flex flex-col gap-1.5 w-36 animate-bounce" style={{ animationDuration: '3.5s' }}>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-[#7b3fe4] flex items-center justify-center text-[8px] font-bold text-white">HR</div>
+                    <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-[8px] font-bold text-white">HR</div>
                     <div className="w-16 h-2 rounded bg-gray-200"></div>
                   </div>
-                  <div className="w-24 h-2 rounded bg-[#7b3fe4]"></div>
+                  <div className="w-24 h-2 rounded bg-orange-500"></div>
                   <div className="w-14 h-1.5 rounded bg-gray-200"></div>
                 </div>
-                <div className="absolute bottom-2 right-2 bg-white rounded-xl p-3 shadow-lg border border-purple-100 flex items-center gap-2.5 w-40 animate-bounce" style={{ animationDuration: '4.5s' }}>
+                <div className="absolute bottom-2 right-2 bg-white rounded-xl p-3 shadow-lg border border-orange-100 flex items-center gap-2.5 w-40 animate-bounce" style={{ animationDuration: '4.5s' }}>
                   <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
                   <div>
                     <p className="text-[10px] font-extrabold text-gray-800">150+ Karyawan</p>
@@ -205,32 +205,32 @@ const Login = () => {
               /* SLIDE 2: Multi-Role Security & RBAC */
               <div className="relative w-full h-full flex items-center justify-center transition-all duration-700 ease-in-out">
                 {/* Glowing Shield Pulsing Ring */}
-                <div className="absolute w-64 h-64 rounded-full border-2 border-blue-200 bg-blue-50/50 animate-pulse"></div>
-                <div className="absolute w-52 h-52 rounded-full border border-dashed border-blue-400 animate-spin" style={{ animationDuration: '25s' }}></div>
+                <div className="absolute w-64 h-64 rounded-full border-2 border-orange-200 bg-orange-50/50 animate-pulse"></div>
+                <div className="absolute w-52 h-52 rounded-full border border-dashed border-amber-400 animate-spin" style={{ animationDuration: '25s' }}></div>
 
                 {/* Shield Graphic SVG */}
                 <svg className="w-48 h-48 z-10 drop-shadow-2xl" viewBox="0 0 100 100" fill="none">
                   <path d="M50 10 L85 25 V50 C85 72 50 90 50 90 C50 90 15 72 15 50 V25 L50 10 Z" fill="url(#shieldGrad)" stroke="#1e2022" strokeWidth="2.5" />
                   <circle cx="50" cy="46" r="12" fill="#fff" stroke="#1e2022" strokeWidth="2" />
-                  <path d="M46 46 H54 V58 H46 Z" fill="#7b3fe4" />
+                  <path d="M46 46 H54 V58 H46 Z" fill="#f97316" />
                   <circle cx="50" cy="43" r="3" fill="#1e2022" />
                   <defs>
                     <linearGradient id="shieldGrad" x1="15" y1="10" x2="85" y2="90">
-                      <stop offset="0%" stopColor="#7b3fe4" />
-                      <stop offset="100%" stopColor="#3a6bf6" />
+                      <stop offset="0%" stopColor="#f97316" />
+                      <stop offset="100%" stopColor="#f59e0b" />
                     </linearGradient>
                   </defs>
                 </svg>
 
                 {/* Floating Animated Security Badges */}
-                <div className="absolute top-2 left-0 bg-white rounded-xl py-2 px-3 shadow-lg border border-purple-100 flex items-center gap-2 animate-bounce" style={{ animationDuration: '3s' }}>
-                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                  <span className="text-[10px] font-black text-[#7b3fe4]">Enkripsi Data</span>
+                <div className="absolute top-2 left-0 bg-white rounded-xl py-2 px-3 shadow-lg border border-orange-100 flex items-center gap-2 animate-bounce" style={{ animationDuration: '3s' }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                  <span className="text-[10px] font-black text-orange-600">Enkripsi Data</span>
                 </div>
 
-                <div className="absolute top-10 right-0 bg-white rounded-xl py-2 px-3 shadow-lg border border-blue-100 flex items-center gap-2 animate-bounce" style={{ animationDuration: '4s' }}>
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                  <span className="text-[10px] font-black text-[#3a6bf6]">Role-Based Access</span>
+                <div className="absolute top-10 right-0 bg-white rounded-xl py-2 px-3 shadow-lg border border-amber-100 flex items-center gap-2 animate-bounce" style={{ animationDuration: '4s' }}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                  <span className="text-[10px] font-black text-amber-600">Role-Based Access</span>
                 </div>
 
                 <div className="absolute bottom-2 left-6 bg-white rounded-xl py-2 px-3 shadow-lg border border-emerald-100 flex items-center gap-2 animate-bounce" style={{ animationDuration: '3.5s' }}>
@@ -244,7 +244,7 @@ const Login = () => {
               /* SLIDE 3: Multi-Platform (Web & Mobile) */
               <div className="relative w-full h-full flex items-center justify-center transition-all duration-700 ease-in-out">
                 {/* Background Radial Glow */}
-                <div className="absolute w-64 h-64 rounded-full bg-gradient-to-tr from-orange-100 to-purple-100 opacity-70 animate-pulse"></div>
+                <div className="absolute w-64 h-64 rounded-full bg-gradient-to-tr from-orange-100 to-amber-100 opacity-70 animate-pulse"></div>
 
                 {/* Laptop & Mobile Device Graphic */}
                 <div className="relative z-10 flex items-end justify-center gap-2">
@@ -260,8 +260,8 @@ const Login = () => {
                         <span className="text-[6px] text-gray-400 font-mono">web.hrms.com</span>
                       </div>
                       <div className="grid grid-cols-3 gap-1">
-                        <div className="h-6 bg-[#7b3fe4] rounded"></div>
-                        <div className="h-6 bg-[#3a6bf6] rounded"></div>
+                        <div className="h-6 bg-orange-500 rounded"></div>
+                        <div className="h-6 bg-amber-500 rounded"></div>
                         <div className="h-6 bg-orange-400 rounded"></div>
                       </div>
                       <div className="w-full h-8 bg-gray-800 rounded"></div>
@@ -272,7 +272,7 @@ const Login = () => {
                   {/* Smartphone */}
                   <div className="w-20 h-36 bg-gray-900 border-2 border-gray-800 rounded-2xl p-1.5 shadow-2xl relative -ml-6 -mb-2">
                     <div className="w-8 h-1 bg-gray-700 rounded-full mx-auto mb-1"></div>
-                    <div className="w-full h-28 bg-gradient-to-b from-purple-600 to-blue-600 rounded-xl p-1.5 flex flex-col justify-between">
+                    <div className="w-full h-28 bg-gradient-to-b from-orange-500 to-amber-500 rounded-xl p-1.5 flex flex-col justify-between">
                       <div className="text-[7px] text-white font-bold">Mobile HR</div>
                       <div className="bg-white/20 backdrop-blur-sm rounded p-1 text-[6px] text-white">
                         ✔ Sync Live
@@ -320,7 +320,7 @@ const Login = () => {
                   onClick={() => setCurrentSlide(idx)}
                   className={`transition-all duration-300 rounded-full cursor-pointer ${
                     currentSlide === idx 
-                      ? 'w-7 h-2 bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6]' 
+                      ? 'w-7 h-2 bg-gradient-to-r from-orange-500 to-amber-500' 
                       : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
                   }`}
                   title={`Ke Slide ${idx + 1}`}
@@ -378,7 +378,7 @@ const Login = () => {
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] outline-none transition-all text-sm placeholder-gray-400 bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm placeholder-gray-400 bg-white"
                 placeholder="contoh@email.com"
               />
             </div>
@@ -392,7 +392,7 @@ const Login = () => {
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] outline-none transition-all text-sm placeholder-gray-400 bg-white"
+                  className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm placeholder-gray-400 bg-white"
                   placeholder="••••••••"
                 />
                 <button
@@ -415,7 +415,7 @@ const Login = () => {
                   type="checkbox" 
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-gray-300 text-[#7b3fe4] focus:ring-[#7b3fe4] w-4 h-4 cursor-pointer" 
+                  className="rounded border-gray-300 text-orange-500 focus:ring-orange-500 w-4 h-4 cursor-pointer" 
                 />
                 <span className="select-none">Ingat Saya</span>
               </label>
@@ -426,7 +426,7 @@ const Login = () => {
                   setForgotSuccessMsg('');
                   setShowForgotModal(true);
                 }} 
-                className="text-gray-400 hover:text-[#7b3fe4] font-medium transition-colors cursor-pointer"
+                className="text-gray-400 hover:text-orange-500 font-medium transition-colors cursor-pointer"
               >
                 Lupa Kata Sandi?
               </button>
@@ -435,7 +435,7 @@ const Login = () => {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] hover:opacity-95 text-white font-semibold py-3.5 rounded-full flex items-center justify-center gap-2 transition-all hover:shadow-lg disabled:bg-gray-400 cursor-pointer text-sm shadow-md shadow-blue-500/10"
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold py-3.5 rounded-full flex items-center justify-center gap-2 transition-all hover:shadow-lg disabled:bg-gray-400 cursor-pointer text-sm shadow-md shadow-orange-500/20"
             >
               {loading ? 'Memproses...' : 'Masuk'}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -445,40 +445,41 @@ const Login = () => {
           </form>
 
           <p className="mt-8 text-center text-xs text-gray-400 max-w-sm mx-auto leading-relaxed">
-            Dengan masuk ke akun, Anda menyetujui <a href="#terms" className="text-[#3b82f6] hover:underline">Syarat Layanan</a> dan <a href="#privacy" className="text-[#3b82f6] hover:underline">Kebijakan Privasi</a> kami
+            Dengan masuk ke akun, Anda menyetujui <a href="#terms" className="text-orange-500 hover:underline font-medium">Syarat Layanan</a> dan <a href="#privacy" className="text-orange-500 hover:underline font-medium">Kebijakan Privasi</a> kami
           </p>
         </div>
       </div>
 
       {/* MODAL LUPA KATA SANDI */}
       {showForgotModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100 animate-fadeIn">
-            <h3 className="text-xl font-bold text-gray-800 mb-1.5">Lupa Kata Sandi?</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-scale-up border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Lupa Kata Sandi?</h3>
             <p className="text-xs text-gray-500 mb-4 leading-relaxed">
               Untuk alasan keamanan data perusahaan, pemulihan kata sandi dilakukan melalui verifikasi Admin HR perusahaan Anda. Silakan masukkan alamat email akun Anda.
             </p>
 
             {forgotSuccessMsg ? (
-              <div className="bg-emerald-50 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-4 border border-emerald-100 leading-relaxed">
+              <div className="bg-emerald-50 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-4 border border-emerald-100">
                 {forgotSuccessMsg}
               </div>
             ) : (
-              <form onSubmit={handleForgotSubmit} className="space-y-4 text-xs font-semibold text-gray-600">
+              <form onSubmit={handleForgotSubmit} className="space-y-4">
                 <div>
-                  <label className="block mb-1.5 text-gray-500 uppercase tracking-wider text-[10px]">Email Terdaftar</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Email Karyawan</label>
                   <input
                     type="email"
                     required
-                    placeholder="Masukkan email Anda"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#7b3fe4] focus:border-[#7b3fe4] transition-all bg-white"
+                    placeholder="contoh@email.com"
+                    className="w-full px-3 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-xs bg-white text-gray-700"
                   />
                 </div>
+
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-[#7b3fe4] to-[#3a6bf6] text-white font-bold py-2.5 rounded-xl shadow-md cursor-pointer transition-all hover:opacity-95"
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-2.5 rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all"
                 >
                   Kirim Permintaan Reset
                 </button>
@@ -489,12 +490,12 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowForgotModal(false)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs rounded-xl cursor-pointer transition-all"
+                className="px-4 py-2 bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs rounded-xl cursor-pointer transition-all"
               >
                 Tutup
               </button>
             </div>
-          </div>
+            </div>
         </div>
       )}
     </div>

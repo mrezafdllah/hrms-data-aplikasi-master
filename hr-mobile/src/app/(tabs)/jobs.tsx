@@ -130,7 +130,7 @@ export default function JobsScreen() {
       </View>
       <View style={styles.cardActions}>
         <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
-          <Ionicons name="create-outline" size={16} color="#7b3fe4" />
+          <Ionicons name="create-outline" size={16} color="#f97316" />
         </TouchableOpacity>
         <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
           <Ionicons name="trash-outline" size={16} color="#ef4444" />
@@ -149,7 +149,7 @@ export default function JobsScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#7b3fe4" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#f97316" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={jobs}
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     color: '#1e2022',
   },
   addBtn: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 9999,
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     alignSelf: 'flex-start',
-    backgroundColor: '#f5f3ff',
+    backgroundColor: '#f3f4f6',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   companyBadge: {
     fontSize: 10,
-    color: '#7b3fe4',
+    color: '#6b7280',
     fontWeight: 'bold',
   },
   jobName: {
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editBtn: {
-    backgroundColor: '#f5f3ff',
+    backgroundColor: '#fff7ed',
   },
   deleteBtn: {
     backgroundColor: '#fef2f2',
@@ -430,11 +430,11 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   submitBtn: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingVertical: 16,
     borderRadius: 9999,
     alignItems: 'center',
-    shadowColor: '#7b3fe4',
+    shadowColor: '#f97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,

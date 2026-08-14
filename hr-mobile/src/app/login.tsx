@@ -180,7 +180,7 @@ export default function LoginScreen() {
             <Ionicons 
               name={rememberMe ? "checkbox" : "square-outline"} 
               size={20} 
-              color={rememberMe ? "#7b3fe4" : "#9ca3af"} 
+              color={rememberMe ? "#f97316" : "#9ca3af"} 
             />
             <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '600' }}>Ingat Saya</Text>
           </TouchableOpacity>
@@ -192,7 +192,7 @@ export default function LoginScreen() {
               setShowForgotModal(true);
             }}
           >
-            <Text style={{ fontSize: 12, color: '#7b3fe4', fontWeight: '600' }}>Lupa Kata Sandi?</Text>
+            <Text style={{ fontSize: 12, color: '#f97316', fontWeight: '600' }}>Lupa Kata Sandi?</Text>
           </TouchableOpacity>
         </View>
 
@@ -235,7 +235,7 @@ export default function LoginScreen() {
                     onChangeText={setForgotEmail}
                   />
                   <TouchableOpacity
-                    style={{ backgroundColor: '#7b3fe4', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 8 }}
+                    style={{ backgroundColor: '#f97316', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 8 }}
                     onPress={() => {
                       if (forgotEmail) {
                         setForgotSuccessMsg(`Instruksi reset password telah dikirim ke Admin HR perusahaan Anda untuk email "${forgotEmail}". Silakan hubungi Admin HR perusahaan Anda.`);
@@ -248,10 +248,10 @@ export default function LoginScreen() {
               )}
 
               <TouchableOpacity
-                style={{ backgroundColor: '#f3f4f6', paddingVertical: 10, borderRadius: 12, alignItems: 'center' }}
+                style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca', borderWidth: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center' }}
                 onPress={() => setShowForgotModal(false)}
               >
-                <Text style={{ color: '#4b5563', fontWeight: 'bold', fontSize: 12 }}>Tutup</Text>
+                <Text style={{ color: '#ef4444', fontWeight: 'bold', fontSize: 12 }}>Tutup</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -306,10 +306,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   darkSlash: {
-    backgroundColor: '#3a6bf6',
+    backgroundColor: '#f97316',
   },
   greenSlash: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f59e0b',
   },
   onboardingContent: {
     marginTop: 20,
@@ -332,11 +332,11 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   getStartedButton: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingVertical: 18,
     borderRadius: 9999,
     alignItems: 'center',
-    shadowColor: '#7b3fe4',
+    shadowColor: '#f97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signInGreen: {
-    color: '#7b3fe4',
+    color: '#f97316',
     fontWeight: 'bold',
   },
 
@@ -464,12 +464,12 @@ const styles = StyleSheet.create({
     color: '#1f2937',
   },
   loginButton: {
-    backgroundColor: '#7b3fe4',
+    backgroundColor: '#f97316',
     paddingVertical: 16,
     borderRadius: 9999,
     alignItems: 'center',
     marginTop: 20,
-    shadowColor: '#7b3fe4',
+    shadowColor: '#f97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
