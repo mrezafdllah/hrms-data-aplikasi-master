@@ -1,17 +1,10 @@
-"""
-Email service for sending password reset emails via Gmail SMTP.
-Uses Python stdlib smtplib — no extra dependencies needed.
-"""
 import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
 
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+load_dotenv()
 
 
 def send_reset_email(to_email: str, reset_token: str, user_name: str) -> bool:
@@ -19,11 +12,20 @@ def send_reset_email(to_email: str, reset_token: str, user_name: str) -> bool:
     Send a password reset email to the user.
     Returns True if sent successfully, False otherwise.
     """
-    if not SMTP_USER or not SMTP_PASSWORD:
-        print("[EMAIL] SMTP credentials not configured. Skipping email send.")
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    frontend_url = os.getenv("FRONTEND_URL", "https://hrms-cbn.vercel.app").rstrip("/")
+
+    # If App Password has spaces, also create a stripped version
+    smtp_password_clean = smtp_password.replace(" ", "")
+
+    if not smtp_user or not smtp_password:
+        print("[EMAIL ERROR] SMTP_USER or SMTP_PASSWORD environment variable is missing!")
         return False
 
-    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
+    reset_link = f"{frontend_url}/reset-password?token={reset_token}"
 
     subject = "Reset Kata Sandi — Aplikasi HR"
 
@@ -109,7 +111,7 @@ def send_reset_email(to_email: str, reset_token: str, user_name: str) -> bool:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = f"Aplikasi HR <{SMTP_USER}>"
+    msg["From"] = f"Aplikasi HR <{smtp_user}>"
     msg["To"] = to_email
 
     # Plain text fallback
@@ -130,15 +132,28 @@ Jika Anda tidak meminta reset kata sandi, abaikan email ini.
     msg.attach(MIMEText(plain_text, "plain"))
     msg.attach(MIMEText(html_body, "html"))
 
+    # Attempt 1: Standard TLS (Port 587)
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
             server.ehlo()
             server.starttls()
             server.ehlo()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_USER, to_email, msg.as_string())
-        print(f"[EMAIL] Reset email sent to {to_email}")
+            server.login(smtp_user, smtp_password_clean)
+            server.sendmail(smtp_user, to_email, msg.as_string())
+        print(f"[EMAIL SUCCESS] Reset email sent to {to_email} via port {smtp_port}")
         return True
-    except Exception as e:
-        print(f"[EMAIL] Failed to send email to {to_email}: {e}")
-        return False
+    except Exception as e_tls:
+        print(f"[EMAIL WARN] TLS (port {smtp_port}) failed: {e_tls}. Trying SSL (port 465)...")
+        
+        # Attempt 2: Direct SSL (Port 465)
+        try:
+            with smtplib.SMTP_SSL(smtp_host, 465, timeout=10) as server_ssl:
+                server_ssl.ehlo()
+                server_ssl.login(smtp_user, smtp_password_clean)
+                server_ssl.sendmail(smtp_user, to_email, msg.as_string())
+            print(f"[EMAIL SUCCESS] Reset email sent to {to_email} via port 465 SSL")
+            return True
+        except Exception as e_ssl:
+            print(f"[EMAIL ERROR] Both TLS and SSL failed to send email to {to_email}: {e_ssl}")
+            return False
+
