@@ -249,6 +249,7 @@ export default function CompaniesScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
       <CustomAlert
         visible={alertVisible}
         type={alertConfig.type}
@@ -307,6 +308,10 @@ const styles = StyleSheet.create({
   cardInfo: {
     flex: 1,
     marginRight: 10,
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    marginBottom: 4,
   },
   headerRow: {
     flexDirection: 'row',

@@ -279,6 +279,7 @@ export default function ProfileScreen() {
     setIsEditing(false);
     if (profile) {
       setFormData({
+        employee_id: profile.employee_id || '',
         full_name: profile.full_name || '',
         email: profile.email || '',
         birth_place: profile.birth_place || '',
