@@ -4,14 +4,18 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 
-// Auto-detect development server IP for Expo Go
+// Determine API URL based on environment
+const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
 const debuggerHost = Constants.expoConfig?.hostUri;
-let API_URL = 'http://localhost:8000/api';
 
-if (debuggerHost) {
-  API_URL = `http://${debuggerHost.split(':')[0]}:8000/api`;
-} else if (Platform.OS === 'android') {
-  API_URL = 'http://10.0.2.2:8000/api';
+let API_URL = envApiUrl || 'http://localhost:8000/api';
+
+if (!envApiUrl) {
+  if (debuggerHost) {
+    API_URL = `http://${debuggerHost.split(':')[0]}:8000/api`;
+  } else if (Platform.OS === 'android') {
+    API_URL = 'http://10.0.2.2:8000/api';
+  }
 }
 
 const api = axios.create({
