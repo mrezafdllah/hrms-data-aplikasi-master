@@ -98,10 +98,32 @@ const Login = () => {
     }
   };
 
-  const handleForgotSubmit = (e) => {
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+
+  const handleForgotSubmit = async (e) => {
     e.preventDefault();
     if (!forgotEmail) return;
-    setForgotSuccessMsg(`Instruksi reset password telah dikirim ke Admin HR perusahaan Anda untuk email "${forgotEmail}". Silakan hubungi Admin HR perusahan Anda.`);
+    setForgotLoading(true);
+    setForgotError('');
+    try {
+      const cleanBaseUrl = API_BASE_URL ? API_BASE_URL.replace(/\/+$/, '') : '';
+      const res = await fetch(`${cleanBaseUrl}/api/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'Success') {
+        setForgotSuccessMsg(data.message || 'Link reset password telah dikirim ke email Anda. Silakan cek inbox.');
+      } else {
+        setForgotError(data.detail || 'Terjadi kesalahan. Coba lagi.');
+      }
+    } catch (err) {
+      setForgotError('Gagal terhubung ke server. Pastikan backend berjalan.');
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   return (
@@ -456,7 +478,7 @@ const Login = () => {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-scale-up border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Lupa Kata Sandi?</h3>
             <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-              Untuk alasan keamanan data perusahaan, pemulihan kata sandi dilakukan melalui verifikasi Admin HR perusahaan Anda. Silakan masukkan alamat email akun Anda.
+              Masukkan alamat email yang terdaftar di akun Anda. Kami akan mengirimkan link reset password ke inbox email Anda.
             </p>
 
             {forgotSuccessMsg ? (
@@ -465,8 +487,13 @@ const Login = () => {
               </div>
             ) : (
               <form onSubmit={handleForgotSubmit} className="space-y-4">
+                {forgotError && (
+                  <div className="bg-red-50 text-red-600 p-3 rounded-xl text-xs font-semibold border border-red-100">
+                    {forgotError}
+                  </div>
+                )}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Email Karyawan</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Email Terdaftar</label>
                   <input
                     type="email"
                     required
@@ -474,14 +501,16 @@ const Login = () => {
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="contoh@email.com"
                     className="w-full px-3 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-xs bg-white text-gray-700"
+                    disabled={forgotLoading}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-2.5 rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all"
+                  disabled={forgotLoading}
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-2.5 rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all disabled:opacity-50"
                 >
-                  Kirim Permintaan Reset
+                  {forgotLoading ? 'Mengirim...' : 'Kirim Link Reset Password'}
                 </button>
               </form>
             )}

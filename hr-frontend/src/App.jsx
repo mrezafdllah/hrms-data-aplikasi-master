@@ -9,6 +9,7 @@ import Positions from './pages/Positions';
 import Users from './pages/Users';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import './index.css';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -29,6 +30,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
+  const isResetPage = location.pathname === '/reset-password';
+  const isPublicPage = isLoginPage || isResetPage;
 
   // Inactivity timeout handler
   useEffect(() => {
@@ -81,10 +84,11 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {!isLoginPage && <Sidebar />}
-      <div key={location.pathname} className={`flex-1 ${!isLoginPage ? 'md:ml-64 p-8' : ''} overflow-y-auto animate-page-enter`}>
+      {!isPublicPage && <Sidebar />}
+      <div key={location.pathname} className={`flex-1 ${!isPublicPage ? 'md:ml-64 p-8' : ''} overflow-y-auto animate-page-enter`}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={
             <ProtectedRoute allowedRoles={['Super Admin', 'Admin HR', 'Karyawan']}>
               <Dashboard />

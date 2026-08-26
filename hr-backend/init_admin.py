@@ -102,12 +102,12 @@ def init_admin():
     
     # 5. Buat users jika belum ada (atau update)
     admin_users = [
-        ("Super Administrator", "admin@hr.com", "admin123", "Super Admin", None, None, None, "ADM-001"),
-        ("HR Specialist", "hr@hr.com", "hr123", "Admin HR", None, None, None, "HR-001"),
+        ("Super Administrator", "mreza.fadhilah88@gmail.com", "admin123", "Super Admin", None, None, None, "ADM-001"),
+        ("HR Specialist", "muhammadrezacaster13@gmail.com", "hr123", "Admin HR", None, None, None, "HR-001"),
     ]
     
     employees = [
-        ("John Adams", "john@hr.com", "user123", "Karyawan", "Financial Analyst", "Finance", "Blitz Digital Studio", "EMP-001"),
+        ("John Adams", "mreza.fadillah12@gmail.com", "user123", "Karyawan", "Financial Analyst", "Finance", "Blitz Digital Studio", "EMP-001"),
         ("Emily Johnson", "emily@hr.com", "user123", "Karyawan", "Accountant", "Finance", "Blitz Digital Studio", "EMP-002"),
         ("Michael Brown", "michael@hr.com", "user123", "Karyawan", "Sr. Software Engineer", "Engineering", "PT Cybers Blitz Nusantara", "EMP-003"),
         ("Jessica Lee", "jessica@hr.com", "user123", "Karyawan", "UI/UX Designer", "Product Design", "PT Cybers Blitz Nusantara", "EMP-004"),

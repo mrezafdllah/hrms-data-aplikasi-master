@@ -1,15 +1,17 @@
 import os
 import shutil
+import uuid
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date, time, timedelta
+from datetime import date, time, datetime, timedelta
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from auth import verify_password, get_password_hash, create_access_token, get_current_user, require_super_admin, require_admin_hr_or_super, ACCESS_TOKEN_EXPIRE_MINUTES
+from email_service import send_reset_email
 
 load_dotenv()
 
@@ -214,6 +216,14 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+# -- Forgot / Reset Password --
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
 # ================= AUTHENTICATION =================
 @app.post("/api/login")
 def login(req: LoginRequest):
@@ -244,6 +254,132 @@ def login(req: LoginRequest):
             "name": user['full_name'],
             "user_id": user['id']
         }
+    finally:
+        cursor.close()
+        conn.close()
+
+# ================= FORGOT / RESET PASSWORD =================
+@app.post("/api/forgot-password")
+def forgot_password(req: ForgotPasswordRequest):
+    """Send a password reset email if the email exists in the system."""
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    # Generic message to avoid email enumeration
+    safe_msg = "Jika email terdaftar dalam sistem, link reset password telah dikirim. Silakan cek inbox email Anda."
+    try:
+        cursor.execute(
+            "SELECT id, full_name, email FROM users WHERE email = %s;",
+            (req.email,)
+        )
+        user = cursor.fetchone()
+        if not user:
+            # Return the same message even if user not found (security best practice)
+            return {"status": "Success", "message": safe_msg}
+        
+        # Generate token & set expiry (15 minutes)
+        token = str(uuid.uuid4())
+        expires = datetime.utcnow() + timedelta(minutes=15)
+        
+        cursor.execute(
+            "UPDATE users SET reset_token = %s, reset_token_expires = %s WHERE id = %s;",
+            (token, expires, user['id'])
+        )
+        conn.commit()
+        
+        # Send email
+        email_sent = send_reset_email(user['email'], token, user['full_name'])
+        if not email_sent:
+            return {
+                "status": "Success", 
+                "message": "Token reset berhasil dibuat tetapi email tidak terkirim. Periksa konfigurasi SMTP di server.",
+                "debug_token": token  # Only for development — remove in production
+            }
+        
+        return {"status": "Success", "message": safe_msg}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.get("/api/verify-reset-token")
+def verify_reset_token(token: str):
+    """Verify that a reset token is valid and not expired."""
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            "SELECT id, full_name, email, reset_token_expires FROM users WHERE reset_token = %s;",
+            (token,)
+        )
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=400, detail="Token tidak valid atau sudah digunakan.")
+        
+        if user['reset_token_expires'] and datetime.utcnow() > user['reset_token_expires']:
+            # Token expired — clear it
+            cursor.execute(
+                "UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = %s;",
+                (user['id'],)
+            )
+            conn.commit()
+            raise HTTPException(status_code=400, detail="Token sudah kadaluarsa. Silakan kirim permintaan reset ulang.")
+        
+        return {
+            "status": "Success", 
+            "message": "Token valid.",
+            "email": user['email'],
+            "name": user['full_name']
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.post("/api/reset-password")
+def reset_password(req: ResetPasswordRequest):
+    """Reset user password using a valid token."""
+    if not req.new_password or len(req.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Kata sandi baru minimal 6 karakter.")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            "SELECT id, reset_token_expires FROM users WHERE reset_token = %s;",
+            (req.token,)
+        )
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=400, detail="Token tidak valid atau sudah digunakan.")
+        
+        if user['reset_token_expires'] and datetime.utcnow() > user['reset_token_expires']:
+            cursor.execute(
+                "UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = %s;",
+                (user['id'],)
+            )
+            conn.commit()
+            raise HTTPException(status_code=400, detail="Token sudah kadaluarsa. Silakan kirim permintaan reset ulang.")
+        
+        # Update password and clear token
+        new_hashed = get_password_hash(req.new_password)
+        cursor.execute(
+            """UPDATE users 
+               SET hashed_password = %s, reset_token = NULL, reset_token_expires = NULL, updated_at = CURRENT_TIMESTAMP 
+               WHERE id = %s;""",
+            (new_hashed, user['id'])
+        )
+        conn.commit()
+        return {"status": "Success", "message": "Kata sandi berhasil direset. Silakan login dengan kata sandi baru."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
         conn.close()

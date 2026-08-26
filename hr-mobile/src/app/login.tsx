@@ -14,6 +14,8 @@ export default function LoginScreen() {
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -215,7 +217,7 @@ export default function LoginScreen() {
             <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 360 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e2022', marginBottom: 8 }}>Lupa Kata Sandi?</Text>
               <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 18 }}>
-                Untuk alasan keamanan data perusahaan, pemulihan kata sandi dilakukan melalui verifikasi Admin HR perusahaan Anda. Silakan masukkan alamat email akun Anda.
+                Masukkan alamat email yang terdaftar di akun Anda. Kami akan mengirimkan link reset password ke inbox email Anda.
               </Text>
 
               {forgotSuccessMsg ? (
@@ -224,6 +226,11 @@ export default function LoginScreen() {
                 </View>
               ) : (
                 <View style={{ gap: 12, marginBottom: 16 }}>
+                  {forgotError ? (
+                    <View style={{ backgroundColor: '#fef2f2', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#fecaca' }}>
+                      <Text style={{ fontSize: 11, color: '#ef4444', fontWeight: '600' }}>{forgotError}</Text>
+                    </View>
+                  ) : null}
                   <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase' }}>Email Terdaftar</Text>
                   <TextInput
                     style={{ borderBottomWidth: 1, borderColor: '#e5e7eb', paddingVertical: 8, fontSize: 14, color: '#1e2022' }}
@@ -233,16 +240,32 @@ export default function LoginScreen() {
                     autoCapitalize="none"
                     value={forgotEmail}
                     onChangeText={setForgotEmail}
+                    editable={!forgotLoading}
                   />
                   <TouchableOpacity
-                    style={{ backgroundColor: '#f97316', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 8 }}
-                    onPress={() => {
-                      if (forgotEmail) {
-                        setForgotSuccessMsg(`Instruksi reset password telah dikirim ke Admin HR perusahaan Anda untuk email "${forgotEmail}". Silakan hubungi Admin HR perusahaan Anda.`);
+                    style={{ backgroundColor: forgotLoading ? '#fdba74' : '#f97316', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 8 }}
+                    disabled={forgotLoading}
+                    onPress={async () => {
+                      if (!forgotEmail) return;
+                      setForgotLoading(true);
+                      setForgotError('');
+                      try {
+                        const res = await api.post('/forgot-password', { email: forgotEmail });
+                        if (res.data?.status === 'Success') {
+                          setForgotSuccessMsg(res.data.message || 'Link reset password telah dikirim ke email Anda. Silakan cek inbox.');
+                        } else {
+                          setForgotError('Terjadi kesalahan. Coba lagi.');
+                        }
+                      } catch (err: any) {
+                        setForgotError(err.response?.data?.detail || 'Gagal terhubung ke server.');
+                      } finally {
+                        setForgotLoading(false);
                       }
                     }}
                   >
-                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Kirim Permintaan Reset</Text>
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>
+                      {forgotLoading ? 'Mengirim...' : 'Kirim Link Reset Password'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}

@@ -60,6 +60,9 @@ CREATE TABLE users (
     birth_date DATE,
     address TEXT,
     profile_picture VARCHAR(255),
+    joined_date DATE,
+    reset_token VARCHAR(255),
+    reset_token_expires TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
