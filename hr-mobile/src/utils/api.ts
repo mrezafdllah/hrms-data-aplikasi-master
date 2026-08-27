@@ -5,17 +5,16 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 
 // Determine API URL based on environment
+// Default production cloud backend on Vercel:
+const DEFAULT_CLOUD_API = 'https://hrms-cbn.vercel.app/api';
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
 const debuggerHost = Constants.expoConfig?.hostUri;
 
-let API_URL = envApiUrl || 'http://localhost:8000/api';
+// If running in local Expo Go dev mode, use laptop IP. Otherwise use Cloud Vercel backend:
+let API_URL = envApiUrl || DEFAULT_CLOUD_API;
 
-if (!envApiUrl) {
-  if (debuggerHost) {
-    API_URL = `http://${debuggerHost.split(':')[0]}:8000/api`;
-  } else if (Platform.OS === 'android') {
-    API_URL = 'http://10.0.2.2:8000/api';
-  }
+if (!envApiUrl && debuggerHost) {
+  API_URL = `http://${debuggerHost.split(':')[0]}:8000/api`;
 }
 
 const api = axios.create({
