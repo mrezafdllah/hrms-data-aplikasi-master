@@ -264,17 +264,17 @@ def forgot_password(req: ForgotPasswordRequest):
     """Send a password reset email if the email exists in the system."""
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    # Generic message to avoid email enumeration
-    safe_msg = "Jika email terdaftar dalam sistem, link reset password telah dikirim. Silakan cek inbox email Anda."
     try:
         cursor.execute(
-            "SELECT id, full_name, email FROM users WHERE email = %s;",
-            (req.email,)
+            "SELECT id, full_name, email FROM users WHERE LOWER(email) = LOWER(%s);",
+            (req.email.strip(),)
         )
         user = cursor.fetchone()
         if not user:
-            # Return the same message even if user not found (security best practice)
-            return {"status": "Success", "message": safe_msg}
+            raise HTTPException(
+                status_code=404, 
+                detail="Email tidak terdaftar dalam sistem. Permintaan reset kata sandi tidak dapat dikirim."
+            )
         
         # Generate token & set expiry (15 minutes)
         token = str(uuid.uuid4())
@@ -289,13 +289,17 @@ def forgot_password(req: ForgotPasswordRequest):
         # Send email
         email_sent = send_reset_email(user['email'], token, user['full_name'])
         if not email_sent:
-            return {
-                "status": "Success", 
-                "message": "Token reset berhasil dibuat tetapi email tidak terkirim. Periksa konfigurasi SMTP di server.",
-                "debug_token": token  # Only for development — remove in production
-            }
+            raise HTTPException(
+                status_code=500, 
+                detail="Gagal mengirim email reset kata sandi melalui server email. Pastikan konfigurasi SMTP di server aktif."
+            )
         
-        return {"status": "Success", "message": safe_msg}
+        return {
+            "status": "Success", 
+            "message": f"Link reset kata sandi berhasil dikirim ke email '{user['email']}'. Silakan periksa kotak masuk (inbox) atau folder spam email Anda."
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
