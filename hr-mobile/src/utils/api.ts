@@ -5,8 +5,8 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 
 // Determine API URL based on environment
-// Default production cloud backend on Vercel:
-const DEFAULT_CLOUD_API = 'https://hrms-cbn.vercel.app/api';
+// Live Backend URL on Vercel:
+const DEFAULT_CLOUD_API = 'https://hrms-data-aplikasi-master.vercel.app/api';
 const envApiUrl = process.env.EXPO_PUBLIC_API_URL;
 const debuggerHost = Constants.expoConfig?.hostUri;
 

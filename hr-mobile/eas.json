@@ -10,7 +10,7 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://hrms-cbn.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://hrms-data-aplikasi-master.vercel.app/api"
       },
       "android": {
         "buildType": "apk"
@@ -18,7 +18,7 @@
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://hrms-cbn.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://hrms-data-aplikasi-master.vercel.app/api"
       },
       "android": {
         "buildType": "apk"
