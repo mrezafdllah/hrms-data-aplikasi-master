@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.utils import formatdate, make_msgid
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -113,6 +114,9 @@ def send_reset_email(to_email: str, reset_token: str, user_name: str) -> bool:
     msg["Subject"] = subject
     msg["From"] = f"Aplikasi HR <{smtp_user}>"
     msg["To"] = to_email
+    msg["Reply-To"] = smtp_user
+    msg["Date"] = formatdate(localtime=True)
+    msg["Message-ID"] = make_msgid(domain="cybersblitz.com")
 
     # Plain text fallback
     plain_text = f"""
