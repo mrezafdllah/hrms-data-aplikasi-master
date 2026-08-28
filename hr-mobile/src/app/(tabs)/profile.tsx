@@ -69,7 +69,9 @@ export default function ProfileScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
 
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -92,6 +94,7 @@ export default function ProfileScreen() {
         new_password: newPassword
       });
       if (res.data?.status === 'Success') {
+        setPasswordModalVisible(false);
         showAlert('success', 'Berhasil', 'Kata sandi Anda berhasil diperbarui.');
         setCurrentPassword('');
         setNewPassword('');
@@ -514,70 +517,34 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* Change Password Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="key-outline" size={18} color="#d97706" style={{ marginRight: 8 }} />
-            <Text style={styles.cardTitle}>Keamanan Akun & Kata Sandi</Text>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Kata Sandi Saat Ini</Text>
-            <View style={styles.passwordInputWrapper}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Masukkan kata sandi saat ini"
-                placeholderTextColor="#9ca3af"
-                secureTextEntry={!showCurrentPassword}
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-              />
-              <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showCurrentPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#6b7280" />
-              </TouchableOpacity>
+        {/* Security & Password Card / Menu Item */}
+        <TouchableOpacity 
+          style={styles.securityCard} 
+          onPress={() => {
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setPasswordModalVisible(true);
+          }}
+        >
+          <View style={styles.securityLeft}>
+            <View style={styles.securityIconContainer}>
+              <Ionicons name="key" size={20} color="#d97706" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.securityTitle}>Keamanan Akun & Sandi</Text>
+                <View style={styles.securityBadge}>
+                  <Text style={styles.securityBadgeText}>Terlindungi</Text>
+                </View>
+              </View>
+              <Text style={styles.securitySubtitle}>Perbarui kata sandi akun secara langsung</Text>
             </View>
           </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Kata Sandi Baru</Text>
-            <View style={styles.passwordInputWrapper}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Minimal 6 karakter"
-                placeholderTextColor="#9ca3af"
-                secureTextEntry={!showNewPassword}
-                value={newPassword}
-                onChangeText={setNewPassword}
-              />
-              <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showNewPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
+          <View style={styles.securityArrow}>
+            <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
           </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Konfirmasi Kata Sandi Baru</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Ulangi kata sandi baru"
-              placeholderTextColor="#9ca3af"
-              secureTextEntry={!showNewPassword}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-          </View>
-
-          <TouchableOpacity style={styles.passwordSaveBtn} onPress={handlePasswordChange} disabled={passwordSaving}>
-            {passwordSaving ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="key" size={16} color="#fff" style={{ marginRight: 6 }} />
-                <Text style={styles.saveBtnText}>Perbarui Kata Sandi</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
 
         {/* Logout */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -585,6 +552,101 @@ export default function ProfileScreen() {
           <Text style={styles.logoutBtnText}>{t.logoutBtn}</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* ====== MODAL: Change Password ====== */}
+      <Modal visible={passwordModalVisible} transparent animationType="slide" onRequestClose={() => setPasswordModalVisible(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeaderRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={styles.modalKeyIcon}>
+                    <Ionicons name="key" size={16} color="#d97706" />
+                  </View>
+                  <Text style={styles.modalTitleText}>Perbarui Kata Sandi</Text>
+                </View>
+                <TouchableOpacity onPress={() => setPasswordModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#1e2022" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Kata Sandi Saat Ini</Text>
+                  <View style={styles.passwordInputWrapper}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder="Masukkan kata sandi saat ini"
+                      placeholderTextColor="#9ca3af"
+                      secureTextEntry={!showCurrentPassword}
+                      value={currentPassword}
+                      onChangeText={setCurrentPassword}
+                    />
+                    <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={styles.eyeBtn}>
+                      <Ionicons name={showCurrentPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#6b7280" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Kata Sandi Baru</Text>
+                  <View style={styles.passwordInputWrapper}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder="Minimal 6 karakter"
+                      placeholderTextColor="#9ca3af"
+                      secureTextEntry={!showNewPassword}
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                    />
+                    <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeBtn}>
+                      <Ionicons name={showNewPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#6b7280" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Konfirmasi Kata Sandi Baru</Text>
+                  <View style={styles.passwordInputWrapper}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder="Ulangi kata sandi baru"
+                      placeholderTextColor="#9ca3af"
+                      secureTextEntry={!showConfirmPassword}
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                    />
+                    <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeBtn}>
+                      <Ionicons name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#6b7280" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </ScrollView>
+
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity 
+                  style={styles.modalCancelBtnSoft} 
+                  onPress={() => setPasswordModalVisible(false)}
+                  disabled={passwordSaving}
+                >
+                  <Text style={styles.modalCancelBtnSoftText}>Batal</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.modalSubmitBtn} 
+                  onPress={handlePasswordChange}
+                  disabled={passwordSaving}
+                >
+                  {passwordSaving ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.modalSubmitBtnText}>Simpan Kata Sandi</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       {/* ====== MODAL: Position Picker ====== */}
       <Modal visible={showPositionPicker} transparent animationType="slide" onRequestClose={() => setShowPositionPicker(false)}>
@@ -1056,5 +1118,121 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#1e2022',
+  },
+  // Security Menu Card Styles
+  securityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  securityLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  securityIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#fffbeb',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  securityTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#1e2022',
+  },
+  securityBadge: {
+    backgroundColor: '#ecfdf5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  securityBadgeText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#059669',
+  },
+  securitySubtitle: {
+    fontSize: 10,
+    color: '#9ca3af',
+    marginTop: 2,
+  },
+  securityArrow: {
+    paddingLeft: 8,
+  },
+  // Modal Header & Buttons for Password Modal
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    paddingBottom: 12,
+  },
+  modalKeyIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    backgroundColor: '#fffbeb',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalTitleText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1e2022',
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  modalCancelBtnSoft: {
+    flex: 1,
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
+    borderWidth: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelBtnSoftText: {
+    color: '#ef4444',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  modalSubmitBtn: {
+    flex: 2,
+    backgroundColor: '#f97316',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  modalSubmitBtnText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 13,
   },
 });

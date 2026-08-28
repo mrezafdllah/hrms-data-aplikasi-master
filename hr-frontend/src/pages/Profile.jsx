@@ -101,6 +101,7 @@ const Profile = () => {
     new_password: '',
     confirm_password: ''
   });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -134,6 +135,7 @@ const Profile = () => {
       const data = await res.json();
 
       if (res.ok && data.status === 'Success') {
+        setShowPasswordModal(false);
         showAlert('Berhasil!', 'Kata sandi Anda berhasil diperbarui.', 'success');
         setPasswordData({
           current_password: '',
@@ -573,85 +575,133 @@ const Profile = () => {
       </div>
 
       {/* 3. UBAH KATA SANDI CARD */}
-      <div className="bg-white rounded-2xl border border-gray-50 p-6 shadow-sm">
-        <div className="flex items-center gap-2 border-b border-gray-50 pb-4 mb-6">
-          <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
-            <Key size={18} />
+      <div className="bg-white rounded-2xl border border-gray-50 p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 border border-amber-100/60">
+            <Key size={20} />
           </div>
           <div>
-            <h3 className="font-extrabold text-gray-800 text-sm">Keamanan Akun & Kata Sandi</h3>
-            <p className="text-[10px] font-semibold text-gray-400">Perbarui kata sandi untuk menjaga keamanan akun Anda</p>
+            <div className="flex items-center gap-2">
+              <h3 className="font-extrabold text-gray-800 text-sm">Keamanan Akun & Kata Sandi</h3>
+              <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                Terlindungi
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mt-0.5">Ubah kata sandi akun Anda secara langsung tanpa perlu membuka email</p>
           </div>
         </div>
 
-        <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-xl">
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Kata Sandi Saat Ini</label>
-            <div className="relative">
-              <input
-                type={showCurrentPassword ? "text" : "password"}
-                required
-                value={passwordData.current_password}
-                onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
-                placeholder="Masukkan kata sandi saat ini"
-              />
+        <button
+          type="button"
+          onClick={() => {
+            setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
+            setShowPasswordModal(true);
+          }}
+          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-2 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer whitespace-nowrap"
+        >
+          <Key size={14} /> Perbarui Kata Sandi
+        </button>
+      </div>
+
+      {/* ====== MODAL: UBAH KATA SANDI ====== */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 animate-scale-up">
+            <div className="flex items-center justify-between border-b border-gray-50 pb-4 mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
+                  <Key size={18} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-gray-800 text-sm">Perbarui Kata Sandi</h3>
+                  <p className="text-[10px] text-gray-400">Buat kata sandi baru untuk akun Anda</p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                onClick={() => setShowPasswordModal(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg cursor-pointer"
               >
-                {showCurrentPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                <X size={18} />
               </button>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Kata Sandi Baru</label>
-              <div className="relative">
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Kata Sandi Saat Ini</label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    required
+                    value={passwordData.current_password}
+                    onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
+                    placeholder="Masukkan kata sandi saat ini"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    {showCurrentPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Kata Sandi Baru</label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    value={passwordData.new_password}
+                    onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
+                    placeholder="Minimal 6 karakter"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    {showNewPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Konfirmasi Kata Sandi Baru</label>
                 <input
                   type={showNewPassword ? "text" : "password"}
                   required
-                  value={passwordData.new_password}
-                  onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 pr-10 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
-                  placeholder="Minimal 6 karakter"
+                  value={passwordData.confirm_password}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
+                  placeholder="Ulangi kata sandi baru"
                 />
+              </div>
+
+              <div className="flex gap-2.5 justify-end pt-3 border-t border-gray-50">
                 <button
                   type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  onClick={() => setShowPasswordModal(false)}
+                  disabled={passwordLoading}
+                  className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {showNewPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                  <X size={14} /> Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={passwordLoading}
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <Key size={14} /> {passwordLoading ? 'Memproses...' : 'Simpan Kata Sandi'}
                 </button>
               </div>
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Konfirmasi Kata Sandi Baru</label>
-              <input
-                type={showNewPassword ? "text" : "password"}
-                required
-                value={passwordData.confirm_password}
-                onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
-                placeholder="Ulangi kata sandi baru"
-              />
-            </div>
+            </form>
           </div>
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={passwordLoading}
-              className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-amber-500/10 transition-all cursor-pointer disabled:opacity-50"
-            >
-              <Key size={14} /> {passwordLoading ? 'Memproses...' : 'Perbarui Kata Sandi'}
-            </button>
-          </div>
-        </form>
-      </div>
+        </div>
+      )}
 
       {/* ====== CUSTOM ALERT MODAL ====== */}
       {alertModal.show && (
