@@ -1,6 +1,7 @@
 import os
 import shutil
 import uuid
+import base64
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -448,20 +449,19 @@ def update_my_profile(profile: ProfileUpdate, current_user: dict = Depends(get_c
 
 @app.post("/api/upload-profile-picture")
 @app.post("/api/profile/upload-photo")
-def upload_profile_picture(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+async def upload_profile_picture(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     try:
         # Validate file extension
-        file_extension = file.filename.split(".")[-1].lower()
+        file_extension = file.filename.split(".")[-1].lower() if file.filename and "." in file.filename else "jpg"
         if file_extension not in {"jpg", "jpeg", "png", "webp"}:
             raise HTTPException(
                 status_code=400, 
                 detail="Format file tidak didukung. Gunakan JPG, JPEG, PNG, atau WEBP."
             )
             
-        # Validate file size (Max 2MB)
-        file.file.seek(0, 2)
-        file_size = file.file.tell()
-        file.file.seek(0)
+        # Read file contents
+        content = await file.read()
+        file_size = len(content)
         
         if file_size > 2 * 1024 * 1024:
             raise HTTPException(
@@ -469,24 +469,32 @@ def upload_profile_picture(file: UploadFile = File(...), current_user: dict = De
                 detail="Ukuran file terlalu besar. Maksimal 2MB."
             )
 
-        file_name = f"profile_{current_user['user_id']}.{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, file_name)
-        
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # Convert to persistent base64 data URI for 100% reliability across Vercel & serverless
+        mime_type = "image/png" if file_extension == "png" else ("image/webp" if file_extension == "webp" else "image/jpeg")
+        base64_encoded = base64.b64encode(content).decode('utf-8')
+        data_uri = f"data:{mime_type};base64,{base64_encoded}"
+
+        if not IS_VERCEL:
+            try:
+                file_name = f"profile_{current_user['user_id']}.{file_extension}"
+                file_path = os.path.join(UPLOAD_DIR, file_name)
+                with open(file_path, "wb") as buffer:
+                    buffer.write(content)
+            except Exception:
+                pass
             
-        # Update profile picture path in the database automatically
+        # Update profile picture in the database
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE users SET profile_picture = %s WHERE id = %s;",
-            (f"/uploads/{file_name}", current_user['user_id'])
+            "UPDATE users SET profile_picture = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;",
+            (data_uri, current_user['user_id'])
         )
         conn.commit()
         cursor.close()
         conn.close()
             
-        return {"status": "Success", "file_path": f"/uploads/{file_name}"}
+        return {"status": "Success", "file_path": data_uri}
     except HTTPException as he:
         raise he
     except Exception as e:

@@ -224,7 +224,8 @@ export default function ProfileScreen() {
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.7,
+      quality: 0.6,
+      base64: true,
     });
 
     if (result.canceled) return;
@@ -232,47 +233,45 @@ export default function ProfileScreen() {
     setUploading(true);
     try {
       const asset = result.assets[0];
-      const fileUri = asset.uri;
-      const fileName = fileUri.split('/').pop() || 'photo.jpg';
-      const fileType = asset.mimeType || 'image/jpeg';
+      let dataUri = '';
+      if (asset.base64) {
+        const mimeType = asset.mimeType || 'image/jpeg';
+        dataUri = asset.base64.startsWith('data:') 
+          ? asset.base64 
+          : `data:${mimeType};base64,${asset.base64}`;
+      }
 
-      const uploadData = new FormData();
-      uploadData.append('file', {
-        uri: fileUri,
-        name: fileName,
-        type: fileType,
-      } as any);
-
-      const token = await AsyncStorage.getItem('token');
-      const baseUrl = api.defaults.baseURL?.replace('/api', '') || '';
-      const uploadRes = await fetch(`${baseUrl}/api/upload-profile-picture`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: uploadData,
-      });
-      const uploadJson = await uploadRes.json();
-
-      if (uploadJson.status === 'Success') {
-        const newPicturePath = uploadJson.file_path;
-        setFormData(prev => ({ ...prev, profile_picture: newPicturePath }));
-
-        // Also save to backend profile immediately
-        const updatePayload = {
+      let res;
+      if (dataUri) {
+        // Direct persistent update to profile
+        res = await api.put('/profile', {
           ...formData,
-          profile_picture: newPicturePath,
-          position_id: formData.position_id ? parseInt(formData.position_id) : null
-        };
-        await api.put('/profile', updatePayload);
+          profile_picture: dataUri,
+          birth_date: formData.birth_date || null,
+          position_id: formData.position_id ? parseInt(formData.position_id) : null,
+        });
+      } else {
+        // Fallback FormData upload via Axios
+        const uploadData = new FormData();
+        uploadData.append('file', {
+          uri: asset.uri,
+          name: asset.uri.split('/').pop() || 'photo.jpg',
+          type: asset.mimeType || 'image/jpeg',
+        } as any);
+        res = await api.post('/upload-profile-picture', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
+      if (res.data?.status === 'Success') {
         fetchProfile();
         showAlert('success', 'Berhasil', t.uploadSuccess);
       } else {
-        showAlert('error', 'Gagal', t.uploadFailed);
+        showAlert('error', 'Gagal', res.data?.detail || t.uploadFailed);
       }
     } catch (error: any) {
       console.error('Upload error:', error);
-      showAlert('error', 'Error', 'Terjadi kesalahan saat mengunggah foto');
+      showAlert('error', 'Error', error?.response?.data?.detail || 'Terjadi kesalahan saat mengunggah foto');
     } finally {
       setUploading(false);
     }
@@ -295,9 +294,13 @@ export default function ProfileScreen() {
   };
 
   const getProfileImageUrl = () => {
-    if (!formData.profile_picture) return null;
+    const pic = formData.profile_picture || profile?.profile_picture;
+    if (!pic) return null;
+    if (pic.startsWith('data:image') || pic.startsWith('http')) {
+      return pic;
+    }
     const baseUrl = api.defaults.baseURL?.replace('/api', '') || '';
-    return `${baseUrl}${formData.profile_picture}`;
+    return `${baseUrl}${pic}`;
   };
 
   const getSelectedPositionName = () => {

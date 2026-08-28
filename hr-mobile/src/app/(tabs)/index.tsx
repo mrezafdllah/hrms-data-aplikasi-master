@@ -217,6 +217,9 @@ export default function DashboardScreen() {
 
   const getProfileImageUrl = () => {
     if (!profilePicture) return null;
+    if (profilePicture.startsWith('data:image') || profilePicture.startsWith('http')) {
+      return profilePicture;
+    }
     const baseUrl = api.defaults.baseURL?.replace('/api', '') || '';
     return `${baseUrl}${profilePicture}`;
   };

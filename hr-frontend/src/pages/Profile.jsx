@@ -319,18 +319,24 @@ const Profile = () => {
     return <div className="flex h-64 items-center justify-center text-gray-500">{t.notFoundMsg}</div>;
   }
 
+  const getProfileImageUrl = (pic) => {
+    if (!pic) return null;
+    if (pic.startsWith('data:image') || pic.startsWith('http')) return pic;
+    return `${API_BASE_URL.replace('/api', '')}${pic}`;
+  };
+
   return (
-    <div className="space-y-6 max-w-4xl">
-      {/* 1. TOP HEADER PANEL */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
+    <div className="space-y-6">
+      {/* 1. HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-50 shadow-sm">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">{t.title}</h1>
-          <p className="text-gray-400 text-sm font-medium mt-0.5">{t.subtitle}</p>
+          <h1 className="text-xl font-extrabold text-gray-800">{t.title}</h1>
+          <p className="text-xs font-semibold text-gray-400 mt-1">{t.subtitle}</p>
         </div>
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-2 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer"
           >
             <Edit3 size={14} /> {t.editProfile}
           </button>
@@ -349,7 +355,7 @@ const Profile = () => {
           <div className="relative group w-32 h-32 rounded-full shadow-inner border-2 border-gray-100 flex items-center justify-center overflow-hidden bg-orange-50">
             {formData.profile_picture ? (
               <img 
-                src={`${API_BASE_URL}${formData.profile_picture}`} 
+                src={getProfileImageUrl(formData.profile_picture)} 
                 alt="Foto Profil" 
                 className="w-full h-full object-cover" 
               />

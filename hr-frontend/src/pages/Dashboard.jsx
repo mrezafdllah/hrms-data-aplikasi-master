@@ -367,6 +367,12 @@ const Dashboard = () => {
       .catch(err => console.error(err));
   };
 
+  const formatImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('data:image') || url.startsWith('http')) return url;
+    return `${API_BASE_URL.replace('/api', '')}${url}`;
+  };
+
   return (
     <div className="space-y-6 pb-12 bg-[#fcfdff] min-h-screen">
       {/* 1. TOP HEADER PANEL */}
@@ -428,7 +434,7 @@ const Dashboard = () => {
           {/* Sync Header Avatar Profile Picture */}
           {myProfile?.profile_picture ? (
             <img 
-              src={`${API_BASE_URL}${myProfile.profile_picture}`} 
+              src={formatImageUrl(myProfile.profile_picture)} 
               alt="Avatar" 
               className="w-10 h-10 rounded-full object-cover shadow-md shadow-orange-500/10 border border-gray-100" 
             />
@@ -657,7 +663,7 @@ const Dashboard = () => {
                 <div key={user.id} className="bg-gray-50/50 hover:bg-gray-50 border border-gray-100 p-4 rounded-xl flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                   {user.profile_picture ? (
                     <img
-                      src={`${API_BASE_URL}${user.profile_picture}`}
+                      src={formatImageUrl(user.profile_picture)}
                       alt={user.full_name}
                       className="w-12 h-12 rounded-full object-cover mb-3 shadow-md border-2 border-white"
                     />
