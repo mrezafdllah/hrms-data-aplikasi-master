@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, useWindowDimensions, Modal, TextInput, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,9 +33,24 @@ export default function DashboardScreen() {
   const [role, setRole] = useState('');
   const [stats, setStats] = useState<any>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
+  const [usersList, setUsersList] = useState<any[]>([]);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  // Schedule Management State
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
+  const [userSelectorVisible, setUserSelectorVisible] = useState(false);
+  const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
+  const [scheduleForm, setScheduleForm] = useState({
+    user_id: '',
+    title: '',
+    description: '',
+    schedule_date: new Date().toISOString().split('T')[0],
+    start_time: '09:00',
+    end_time: '10:00'
+  });
+  const [submittingSchedule, setSubmittingSchedule] = useState(false);
 
   const loadData = useCallback(async () => {
     const storedName = await AsyncStorage.getItem('name');
@@ -54,6 +69,15 @@ export default function DashboardScreen() {
       const profileRes = await api.get('/profile');
       if (profileRes.data?.status === 'Success') {
         setProfilePicture(profileRes.data.data.profile_picture);
+      }
+
+      if (storedRole === 'Super Admin' || storedRole === 'Admin HR') {
+        try {
+          const usersRes = await api.get('/users');
+          if (usersRes.data?.status === 'Success') setUsersList(usersRes.data.data);
+        } catch (uErr) {
+          console.error("Users list load error:", uErr);
+        }
       }
     } catch (e: any) {
       if (e?.response?.status === 401) return;
@@ -86,6 +110,91 @@ export default function DashboardScreen() {
       async () => {
         await AsyncStorage.clear();
         router.replace('/login');
+      }
+    );
+  };
+
+  const isAdmin = role === 'Super Admin' || role === 'Admin HR';
+
+  const openAddScheduleModal = () => {
+    setScheduleForm({
+      user_id: usersList.length > 0 ? String(usersList[0].id) : '',
+      title: '',
+      description: '',
+      schedule_date: new Date().toISOString().split('T')[0],
+      start_time: '09:00',
+      end_time: '10:00'
+    });
+    setEditingScheduleId(null);
+    setScheduleModalVisible(true);
+  };
+
+  const openEditScheduleModal = (sch: any) => {
+    setScheduleForm({
+      user_id: String(sch.user_id),
+      title: sch.title,
+      description: sch.description || '',
+      schedule_date: sch.schedule_date.split('T')[0],
+      start_time: sch.start_time,
+      end_time: sch.end_time
+    });
+    setEditingScheduleId(sch.id);
+    setScheduleModalVisible(true);
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!scheduleForm.title.trim()) {
+      showAlert('error', 'Validasi Gagal', 'Judul jadwal wajib diisi.');
+      return;
+    }
+    if (!scheduleForm.user_id) {
+      showAlert('error', 'Validasi Gagal', 'Silakan pilih karyawan penerima jadwal.');
+      return;
+    }
+    if (!scheduleForm.schedule_date) {
+      showAlert('error', 'Validasi Gagal', 'Tanggal jadwal wajib diisi (YYYY-MM-DD).');
+      return;
+    }
+
+    setSubmittingSchedule(true);
+    try {
+      if (editingScheduleId) {
+        const res = await api.put(`/schedules/${editingScheduleId}`, scheduleForm);
+        if (res.data?.status === 'Success') {
+          setScheduleModalVisible(false);
+          showAlert('success', 'Berhasil', 'Jadwal berhasil diperbarui!');
+          loadData();
+        }
+      } else {
+        const res = await api.post('/schedules', scheduleForm);
+        if (res.data?.status === 'Success') {
+          setScheduleModalVisible(false);
+          showAlert('success', 'Berhasil', 'Jadwal baru berhasil ditambahkan!');
+          loadData();
+        }
+      }
+    } catch (err: any) {
+      showAlert('error', 'Gagal', err.response?.data?.detail || 'Terjadi kesalahan saat menyimpan jadwal.');
+    } finally {
+      setSubmittingSchedule(false);
+    }
+  };
+
+  const handleDeleteSchedule = (id: number) => {
+    showAlert(
+      'delete',
+      'Hapus Jadwal',
+      'Apakah Anda yakin ingin menghapus jadwal ini? Tindakan ini tidak dapat dibatalkan.',
+      async () => {
+        try {
+          const res = await api.delete(`/schedules/${id}`);
+          if (res.data?.status === 'Success') {
+            showAlert('success', 'Berhasil', 'Jadwal berhasil dihapus!');
+            loadData();
+          }
+        } catch (err: any) {
+          showAlert('error', 'Gagal', err.response?.data?.detail || 'Gagal menghapus jadwal.');
+        }
       }
     );
   };
@@ -222,8 +331,16 @@ export default function DashboardScreen() {
       {/* 5. TODAY'S SCHEDULE SECTION */}
       <View style={styles.scheduleSection}>
         <View style={styles.taskHeader}>
-          <Text style={styles.taskTitle}>{t.todaySchedule}</Text>
-          <Text style={styles.dateLabel}>{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={styles.taskTitle}>{t.todaySchedule}</Text>
+            <Text style={styles.dateLabel}>{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</Text>
+          </View>
+          {isAdmin && (
+            <TouchableOpacity style={styles.addScheduleBtn} onPress={openAddScheduleModal}>
+              <Ionicons name="add" size={15} color="#ffffff" />
+              <Text style={styles.addScheduleBtnText}>Tambah</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.scheduleList}>
@@ -239,6 +356,16 @@ export default function DashboardScreen() {
                   {sch.description ? <Text style={styles.scheduleDescText}>{sch.description}</Text> : null}
                   <Text style={styles.scheduleAssignedText}>{t.for}: {sch.user_name || 'Semua'}</Text>
                 </View>
+                {isAdmin && (
+                  <View style={styles.scheduleActions}>
+                    <TouchableOpacity style={styles.scheduleActionBtn} onPress={() => openEditScheduleModal(sch)}>
+                      <Ionicons name="create-outline" size={16} color="#f97316" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.scheduleActionBtn} onPress={() => handleDeleteSchedule(sch.id)}>
+                      <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             ))
           ) : (
@@ -255,6 +382,165 @@ export default function DashboardScreen() {
         <Ionicons name="log-out-outline" size={18} color="#ef4444" />
         <Text style={styles.logoutText}>{t.logoutBtn}</Text>
       </TouchableOpacity>
+
+      {/* Schedule Add/Edit Modal */}
+      <Modal visible={scheduleModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{editingScheduleId ? 'Edit Jadwal' : 'Tambah Jadwal'}</Text>
+              <TouchableOpacity onPress={() => setScheduleModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#1e2022" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
+              {/* Pilih Karyawan */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Pilih Karyawan</Text>
+                <TouchableOpacity 
+                  style={styles.selectorBtn} 
+                  onPress={() => setUserSelectorVisible(true)}
+                >
+                  <Text style={styles.selectorBtnText}>
+                    {usersList.find((u: any) => String(u.id) === String(scheduleForm.user_id))?.full_name || 'Pilih Karyawan'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={18} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Judul Jadwal */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Judul Jadwal</Text>
+                <TextInput
+                  style={styles.formInput}
+                  value={scheduleForm.title}
+                  onChangeText={(text) => setScheduleForm({ ...scheduleForm, title: text })}
+                  placeholder="Contoh: Meeting Proyek HRMS"
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              {/* Tanggal Jadwal */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Tanggal (YYYY-MM-DD)</Text>
+                <TextInput
+                  style={styles.formInput}
+                  value={scheduleForm.schedule_date}
+                  onChangeText={(text) => setScheduleForm({ ...scheduleForm, schedule_date: text })}
+                  placeholder="2026-08-28"
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              {/* Waktu Mulai & Selesai */}
+              <View style={styles.formRow}>
+                <View style={[styles.formGroup, { flex: 1 }]}>
+                  <Text style={styles.formLabel}>Waktu Mulai (HH:MM)</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    value={scheduleForm.start_time}
+                    onChangeText={(text) => setScheduleForm({ ...scheduleForm, start_time: text })}
+                    placeholder="09:00"
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
+                <View style={[styles.formGroup, { flex: 1 }]}>
+                  <Text style={styles.formLabel}>Waktu Selesai (HH:MM)</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    value={scheduleForm.end_time}
+                    onChangeText={(text) => setScheduleForm({ ...scheduleForm, end_time: text })}
+                    placeholder="10:00"
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
+              </View>
+
+              {/* Deskripsi */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Deskripsi / Catatan (Opsional)</Text>
+                <TextInput
+                  style={[styles.formInput, styles.formTextArea]}
+                  value={scheduleForm.description}
+                  onChangeText={(text) => setScheduleForm({ ...scheduleForm, description: text })}
+                  placeholder="Tuliskan catatan meeting atau instruksi tugas..."
+                  placeholderTextColor="#9ca3af"
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity 
+                style={styles.cancelBtn} 
+                onPress={() => setScheduleModalVisible(false)}
+                disabled={submittingSchedule}
+              >
+                <Text style={styles.cancelBtnText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.submitBtn} 
+                onPress={handleSaveSchedule}
+                disabled={submittingSchedule}
+              >
+                {submittingSchedule ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitBtnText}>Simpan</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* User Selector Modal */}
+      <Modal visible={userSelectorVisible} transparent animationType="fade">
+        <View style={styles.selectorOverlay}>
+          <View style={styles.selectorContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Pilih Karyawan</Text>
+              <TouchableOpacity onPress={() => setUserSelectorVisible(false)}>
+                <Ionicons name="close" size={24} color="#1e2022" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={usersList}
+              keyExtractor={(item: any) => item.id.toString()}
+              renderItem={({ item }: { item: any }) => (
+                <TouchableOpacity 
+                  style={[
+                    styles.selectorItem, 
+                    String(item.id) === String(scheduleForm.user_id) && styles.selectorItemActive
+                  ]} 
+                  onPress={() => {
+                    setScheduleForm({ ...scheduleForm, user_id: String(item.id) });
+                    setUserSelectorVisible(false);
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={[
+                      styles.selectorItemText,
+                      String(item.id) === String(scheduleForm.user_id) && styles.selectorItemTextActive
+                    ]}>
+                      {item.full_name}
+                    </Text>
+                    <Text style={styles.selectorItemSubtext}>
+                      {item.role_name} {item.position_name ? `• ${item.position_name}` : ''}
+                    </Text>
+                  </View>
+                  {String(item.id) === String(scheduleForm.user_id) && (
+                    <Ionicons name="checkmark" size={18} color="#f97316" />
+                  )}
+                </TouchableOpacity>
+              )}
+              style={{ maxHeight: 320 }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <CustomAlert
         visible={alertVisible}
@@ -767,6 +1053,185 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#f97316',
     fontWeight: '700',
+  },
+  addScheduleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f97316',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    gap: 4,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  addScheduleBtnText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  scheduleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginLeft: 4,
+  },
+  scheduleActionBtn: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f1f3f7',
+  },
+  // Schedule Modal & Form Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e2022',
+  },
+  formGroup: {
+    marginBottom: 16,
+  },
+  formRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  formLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#4b5563',
+    marginBottom: 8,
+  },
+  formInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: '#1e2022',
+  },
+  formTextArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  selectorBtn: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  selectorBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1e2022',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
+    borderWidth: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtnText: {
+    color: '#ef4444',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  submitBtn: {
+    flex: 2,
+    backgroundColor: '#f97316',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  submitBtnText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  // Selector Modal
+  selectorOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  selectorContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxWidth: 360,
+  },
+  selectorItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f7',
+    borderRadius: 10,
+  },
+  selectorItemActive: {
+    backgroundColor: '#fff7ed',
+  },
+  selectorItemText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1e2022',
+  },
+  selectorItemTextActive: {
+    color: '#f97316',
+    fontWeight: 'bold',
+  },
+  selectorItemSubtext: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginTop: 2,
   },
   logoutButton: {
     flexDirection: 'row',
