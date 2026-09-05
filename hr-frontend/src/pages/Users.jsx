@@ -24,8 +24,6 @@ const Users = () => {
 
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tableSearch, setTableSearch] = useState('');
-  const [posSearchText, setPosSearchText] = useState('');
   const currentRole = localStorage.getItem('role');
   const isAdmin = currentRole === 'Super Admin' || currentRole === 'Admin HR';
 
@@ -104,7 +102,6 @@ const Users = () => {
   };
 
   const handleEdit = (user) => {
-    setPosSearchText('');
     setFormData({
       employee_id: user.employee_id || '',
       company_id: user.company_id || '',
@@ -144,7 +141,6 @@ const Users = () => {
   };
 
   const openAddModal = () => {
-    setPosSearchText('');
     const defaultCompanyId = currentRole === 'Admin HR' && currentUserProfile?.company_id 
       ? currentUserProfile.company_id.toString() 
       : '';
@@ -181,26 +177,9 @@ const Users = () => {
     ? positions.filter(p => p.company_id === activeCompanyId)
     : positions;
 
-  const searchedPositions = filteredPositions.filter(p => {
-    const q = posSearchText.toLowerCase().trim();
-    if (!q) return true;
-    return (p.position_name || '').toLowerCase().includes(q) || (p.job_name || '').toLowerCase().includes(q);
-  });
-
-  const searchedUsers = users.filter(u => {
-    const q = tableSearch.toLowerCase().trim();
-    if (!q) return true;
-    return (u.full_name || '').toLowerCase().includes(q) ||
-      (u.email || '').toLowerCase().includes(q) ||
-      (u.employee_id || '').toLowerCase().includes(q) ||
-      (u.position_name || '').toLowerCase().includes(q) ||
-      (u.role_name || '').toLowerCase().includes(q) ||
-      (u.company_name || '').toLowerCase().includes(q);
-  });
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
+      <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">
             {isAdmin ? 'Manajemen User' : 'Direktori Rekan Kerja'}
@@ -209,20 +188,11 @@ const Users = () => {
             {isAdmin ? 'Kelola pengguna dan penugasan jabatan karyawan' : 'Daftar seluruh rekan kerja & kontak tim'}
           </p>
         </div>
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder={isAdmin ? "Cari nama, email, jabatan..." : "Cari rekan kerja..."}
-            value={tableSearch}
-            onChange={e => setTableSearch(e.target.value)}
-            className="px-3.5 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 text-gray-700 flex-1 sm:w-60 transition-all"
-          />
-          {isAdmin && (
-            <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer whitespace-nowrap">
-              + Tambah User
-            </button>
-          )}
-        </div>
+        {isAdmin && (
+          <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
+            + Tambah User
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden">
@@ -241,7 +211,7 @@ const Users = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
-              {searchedUsers.map((user) => (
+              {users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="p-4 text-orange-600 font-bold">{user.employee_id || `EMP-${user.id}`}</td>
                   <td className="p-4 font-bold text-gray-800">{user.full_name}</td>
@@ -351,25 +321,11 @@ const Users = () => {
                 )}
               </div>
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block">Jabatan</label>
-                  {filteredPositions.length > 3 && (
-                    <span className="text-[10px] text-gray-400">Total {filteredPositions.length} jabatan</span>
-                  )}
-                </div>
-                {filteredPositions.length > 3 && (
-                  <input
-                    type="text"
-                    placeholder="🔍 Ketik untuk filter jabatan..."
-                    value={posSearchText}
-                    onChange={e => setPosSearchText(e.target.value)}
-                    className="w-full mb-1.5 px-3 py-1.5 text-[11px] border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-orange-500 bg-gray-50 text-gray-700 transition-all"
-                  />
-                )}
+                <label className="block mb-1.5">Jabatan</label>
                 <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.position_id} onChange={e => setFormData({...formData, position_id: e.target.value})}>
                   <option value="">-- Pilih Jabatan --</option>
-                  {searchedPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
+                  {filteredPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
                 </select>
               </div>
               <div>

@@ -7,8 +7,6 @@ const Positions = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tableSearch, setTableSearch] = useState('');
-  const [jobSearchText, setJobSearchText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ job_id: '', position_name: '', description: '' });
@@ -87,7 +85,6 @@ const Positions = () => {
   };
 
   const handleEdit = (position) => {
-    setJobSearchText('');
     setFormData({
       job_id: position.job_id || '',
       position_name: position.position_name,
@@ -121,48 +118,23 @@ const Positions = () => {
   };
 
   const openAddModal = () => {
-    setJobSearchText('');
     setFormData({ job_id: '', position_name: '', description: '' });
     setEditingId(null);
     setShowModal(true);
   };
 
-  const searchedJobs = jobs.filter(j => {
-    const q = jobSearchText.toLowerCase().trim();
-    if (!q) return true;
-    return (j.job_name || '').toLowerCase().includes(q) || (j.company_name || '').toLowerCase().includes(q);
-  });
-
-  const searchedPositions = positions.filter(p => {
-    const q = tableSearch.toLowerCase().trim();
-    if (!q) return true;
-    return (p.position_name || '').toLowerCase().includes(q) ||
-      (p.job_name || '').toLowerCase().includes(q) ||
-      (p.company_name || '').toLowerCase().includes(q) ||
-      (p.description || '').toLowerCase().includes(q);
-  });
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
+      <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Manajemen Jabatan (Position)</h1>
           <p className="text-gray-400 text-sm font-medium mt-0.5">Kelola jabatan atau spesialisasi peran karyawan</p>
         </div>
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder="Cari jabatan, divisi..."
-            value={tableSearch}
-            onChange={e => setTableSearch(e.target.value)}
-            className="px-3.5 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 text-gray-700 flex-1 sm:w-60 transition-all"
-          />
-          {isAdmin && (
-            <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer whitespace-nowrap">
-              + Tambah Jabatan
-            </button>
-          )}
-        </div>
+        {isAdmin && (
+          <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
+            + Tambah Jabatan
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden">
@@ -179,7 +151,7 @@ const Positions = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
-              {searchedPositions.map((pos) => (
+              {positions.map((pos) => (
                 <tr key={pos.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="p-4 text-orange-600 font-bold">{pos.id}</td>
                   <td className="p-4 font-bold text-gray-800">{pos.position_name}</td>
@@ -212,25 +184,11 @@ const Positions = () => {
             <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Edit Jabatan" : "Tambah Jabatan"}</h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block">Divisi</label>
-                  {jobs.length > 3 && (
-                    <span className="text-[10px] text-gray-400">Total {jobs.length} divisi</span>
-                  )}
-                </div>
-                {jobs.length > 3 && (
-                  <input
-                    type="text"
-                    placeholder="🔍 Ketik untuk filter divisi..."
-                    value={jobSearchText}
-                    onChange={e => setJobSearchText(e.target.value)}
-                    className="w-full mb-1.5 px-3 py-1.5 text-[11px] border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-orange-500 bg-gray-50 text-gray-700 transition-all"
-                  />
-                )}
+                <label className="block mb-1.5">Divisi</label>
                 <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
                   value={formData.job_id} onChange={e => setFormData({...formData, job_id: e.target.value})}>
                   <option value="">-- Pilih Divisi --</option>
-                  {searchedJobs.map(j => <option key={j.id} value={j.id}>{j.job_name} ({j.company_name})</option>)}
+                  {jobs.map(j => <option key={j.id} value={j.id}>{j.job_name} ({j.company_name})</option>)}
                 </select>
               </div>
               <div>

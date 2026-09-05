@@ -17,10 +17,6 @@ export default function UsersScreen() {
   const [roleModalVisible, setRoleModalVisible] = useState(false);
   const [positionModalVisible, setPositionModalVisible] = useState(false);
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [positionSearch, setPositionSearch] = useState('');
-  const [roleSearch, setRoleSearch] = useState('');
-  
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     employee_id: '',
@@ -169,34 +165,6 @@ export default function UsersScreen() {
 
   const isAdmin = currentUserRole === 'Super Admin' || currentUserRole === 'Admin HR';
 
-  const filteredUsers = users.filter((u: any) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    const name = (u.full_name || '').toLowerCase();
-    const email = (u.email || '').toLowerCase();
-    const empId = (u.employee_id || '').toLowerCase();
-    const pos = (u.position_name || '').toLowerCase();
-    const role = (u.role_name || '').toLowerCase();
-    const company = (u.company_name || '').toLowerCase();
-    return name.includes(q) || email.includes(q) || empId.includes(q) || pos.includes(q) || role.includes(q) || company.includes(q);
-  });
-
-  const filteredModalRoles = roles
-    .filter((r: any) => r.role_name !== 'Super Admin')
-    .filter((r: any) => {
-      if (!roleSearch.trim()) return true;
-      return (r.role_name || '').toLowerCase().includes(roleSearch.toLowerCase().trim());
-    });
-
-  const filteredModalPositions = positions.filter((p: any) => {
-    const q = positionSearch.toLowerCase().trim();
-    if (!q) return true;
-    const posName = (p.position_name || '').toLowerCase();
-    const compName = (p.company_name || '').toLowerCase();
-    const jobName = (p.job_name || '').toLowerCase();
-    return posName.includes(q) || compName.includes(q) || jobName.includes(q);
-  });
-
   const renderItem = ({ item }: { item: any }) => {
     const initials = item.full_name
       ? item.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -285,29 +253,11 @@ export default function UsersScreen() {
         )}
       </View>
 
-      {/* Main Screen Search Bar */}
-      <View style={styles.mainSearchBar}>
-        <Ionicons name="search-outline" size={18} color="#9ca3af" />
-        <TextInput
-          style={styles.mainSearchInput}
-          placeholder={isAdmin ? "Cari nama, email, jabatan, ID..." : "Cari rekan kerja..."}
-          placeholderTextColor="#9ca3af"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoCorrect={false}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')} style={{ padding: 4 }}>
-            <Ionicons name="close-circle" size={18} color="#9ca3af" />
-          </TouchableOpacity>
-        )}
-      </View>
-
       {loading ? (
         <ActivityIndicator size="large" color="#f97316" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
-          data={filteredUsers}
+          data={users}
           keyExtractor={(item: any) => item.id.toString()}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
@@ -315,9 +265,7 @@ export default function UsersScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="people-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>
-                {searchQuery ? `Tidak ada hasil untuk "${searchQuery}"` : 'Belum ada data user.'}
-              </Text>
+              <Text style={styles.emptyText}>Belum ada data user.</Text>
             </View>
           }
         />
@@ -394,14 +342,7 @@ export default function UsersScreen() {
 
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Role</Text>
-                <TouchableOpacity 
-                  activeOpacity={0.7} 
-                  style={styles.selector} 
-                  onPress={() => {
-                    setRoleSearch('');
-                    setRoleModalVisible(true);
-                  }}
-                >
+                <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setRoleModalVisible(true)}>
                   <Text style={styles.selectorText}>
                     {formData.role_id ? getRoleName(formData.role_id) : 'Pilih Role...'}
                   </Text>
@@ -411,14 +352,7 @@ export default function UsersScreen() {
 
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Posisi / Jabatan</Text>
-                <TouchableOpacity 
-                  activeOpacity={0.7} 
-                  style={styles.selector} 
-                  onPress={() => {
-                    setPositionSearch('');
-                    setPositionModalVisible(true);
-                  }}
-                >
+                <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setPositionModalVisible(true)}>
                   <Text style={styles.selectorText}>
                     {formData.position_id ? getPositionName(formData.position_id) : 'Pilih Posisi / Jabatan...'}
                   </Text>
@@ -468,64 +402,26 @@ export default function UsersScreen() {
         <View style={styles.selectorOverlay}>
           <View style={styles.selectorContent}>
             <View style={styles.modalHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.modalTitle}>Pilih Role</Text>
-                <Text style={styles.modalSubtitle}>Ketik nama role untuk mencari</Text>
-              </View>
-              <TouchableOpacity onPress={() => setRoleModalVisible(false)} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={20} color="#6b7280" />
+              <Text style={styles.modalTitle}>Pilih Role</Text>
+              <TouchableOpacity onPress={() => setRoleModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#1e2022" />
               </TouchableOpacity>
             </View>
-
-            {/* Live Search Input */}
-            <View style={styles.modalSearchBar}>
-              <Ionicons name="search-outline" size={18} color="#9ca3af" />
-              <TextInput
-                style={styles.modalSearchInput}
-                placeholder="Cari role..."
-                placeholderTextColor="#9ca3af"
-                value={roleSearch}
-                onChangeText={setRoleSearch}
-                autoCorrect={false}
-              />
-              {roleSearch.length > 0 && (
-                <TouchableOpacity onPress={() => setRoleSearch('')} style={{ padding: 4 }}>
-                  <Ionicons name="close-circle" size={18} color="#9ca3af" />
+            <FlatList
+              data={roles.filter((r: any) => r.role_name !== 'Super Admin')}
+              keyExtractor={(item: any) => item.id.toString()}
+              renderItem={({ item }: { item: any }) => (
+                <TouchableOpacity 
+                  style={styles.selectorItem} 
+                  onPress={() => {
+                    setFormData({ ...formData, role_id: item.id.toString() });
+                    setRoleModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.selectorItemText}>{item.role_name}</Text>
                 </TouchableOpacity>
               )}
-            </View>
-
-            <FlatList
-              data={filteredModalRoles}
-              keyExtractor={(item: any) => item.id.toString()}
-              keyboardShouldPersistTaps="handled"
-              renderItem={({ item }: { item: any }) => {
-                const isSelected = formData.role_id === item.id.toString();
-                return (
-                  <TouchableOpacity 
-                    activeOpacity={0.7}
-                    style={[styles.selectorItem, isSelected && styles.selectorItemSelected]} 
-                    onPress={() => {
-                      setFormData({ ...formData, role_id: item.id.toString() });
-                      setRoleModalVisible(false);
-                    }}
-                  >
-                    <Text style={[styles.selectorItemText, isSelected && styles.selectorItemTextSelected]}>{item.role_name}</Text>
-                    {isSelected && (
-                      <Ionicons name="checkmark-circle" size={20} color="#f97316" />
-                    )}
-                  </TouchableOpacity>
-                );
-              }}
-              ListEmptyComponent={
-                <View style={styles.emptySearchContainer}>
-                  <Ionicons name="search-outline" size={28} color="#d1d5db" />
-                  <Text style={styles.emptySearchText}>
-                    {roleSearch ? `Role "${roleSearch}" tidak ditemukan` : 'Belum ada data role.'}
-                  </Text>
-                </View>
-              }
-              style={{ maxHeight: 280 }}
+              style={{ maxHeight: 300 }}
             />
           </View>
         </View>
@@ -536,71 +432,26 @@ export default function UsersScreen() {
         <View style={styles.selectorOverlay}>
           <View style={styles.selectorContent}>
             <View style={styles.modalHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.modalTitle}>Pilih Posisi / Jabatan</Text>
-                <Text style={styles.modalSubtitle}>Ketik nama jabatan untuk mencari</Text>
-              </View>
-              <TouchableOpacity onPress={() => setPositionModalVisible(false)} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={20} color="#6b7280" />
+              <Text style={styles.modalTitle}>Pilih Posisi / Jabatan</Text>
+              <TouchableOpacity onPress={() => setPositionModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#1e2022" />
               </TouchableOpacity>
             </View>
-
-            {/* Live Search Input */}
-            <View style={styles.modalSearchBar}>
-              <Ionicons name="search-outline" size={18} color="#9ca3af" />
-              <TextInput
-                style={styles.modalSearchInput}
-                placeholder="Cari jabatan, divisi, perusahaan..."
-                placeholderTextColor="#9ca3af"
-                value={positionSearch}
-                onChangeText={setPositionSearch}
-                autoCorrect={false}
-              />
-              {positionSearch.length > 0 && (
-                <TouchableOpacity onPress={() => setPositionSearch('')} style={{ padding: 4 }}>
-                  <Ionicons name="close-circle" size={18} color="#9ca3af" />
+            <FlatList
+              data={positions}
+              keyExtractor={(item: any) => item.id.toString()}
+              renderItem={({ item }: { item: any }) => (
+                <TouchableOpacity 
+                  style={styles.selectorItem} 
+                  onPress={() => {
+                    setFormData({ ...formData, position_id: item.id.toString() });
+                    setPositionModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.selectorItemText}>{item.position_name} ({item.company_name})</Text>
                 </TouchableOpacity>
               )}
-            </View>
-
-            <FlatList
-              data={filteredModalPositions}
-              keyExtractor={(item: any) => item.id.toString()}
-              keyboardShouldPersistTaps="handled"
-              renderItem={({ item }: { item: any }) => {
-                const isSelected = formData.position_id === item.id.toString();
-                return (
-                  <TouchableOpacity 
-                    activeOpacity={0.7}
-                    style={[styles.selectorItem, isSelected && styles.selectorItemSelected]} 
-                    onPress={() => {
-                      setFormData({ ...formData, position_id: item.id.toString() });
-                      setPositionModalVisible(false);
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.selectorItemText, isSelected && styles.selectorItemTextSelected]}>
-                        {item.position_name}
-                      </Text>
-                      <Text style={styles.selectorItemSubtext}>
-                        {item.job_name ? `${item.job_name} • ` : ''}{item.company_name || 'Perusahaan'}
-                      </Text>
-                    </View>
-                    {isSelected && (
-                      <Ionicons name="checkmark-circle" size={20} color="#f97316" />
-                    )}
-                  </TouchableOpacity>
-                );
-              }}
-              ListEmptyComponent={
-                <View style={styles.emptySearchContainer}>
-                  <Ionicons name="search-outline" size={28} color="#d1d5db" />
-                  <Text style={styles.emptySearchText}>
-                    {positionSearch ? `Jabatan "${positionSearch}" tidak ditemukan` : 'Belum ada data jabatan.'}
-                  </Text>
-                </View>
-              }
-              style={{ maxHeight: 320 }}
+              style={{ maxHeight: 300 }}
             />
           </View>
         </View>
@@ -893,94 +744,12 @@ const styles = StyleSheet.create({
   },
   selectorItem: {
     paddingVertical: 14,
-    paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 8,
-  },
-  selectorItemSelected: {
-    backgroundColor: '#fff7ed',
   },
   selectorItemText: {
     fontSize: 15,
     color: '#1f2937',
     fontWeight: '600',
-  },
-  selectorItemTextSelected: {
-    color: '#f97316',
-    fontWeight: 'bold',
-  },
-  selectorItemSubtext: {
-    fontSize: 12,
-    color: '#9ca3af',
-    marginTop: 2,
-  },
-  modalSubtitle: {
-    fontSize: 12,
-    color: '#9ca3af',
-    marginTop: 2,
-  },
-  modalCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mainSearchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  mainSearchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 14,
-    color: '#1f2937',
-    paddingVertical: 0,
-  },
-  modalSearchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 12,
-  },
-  modalSearchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#1f2937',
-    paddingVertical: 0,
-  },
-  emptySearchContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 35,
-    gap: 8,
-  },
-  emptySearchText: {
-    fontSize: 13,
-    color: '#9ca3af',
-    textAlign: 'center',
   },
 });
