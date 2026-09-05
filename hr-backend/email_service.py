@@ -28,7 +28,7 @@ def send_reset_email(to_email: str, reset_token: str, user_name: str) -> bool:
 
     reset_link = f"{frontend_url}/reset-password?token={reset_token}"
 
-    subject = "Reset Kata Sandi — Aplikasi HR"
+    subject = "Reset Kata Sandi — CBN HRMS"
 
     html_body = f"""
     <!DOCTYPE html>
@@ -112,7 +112,7 @@ def send_reset_email(to_email: str, reset_token: str, user_name: str) -> bool:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = f"Aplikasi HR <{smtp_user}>"
+    msg["From"] = f"CBN HRMS <{smtp_user}>"
     msg["To"] = to_email
     msg["Reply-To"] = smtp_user
     msg["Date"] = formatdate(localtime=True)
