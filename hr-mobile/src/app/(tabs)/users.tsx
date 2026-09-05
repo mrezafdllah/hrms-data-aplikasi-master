@@ -30,6 +30,7 @@ export default function UsersScreen() {
 
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
@@ -165,6 +166,18 @@ export default function UsersScreen() {
 
   const isAdmin = currentUserRole === 'Super Admin' || currentUserRole === 'Admin HR';
 
+  const filteredUsers = users.filter((u: any) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    const name = (u.full_name || '').toLowerCase();
+    const email = (u.email || '').toLowerCase();
+    const empId = (u.employee_id || '').toLowerCase();
+    const pos = (u.position_name || '').toLowerCase();
+    const role = (u.role_name || '').toLowerCase();
+    const company = (u.company_name || '').toLowerCase();
+    return name.includes(q) || email.includes(q) || empId.includes(q) || pos.includes(q) || role.includes(q) || company.includes(q);
+  });
+
   const renderItem = ({ item }: { item: any }) => {
     const initials = item.full_name
       ? item.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -253,19 +266,41 @@ export default function UsersScreen() {
         )}
       </View>
 
+      {/* Filter / Search Bar Karyawan */}
+      <View style={styles.searchBarContainer}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={18} color="#9ca3af" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={isAdmin ? "Cari nama, ID, jabatan karyawan..." : "Cari rekan kerja..."}
+            placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={{ padding: 4 }}>
+              <Ionicons name="close-circle" size={18} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" color="#f97316" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
-          data={users}
+          data={filteredUsers}
           keyExtractor={(item: any) => item.id.toString()}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="people-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>Belum ada data user.</Text>
+              <Ionicons name={searchQuery ? "search-outline" : "people-outline"} size={48} color="#d1d5db" />
+              <Text style={styles.emptyText}>
+                {searchQuery ? `Tidak ada karyawan ditemukan untuk "${searchQuery}"` : 'Belum ada data user.'}
+              </Text>
             </View>
           }
         />
@@ -488,10 +523,34 @@ const styles = StyleSheet.create({
     color: '#1e2022',
   },
   headerSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
     color: '#9ca3af',
-    fontWeight: '600',
     marginTop: 2,
+  },
+  searchBarContainer: {
+    marginBottom: 16,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 10,
+    shadowColor: '#1e293b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1e293b',
+    padding: 0,
   },
   addBtn: {
     backgroundColor: '#f97316',

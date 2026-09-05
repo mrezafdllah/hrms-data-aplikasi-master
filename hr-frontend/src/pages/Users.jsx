@@ -24,6 +24,8 @@ const Users = () => {
 
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const currentRole = localStorage.getItem('role');
   const isAdmin = currentRole === 'Super Admin' || currentRole === 'Admin HR';
 
@@ -177,9 +179,23 @@ const Users = () => {
     ? positions.filter(p => p.company_id === activeCompanyId)
     : positions;
 
+  const filteredUsers = users.filter((u) => {
+    if (statusFilter !== 'ALL' && u.status !== statusFilter) return false;
+    const q = searchFilter.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      (u.full_name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.employee_id || '').toLowerCase().includes(q) ||
+      (u.position_name || '').toLowerCase().includes(q) ||
+      (u.role_name || '').toLowerCase().includes(q) ||
+      (u.company_name || '').toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">
             {isAdmin ? 'Manajemen User' : 'Direktori Rekan Kerja'}
@@ -188,11 +204,43 @@ const Users = () => {
             {isAdmin ? 'Kelola pengguna dan penugasan jabatan karyawan' : 'Daftar seluruh rekan kerja & kontak tim'}
           </p>
         </div>
-        {isAdmin && (
-          <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer">
-            + Tambah User
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-60">
+            <input
+              type="text"
+              placeholder={isAdmin ? "Cari nama, ID, jabatan..." : "Cari rekan kerja..."}
+              value={searchFilter}
+              onChange={e => setSearchFilter(e.target.value)}
+              className="w-full pl-8 pr-7 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 text-gray-700 transition-all placeholder:text-gray-400"
+            />
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+            {searchFilter && (
+              <button
+                type="button"
+                onClick={() => setSearchFilter('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {isAdmin && (
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 text-gray-700 font-semibold cursor-pointer"
+            >
+              <option value="ALL">Semua Status</option>
+              <option value="Active">Aktif</option>
+              <option value="Inactive">Nonaktif</option>
+            </select>
+          )}
+          {isAdmin && (
+            <button onClick={openAddModal} className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer whitespace-nowrap">
+              + Tambah User
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden">
@@ -211,7 +259,7 @@ const Users = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="p-4 text-orange-600 font-bold">{user.employee_id || `EMP-${user.id}`}</td>
                   <td className="p-4 font-bold text-gray-800">{user.full_name}</td>
@@ -250,8 +298,16 @@ const Users = () => {
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && !loading && (
-                <tr><td colSpan="8" className="p-8 text-center text-gray-400">Belum ada data user.</td></tr>
+              {filteredUsers.length === 0 && !loading && (
+                <tr>
+                  <td colSpan="8" className="p-8 text-center text-gray-400">
+                    <p className="font-semibold text-sm">
+                      {searchFilter || statusFilter !== 'ALL' 
+                        ? 'Tidak ada karyawan yang cocok dengan filter pencarian.' 
+                        : 'Belum ada data user.'}
+                    </p>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
