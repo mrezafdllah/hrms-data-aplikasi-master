@@ -26,7 +26,6 @@ const Users = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tableSearch, setTableSearch] = useState('');
   const [posSearchText, setPosSearchText] = useState('');
-  const [selectedDivFilter, setSelectedDivFilter] = useState('');
   const currentRole = localStorage.getItem('role');
   const isAdmin = currentRole === 'Super Admin' || currentRole === 'Admin HR';
 
@@ -106,7 +105,6 @@ const Users = () => {
 
   const handleEdit = (user) => {
     setPosSearchText('');
-    setSelectedDivFilter('');
     setFormData({
       employee_id: user.employee_id || '',
       company_id: user.company_id || '',
@@ -147,7 +145,6 @@ const Users = () => {
 
   const openAddModal = () => {
     setPosSearchText('');
-    setSelectedDivFilter('');
     const defaultCompanyId = currentRole === 'Admin HR' && currentUserProfile?.company_id 
       ? currentUserProfile.company_id.toString() 
       : '';
@@ -184,10 +181,7 @@ const Users = () => {
     ? positions.filter(p => p.company_id === activeCompanyId)
     : positions;
 
-  const uniqueDivisions = Array.from(new Set(filteredPositions.map(p => p.job_name).filter(Boolean)));
-
   const searchedPositions = filteredPositions.filter(p => {
-    if (selectedDivFilter && p.job_name !== selectedDivFilter) return false;
     const q = posSearchText.toLowerCase().trim();
     if (!q) return true;
     return (p.position_name || '').toLowerCase().includes(q) || (p.job_name || '').toLowerCase().includes(q);
@@ -349,7 +343,6 @@ const Users = () => {
                           newPositionId = '';
                         }
                       }
-                      setSelectedDivFilter('');
                       setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
                     }}>
                     <option value="">-- Pilih Perusahaan --</option>
@@ -359,84 +352,25 @@ const Users = () => {
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-gray-700 font-bold">Divisi & Jabatan</label>
-                  {filteredPositions.length > 0 && (
-                    <span className="text-[10px] text-gray-400 font-medium">
-                      {searchedPositions.length} dari {filteredPositions.length} opsi
-                    </span>
+                  <label className="block">Jabatan</label>
+                  {filteredPositions.length > 3 && (
+                    <span className="text-[10px] text-gray-400">Total {filteredPositions.length} jabatan</span>
                   )}
                 </div>
-
-                {/* Search & Division Filter Controls */}
-                <div className="space-y-2 mb-2 p-2.5 bg-gray-50/80 rounded-xl border border-gray-100">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="🔍 Cari nama divisi atau jabatan..."
-                      value={posSearchText}
-                      onChange={e => setPosSearchText(e.target.value)}
-                      className="w-full pl-3 pr-8 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-700 transition-all placeholder:text-gray-400"
-                    />
-                    {posSearchText && (
-                      <button 
-                        type="button" 
-                        onClick={() => setPosSearchText('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs px-1 font-bold"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-
-                  {uniqueDivisions.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1.5 max-h-24 overflow-y-auto">
-                      <span className="text-[10px] font-bold text-gray-400 mr-0.5">Divisi:</span>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedDivFilter('')}
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                          !selectedDivFilter 
-                            ? 'bg-orange-500 text-white shadow-sm' 
-                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
-                        }`}
-                      >
-                        Semua
-                      </button>
-                      {uniqueDivisions.map((div, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setSelectedDivFilter(selectedDivFilter === div ? '' : div)}
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                            selectedDivFilter === div 
-                              ? 'bg-orange-500 text-white shadow-sm' 
-                              : 'bg-white text-orange-700 border border-orange-200 hover:bg-orange-50'
-                          }`}
-                        >
-                          💼 {div}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <select 
-                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700 text-xs font-semibold" 
-                  value={formData.position_id} 
-                  onChange={e => setFormData({...formData, position_id: e.target.value})}
-                >
-                  <option value="">-- Pilih Divisi & Jabatan --</option>
-                  {searchedPositions.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.job_name ? `[Divisi: ${p.job_name}] ` : ''}{p.position_name} {p.company_name ? `(${p.company_name})` : ''}
-                    </option>
-                  ))}
-                </select>
-                {searchedPositions.length === 0 && (
-                  <p className="text-[10px] text-red-500 mt-1 font-medium">
-                    Tidak ditemukan divisi atau jabatan yang cocok.
-                  </p>
+                {filteredPositions.length > 3 && (
+                  <input
+                    type="text"
+                    placeholder="🔍 Ketik untuk filter jabatan..."
+                    value={posSearchText}
+                    onChange={e => setPosSearchText(e.target.value)}
+                    className="w-full mb-1.5 px-3 py-1.5 text-[11px] border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-orange-500 bg-gray-50 text-gray-700 transition-all"
+                  />
                 )}
+                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
+                  value={formData.position_id} onChange={e => setFormData({...formData, position_id: e.target.value})}>
+                  <option value="">-- Pilih Jabatan --</option>
+                  {searchedPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
+                </select>
               </div>
               <div>
                 <label className="block mb-1.5">Tanggal Bergabung</label>

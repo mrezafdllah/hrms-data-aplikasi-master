@@ -20,7 +20,6 @@ export default function UsersScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [positionSearch, setPositionSearch] = useState('');
   const [roleSearch, setRoleSearch] = useState('');
-  const [selectedDivisionFilter, setSelectedDivisionFilter] = useState('');
   
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -165,11 +164,8 @@ export default function UsersScreen() {
 
   const getPositionName = (posId: string) => {
     const p: any = positions.find((item: any) => item.id.toString() === posId);
-    if (!p) return 'Pilih Divisi & Jabatan...';
-    return p.job_name ? `${p.position_name} • Divisi: ${p.job_name}` : `${p.position_name} (${p.company_name || 'Perusahaan'})`;
+    return p ? `${p.position_name} (${p.company_name})` : 'Pilih Posisi...';
   };
-
-  const uniqueDivisions: string[] = Array.from(new Set(positions.map((p: any) => p.job_name).filter(Boolean)));
 
   const isAdmin = currentUserRole === 'Super Admin' || currentUserRole === 'Admin HR';
 
@@ -194,8 +190,6 @@ export default function UsersScreen() {
 
   const filteredModalPositions = positions.filter((p: any) => {
     const q = positionSearch.toLowerCase().trim();
-    const matchesDiv = !selectedDivisionFilter || p.job_name === selectedDivisionFilter;
-    if (!matchesDiv) return false;
     if (!q) return true;
     const posName = (p.position_name || '').toLowerCase();
     const compName = (p.company_name || '').toLowerCase();
@@ -416,18 +410,17 @@ export default function UsersScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Divisi & Jabatan</Text>
+                <Text style={styles.label}>Posisi / Jabatan</Text>
                 <TouchableOpacity 
                   activeOpacity={0.7} 
                   style={styles.selector} 
                   onPress={() => {
                     setPositionSearch('');
-                    setSelectedDivisionFilter('');
                     setPositionModalVisible(true);
                   }}
                 >
                   <Text style={styles.selectorText}>
-                    {formData.position_id ? getPositionName(formData.position_id) : 'Pilih Divisi & Jabatan...'}
+                    {formData.position_id ? getPositionName(formData.position_id) : 'Pilih Posisi / Jabatan...'}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#6b7280" />
                 </TouchableOpacity>
@@ -544,8 +537,8 @@ export default function UsersScreen() {
           <View style={styles.selectorContent}>
             <View style={styles.modalHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.modalTitle}>Pilih Divisi & Jabatan</Text>
-                <Text style={styles.modalSubtitle}>Cari sesuai nama divisi atau jabatan</Text>
+                <Text style={styles.modalTitle}>Pilih Posisi / Jabatan</Text>
+                <Text style={styles.modalSubtitle}>Ketik nama jabatan untuk mencari</Text>
               </View>
               <TouchableOpacity onPress={() => setPositionModalVisible(false)} style={styles.modalCloseBtn}>
                 <Ionicons name="close" size={20} color="#6b7280" />
@@ -557,7 +550,7 @@ export default function UsersScreen() {
               <Ionicons name="search-outline" size={18} color="#9ca3af" />
               <TextInput
                 style={styles.modalSearchInput}
-                placeholder="Cari divisi atau jabatan (contoh: IT, Manager)..."
+                placeholder="Cari jabatan, divisi, perusahaan..."
                 placeholderTextColor="#9ca3af"
                 value={positionSearch}
                 onChangeText={setPositionSearch}
@@ -569,38 +562,6 @@ export default function UsersScreen() {
                 </TouchableOpacity>
               )}
             </View>
-
-            {/* Division Filter Chips */}
-            {uniqueDivisions.length > 0 && (
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false} 
-                style={{ maxHeight: 38, marginBottom: 12 }} 
-                contentContainerStyle={{ gap: 6, paddingHorizontal: 2 }}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  style={[styles.divChip, !selectedDivisionFilter && styles.divChipActive]}
-                  onPress={() => setSelectedDivisionFilter('')}
-                >
-                  <Text style={[styles.divChipText, !selectedDivisionFilter && styles.divChipTextActive]}>
-                    Semua Divisi
-                  </Text>
-                </TouchableOpacity>
-                {uniqueDivisions.map((div, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    activeOpacity={0.7}
-                    style={[styles.divChip, selectedDivisionFilter === div && styles.divChipActive]}
-                    onPress={() => setSelectedDivisionFilter(selectedDivisionFilter === div ? '' : div)}
-                  >
-                    <Text style={[styles.divChipText, selectedDivisionFilter === div && styles.divChipTextActive]}>
-                      {div}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
 
             <FlatList
               data={filteredModalPositions}
@@ -618,19 +579,11 @@ export default function UsersScreen() {
                     }}
                   >
                     <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                        {item.job_name ? (
-                          <View style={styles.divisionBadge}>
-                            <Ionicons name="briefcase-outline" size={11} color="#ea580c" />
-                            <Text style={styles.divisionBadgeText}>{item.job_name}</Text>
-                          </View>
-                        ) : null}
-                        {item.company_name ? (
-                          <Text style={styles.selectorItemSubtext}>{item.company_name}</Text>
-                        ) : null}
-                      </View>
                       <Text style={[styles.selectorItemText, isSelected && styles.selectorItemTextSelected]}>
                         {item.position_name}
+                      </Text>
+                      <Text style={styles.selectorItemSubtext}>
+                        {item.job_name ? `${item.job_name} • ` : ''}{item.company_name || 'Perusahaan'}
                       </Text>
                     </View>
                     {isSelected && (
@@ -643,13 +596,11 @@ export default function UsersScreen() {
                 <View style={styles.emptySearchContainer}>
                   <Ionicons name="search-outline" size={28} color="#d1d5db" />
                   <Text style={styles.emptySearchText}>
-                    {positionSearch || selectedDivisionFilter 
-                      ? `Tidak ada jabatan pada "${positionSearch || selectedDivisionFilter}"` 
-                      : 'Belum ada data jabatan.'}
+                    {positionSearch ? `Jabatan "${positionSearch}" tidak ditemukan` : 'Belum ada data jabatan.'}
                   </Text>
                 </View>
               }
-              style={{ maxHeight: 300 }}
+              style={{ maxHeight: 320 }}
             />
           </View>
         </View>
@@ -1031,42 +982,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#9ca3af',
     textAlign: 'center',
-  },
-  divisionBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#fff7ed',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#fed7aa',
-  },
-  divisionBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#ea580c',
-  },
-  divChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 9999,
-    backgroundColor: '#f3f4f6',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  divChipActive: {
-    backgroundColor: '#f97316',
-    borderColor: '#f97316',
-  },
-  divChipText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  divChipTextActive: {
-    color: '#ffffff',
-    fontWeight: 'bold',
   },
 });
