@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
 import CustomAlert from '../../components/CustomAlert';
@@ -9,6 +10,8 @@ export default function UsersScreen() {
   const [roles, setRoles] = useState([]);
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   
   const [modalVisible, setModalVisible] = useState(false);
   const [roleModalVisible, setRoleModalVisible] = useState(false);
@@ -26,6 +29,7 @@ export default function UsersScreen() {
   });
 
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
@@ -38,8 +42,12 @@ export default function UsersScreen() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const storedRole = await AsyncStorage.getItem('role');
+      if (storedRole) setCurrentUserRole(storedRole);
+
       api.get('/profile').then(r => {
         if (r.data?.data?.email) setCurrentUserEmail(r.data.data.email);
+        if (r.data?.data?.role_name) setCurrentUserRole(r.data.data.role_name);
       }).catch(() => {});
 
       const [usersRes, rolesRes, positionsRes] = await Promise.all([
@@ -88,6 +96,7 @@ export default function UsersScreen() {
       delete (payload as any).hashed_password;
     }
 
+    setSubmitting(true);
     try {
       if (editingId) {
         await api.put(`/users/${editingId}`, payload);
@@ -102,6 +111,8 @@ export default function UsersScreen() {
       fetchData();
     } catch (error: any) {
       showAlert('error', 'Error', error.response?.data?.detail || 'Gagal menyimpan data.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -152,68 +163,94 @@ export default function UsersScreen() {
     return p ? `${p.position_name} (${p.company_name})` : 'Pilih Posisi...';
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View style={styles.card}>
-      <View style={styles.cardInfo}>
-        <View style={styles.headerRow}>
-          <Text style={styles.userName}>{item.full_name}</Text>
-          <Text style={[
-            styles.statusBadge, 
-            item.status === 'Active' ? styles.statusActive : styles.statusInactive
-          ]}>
-            {item.status === 'Active' ? 'Aktif' : 'Nonaktif'}
-          </Text>
-        </View>
-        <Text style={styles.userEmail}>{item.email}</Text>
-        
-        <View style={styles.metaContainer}>
-          <View style={styles.metaRow}>
-            <Ionicons name="card-outline" size={13} color="#f97316" />
-            <Text style={[styles.metaText, { color: '#f97316', fontWeight: 'bold' }]}>{item.employee_id || `EMP-${item.id}`}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Ionicons name="shield-checkmark-outline" size={13} color="#9ca3af" />
-            <Text style={styles.metaText}>{item.role_name || 'Tanpa Role'}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Ionicons name="git-branch-outline" size={13} color="#9ca3af" />
-            <Text style={styles.metaText}>{item.position_name || 'Tanpa Posisi'}</Text>
-          </View>
-          {item.company_name ? (
-            <View style={styles.metaRow}>
-              <Ionicons name="business-outline" size={13} color="#9ca3af" />
-              <Text style={styles.metaText}>{item.company_name}</Text>
+  const isAdmin = currentUserRole === 'Super Admin' || currentUserRole === 'Admin HR';
+
+  const renderItem = ({ item }: { item: any }) => {
+    const initials = item.full_name
+      ? item.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+      : 'U';
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardInfo}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <View style={styles.avatarInitial}>
+              <Text style={styles.avatarInitialText}>{initials}</Text>
             </View>
-          ) : null}
+            <View style={{ flex: 1 }}>
+              <View style={styles.headerRow}>
+                <Text style={styles.userName}>{item.full_name}</Text>
+                <Text style={[
+                  styles.statusBadge, 
+                  item.status === 'Active' ? styles.statusActive : styles.statusInactive
+                ]}>
+                  {item.status === 'Active' ? 'Aktif' : 'Nonaktif'}
+                </Text>
+              </View>
+              <Text style={styles.userEmail}>{item.email}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.metaContainer}>
+            <View style={styles.metaRow}>
+              <Ionicons name="card-outline" size={13} color="#f97316" />
+              <Text style={[styles.metaText, { color: '#f97316', fontWeight: 'bold' }]}>{item.employee_id || `EMP-${item.id}`}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Ionicons name="shield-checkmark-outline" size={13} color="#9ca3af" />
+              <Text style={styles.metaText}>{item.role_name || 'Tanpa Role'}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Ionicons name="git-branch-outline" size={13} color="#9ca3af" />
+              <Text style={styles.metaText}>{item.position_name || 'Tanpa Posisi'}</Text>
+            </View>
+            {item.company_name ? (
+              <View style={styles.metaRow}>
+                <Ionicons name="business-outline" size={13} color="#9ca3af" />
+                <Text style={styles.metaText}>{item.company_name}</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+        
+        <View style={styles.cardActions}>
+          {item.email === currentUserEmail ? (
+            <Text style={{ fontSize: 10, color: '#f97316', fontWeight: 'bold', backgroundColor: '#fff7ed', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+              👤 Anda
+            </Text>
+          ) : isAdmin ? (
+            <>
+              <TouchableOpacity activeOpacity={0.7} style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
+                <Ionicons name="create-outline" size={16} color="#f97316" />
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.7} style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+                <Ionicons name="trash-outline" size={16} color="#ef4444" />
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 10, borderWidth: 1, borderColor: '#f1f5f9' }}>
+              <Ionicons name="person-outline" size={14} color="#94a3b8" />
+            </View>
+          )}
         </View>
       </View>
-      
-      <View style={styles.cardActions}>
-        {item.email === currentUserEmail ? (
-          <Text style={{ fontSize: 10, color: '#f97316', fontWeight: 'bold', backgroundColor: '#fff7ed', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-            👤 Akun Anda
-          </Text>
-        ) : (
-          <>
-            <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
-              <Ionicons name="create-outline" size={16} color="#f97316" />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
-              <Ionicons name="trash-outline" size={16} color="#ef4444" />
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Manajemen User</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-          <Text style={styles.addBtnText}>+ Tambah</Text>
-        </TouchableOpacity>
+        <View>
+          <Text style={styles.title}>{isAdmin ? 'Manajemen User' : 'Rekan Kerja'}</Text>
+          <Text style={styles.headerSubtitle}>
+            {isAdmin ? 'Kelola pengguna dan hak akses' : 'Daftar seluruh rekan kerja & kontak tim'}
+          </Text>
+        </View>
+        {isAdmin && (
+          <TouchableOpacity activeOpacity={0.7} style={styles.addBtn} onPress={openAddModal}>
+            <Text style={styles.addBtnText}>+ Tambah</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading ? (
@@ -249,9 +286,11 @@ export default function UsersScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>ID Karyawan</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, focusedField === 'employee_id' && styles.inputFocused]}
                   value={formData.employee_id}
                   onChangeText={(text) => setFormData({ ...formData, employee_id: text })}
+                  onFocus={() => setFocusedField('employee_id')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="EMP-001"
                   placeholderTextColor="#9ca3af"
                 />
@@ -260,9 +299,11 @@ export default function UsersScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Nama Lengkap</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, focusedField === 'full_name' && styles.inputFocused]}
                   value={formData.full_name}
                   onChangeText={(text) => setFormData({ ...formData, full_name: text })}
+                  onFocus={() => setFocusedField('full_name')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="Nama Lengkap"
                   placeholderTextColor="#9ca3af"
                 />
@@ -271,9 +312,11 @@ export default function UsersScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Email</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, focusedField === 'email' && styles.inputFocused]}
                   value={formData.email}
                   onChangeText={(text) => setFormData({ ...formData, email: text })}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="name@company.com"
                   placeholderTextColor="#9ca3af"
                   keyboardType="email-address"
@@ -285,9 +328,11 @@ export default function UsersScreen() {
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>Password</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, focusedField === 'hashed_password' && styles.inputFocused]}
                     value={formData.hashed_password}
                     onChangeText={(text) => setFormData({ ...formData, hashed_password: text })}
+                    onFocus={() => setFocusedField('hashed_password')}
+                    onBlur={() => setFocusedField(null)}
                     placeholder="Minimal 6 karakter"
                     placeholderTextColor="#9ca3af"
                     secureTextEntry
@@ -297,7 +342,7 @@ export default function UsersScreen() {
 
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Role</Text>
-                <TouchableOpacity style={styles.selector} onPress={() => setRoleModalVisible(true)}>
+                <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setRoleModalVisible(true)}>
                   <Text style={styles.selectorText}>
                     {formData.role_id ? getRoleName(formData.role_id) : 'Pilih Role...'}
                   </Text>
@@ -307,7 +352,7 @@ export default function UsersScreen() {
 
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Posisi / Jabatan</Text>
-                <TouchableOpacity style={styles.selector} onPress={() => setPositionModalVisible(true)}>
+                <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setPositionModalVisible(true)}>
                   <Text style={styles.selectorText}>
                     {formData.position_id ? getPositionName(formData.position_id) : 'Pilih Posisi / Jabatan...'}
                   </Text>
@@ -319,12 +364,14 @@ export default function UsersScreen() {
                 <Text style={styles.label}>Status</Text>
                 <View style={styles.statusOptions}>
                   <TouchableOpacity 
+                    activeOpacity={0.7}
                     style={[styles.statusOption, formData.status === 'Active' && styles.statusOptionActive]}
                     onPress={() => setFormData({ ...formData, status: 'Active' })}
                   >
                     <Text style={[styles.statusOptionText, formData.status === 'Active' && styles.statusOptionTextActive]}>Active</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
+                    activeOpacity={0.7}
                     style={[styles.statusOption, formData.status === 'Inactive' && styles.statusOptionActiveRed]}
                     onPress={() => setFormData({ ...formData, status: 'Inactive' })}
                   >
@@ -334,8 +381,17 @@ export default function UsersScreen() {
               </View>
             </ScrollView>
 
-            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Text style={styles.submitBtnText}>Simpan</Text>
+            <TouchableOpacity 
+              activeOpacity={0.7} 
+              style={[styles.submitBtn, submitting && { opacity: 0.7 }]} 
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={styles.submitBtnText}>Simpan</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -431,6 +487,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1e2022',
   },
+  headerSubtitle: {
+    fontSize: 11,
+    color: '#9ca3af',
+    fontWeight: '600',
+    marginTop: 2,
+  },
   addBtn: {
     backgroundColor: '#f97316',
     paddingHorizontal: 16,
@@ -447,19 +509,34 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 22,
     padding: 16,
-    marginBottom: 15,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
+    borderColor: '#f1f5f9',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.01,
-    shadowRadius: 10,
-    elevation: 1,
+    shadowColor: '#1e293b',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  avatarInitial: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitialText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#f97316',
   },
   cardInfo: {
     flex: 1,
@@ -597,6 +674,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     color: '#1f2937',
+  },
+  inputFocused: {
+    borderColor: '#f97316',
+    borderWidth: 1.5,
   },
   statusOptions: {
     flexDirection: 'row',

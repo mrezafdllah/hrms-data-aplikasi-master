@@ -8,6 +8,8 @@ import CustomAlert from '../../components/CustomAlert';
 export default function CompaniesScreen() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -59,6 +61,7 @@ export default function CompaniesScreen() {
   };
 
   const executeSubmit = async () => {
+    setSubmitting(true);
     try {
       if (editingId) {
         await api.put(`/companies/${editingId}`, formData);
@@ -73,6 +76,8 @@ export default function CompaniesScreen() {
       fetchCompanies();
     } catch (error) {
       showAlert('error', 'Error', 'Gagal menyimpan data.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -197,9 +202,11 @@ export default function CompaniesScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Nama Perusahaan</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, focusedField === 'company_name' && styles.inputFocused]}
                   value={formData.company_name}
                   onChangeText={(text) => setFormData({ ...formData, company_name: text })}
+                  onFocus={() => setFocusedField('company_name')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="Contoh: PT Blitz Nusantara"
                   placeholderTextColor="#9ca3af"
                 />
@@ -208,9 +215,11 @@ export default function CompaniesScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Email</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, focusedField === 'email' && styles.inputFocused]}
                   value={formData.email}
                   onChangeText={(text) => setFormData({ ...formData, email: text })}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="info@perusahaan.com"
                   placeholderTextColor="#9ca3af"
                   keyboardType="email-address"
@@ -221,9 +230,11 @@ export default function CompaniesScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Nomor Telepon</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, focusedField === 'phone' && styles.inputFocused]}
                   value={formData.phone}
                   onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                  onFocus={() => setFocusedField('phone')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="021-xxxxxxxx"
                   placeholderTextColor="#9ca3af"
                   keyboardType="phone-pad"
@@ -233,9 +244,11 @@ export default function CompaniesScreen() {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Alamat Lengkap</Text>
                 <TextInput
-                  style={[styles.input, styles.textArea]}
+                  style={[styles.input, styles.textArea, focusedField === 'address' && styles.inputFocused]}
                   value={formData.address}
                   onChangeText={(text) => setFormData({ ...formData, address: text })}
+                  onFocus={() => setFocusedField('address')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="Tulis alamat kantor pusat..."
                   placeholderTextColor="#9ca3af"
                   multiline
@@ -244,8 +257,17 @@ export default function CompaniesScreen() {
               </View>
             </ScrollView>
 
-            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Text style={styles.submitBtnText}>Simpan</Text>
+            <TouchableOpacity 
+              activeOpacity={0.7} 
+              style={[styles.submitBtn, submitting && { opacity: 0.7 }]} 
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={styles.submitBtnText}>Simpan</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -296,14 +318,19 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 15,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
+    borderColor: '#f1f5f9',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    shadowColor: '#1e293b',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardInfo: {
     flex: 1,
@@ -419,6 +446,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     color: '#1f2937',
+  },
+  inputFocused: {
+    borderColor: '#f97316',
+    borderWidth: 1.5,
   },
   textArea: {
     height: 80,

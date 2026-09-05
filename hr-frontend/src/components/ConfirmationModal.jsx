@@ -66,7 +66,7 @@ const ConfirmationModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer w-full"
+              className="bg-red-50/80 hover:bg-red-100 active:scale-95 text-red-600 border border-red-200 font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer w-full"
             >
               {displayCancelText}
             </button>
@@ -77,7 +77,7 @@ const ConfirmationModal = ({
               if (onConfirm) onConfirm();
               onClose();
             }}
-            className={`text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition-colors cursor-pointer w-full ${theme.confirmBtn}`}
+            className={`text-white font-bold text-xs py-2.5 rounded-xl shadow-md active:scale-95 transition-all cursor-pointer w-full ${theme.confirmBtn}`}
           >
             {displayConfirmText}
           </button>

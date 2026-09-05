@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../utils/api';
 import CustomAlert from '../../components/CustomAlert';
@@ -8,6 +9,10 @@ export default function JobsScreen() {
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [companyModalVisible, setCompanyModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -25,6 +30,9 @@ export default function JobsScreen() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const storedRole = await AsyncStorage.getItem('role');
+      if (storedRole) setUserRole(storedRole);
+
       const [jobsRes, compsRes] = await Promise.all([
         api.get('/jobs'),
         api.get('/companies')
@@ -58,12 +66,15 @@ export default function JobsScreen() {
     );
   };
 
+  const isAdmin = userRole === 'Super Admin' || userRole === 'Admin HR';
+
   const executeSubmit = async () => {
     const payload = {
       ...formData,
       company_id: parseInt(formData.company_id)
     };
 
+    setSubmitting(true);
     try {
       if (editingId) {
         await api.put(`/jobs/${editingId}`, payload);
@@ -78,6 +89,8 @@ export default function JobsScreen() {
       fetchData();
     } catch (error) {
       showAlert('error', 'Error', 'Gagal menyimpan data.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -129,12 +142,20 @@ export default function JobsScreen() {
         <Text style={styles.jobDesc}>{item.description || '-'}</Text>
       </View>
       <View style={styles.cardActions}>
-        <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
-          <Ionicons name="create-outline" size={16} color="#f97316" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
-          <Ionicons name="trash-outline" size={16} color="#ef4444" />
-        </TouchableOpacity>
+        {isAdmin ? (
+          <>
+            <TouchableOpacity activeOpacity={0.7} style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
+              <Ionicons name="create-outline" size={16} color="#f97316" />
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.7} style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+              <Ionicons name="trash-outline" size={16} color="#ef4444" />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#f1f5f9' }}>
+            <Text style={{ fontSize: 10, color: '#94a3b8', fontWeight: '600' }}>Divisi</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -142,10 +163,17 @@ export default function JobsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Daftar Divisi</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-          <Text style={styles.addBtnText}>+ Tambah</Text>
-        </TouchableOpacity>
+        <View>
+          <Text style={styles.title}>Daftar Divisi</Text>
+          <Text style={{ fontSize: 11, color: '#9ca3af', fontWeight: '600', marginTop: 2 }}>
+            {isAdmin ? 'Kelola struktur divisi perusahaan' : 'Daftar divisi aktif di perusahaan'}
+          </Text>
+        </View>
+        {isAdmin && (
+          <TouchableOpacity activeOpacity={0.7} style={styles.addBtn} onPress={openAddModal}>
+            <Text style={styles.addBtnText}>+ Tambah</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading ? (
@@ -166,7 +194,7 @@ export default function JobsScreen() {
         />
       )}
 
-      {/* Main Add/Edit Modal */}
+      {/* Add/Edit Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -179,7 +207,7 @@ export default function JobsScreen() {
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Perusahaan</Text>
-              <TouchableOpacity style={styles.selector} onPress={() => setCompanyModalVisible(true)}>
+              <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setCompanyModalVisible(true)}>
                 <Text style={styles.selectorText}>
                   {formData.company_id ? getCompanyName(formData.company_id) : 'Pilih Perusahaan...'}
                 </Text>
@@ -190,9 +218,11 @@ export default function JobsScreen() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Nama Divisi</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, focusedField === 'job_name' && styles.inputFocused]}
                 value={formData.job_name}
                 onChangeText={(text) => setFormData({ ...formData, job_name: text })}
+                onFocus={() => setFocusedField('job_name')}
+                onBlur={() => setFocusedField(null)}
                 placeholder="Contoh: Engineering, Product Design, Finance"
                 placeholderTextColor="#9ca3af"
               />
@@ -201,18 +231,29 @@ export default function JobsScreen() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Deskripsi</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, styles.textArea, focusedField === 'description' && styles.inputFocused]}
                 value={formData.description}
                 onChangeText={(text) => setFormData({ ...formData, description: text })}
-                placeholder="Deskripsi peran dan persyaratan..."
+                onFocus={() => setFocusedField('description')}
+                onBlur={() => setFocusedField(null)}
+                placeholder="Deskripsi peran dan tugas divisi..."
                 placeholderTextColor="#9ca3af"
                 multiline
                 numberOfLines={3}
               />
             </View>
 
-            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Text style={styles.submitBtnText}>Simpan</Text>
+            <TouchableOpacity 
+              activeOpacity={0.7} 
+              style={[styles.submitBtn, submitting && { opacity: 0.7 }]} 
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={styles.submitBtnText}>Simpan</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -295,19 +336,19 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 15,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
+    borderColor: '#f1f5f9',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.01,
-    shadowRadius: 10,
-    elevation: 1,
+    shadowColor: '#1e293b',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardInfo: {
     flex: 1,
@@ -424,6 +465,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     color: '#1f2937',
+  },
+  inputFocused: {
+    borderColor: '#f97316',
+    borderWidth: 1.5,
   },
   textArea: {
     height: 80,

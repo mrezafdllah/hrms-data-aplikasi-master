@@ -8,6 +8,8 @@ import CustomAlert from '../../components/CustomAlert';
 export default function RolesScreen() {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -59,6 +61,7 @@ export default function RolesScreen() {
   };
 
   const executeSubmit = async () => {
+    setSubmitting(true);
     try {
       if (editingId) {
         await api.put(`/roles/${editingId}`, formData);
@@ -73,6 +76,8 @@ export default function RolesScreen() {
       fetchRoles();
     } catch (error) {
       showAlert('error', 'Error', 'Gagal menyimpan data.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -125,10 +130,10 @@ export default function RolesScreen() {
               </Text>
             ) : (
               <>
-                <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
+                <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} activeOpacity={0.7} onPress={() => handleEdit(item)}>
                   <Ionicons name="create-outline" size={16} color="#f97316" />
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+                <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} activeOpacity={0.7} onPress={() => handleDelete(item.id)}>
                   <Ionicons name="trash-outline" size={16} color="#ef4444" />
                 </TouchableOpacity>
               </>
@@ -146,8 +151,9 @@ export default function RolesScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Manajemen Role</Text>
         {userRole === 'Super Admin' && (
-          <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-            <Text style={styles.addBtnText}>+ Tambah</Text>
+          <TouchableOpacity style={styles.addBtn} activeOpacity={0.8} onPress={openAddModal}>
+            <Ionicons name="add" size={16} color="#ffffff" style={{ marginRight: 4 }} />
+            <Text style={styles.addBtnText}>Tambah Role</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -184,7 +190,9 @@ export default function RolesScreen() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Nama Role</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, focusedField === 'role_name' && styles.inputFocused]}
+                onFocus={() => setFocusedField('role_name')}
+                onBlur={() => setFocusedField(null)}
                 value={formData.role_name}
                 onChangeText={(text) => setFormData({ ...formData, role_name: text })}
                 placeholder="Contoh: Super Admin, Karyawan"
@@ -195,7 +203,9 @@ export default function RolesScreen() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Deskripsi</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, styles.textArea, focusedField === 'description' && styles.inputFocused]}
+                onFocus={() => setFocusedField('description')}
+                onBlur={() => setFocusedField(null)}
                 value={formData.description}
                 onChangeText={(text) => setFormData({ ...formData, description: text })}
                 placeholder="Deskripsi tugas dan wewenang role..."
@@ -205,8 +215,17 @@ export default function RolesScreen() {
               />
             </View>
 
-            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Text style={styles.submitBtnText}>Simpan</Text>
+            <TouchableOpacity 
+              style={[styles.submitBtn, submitting && { opacity: 0.8 }]} 
+              onPress={handleSubmit}
+              activeOpacity={0.8}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={styles.submitBtnText}>Simpan</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -368,6 +387,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#1f2937',
   },
+  inputFocused: {
+    borderColor: '#f97316',
+    backgroundColor: '#fffbf7',
+  },
   textArea: {
     height: 80,
     textAlignVertical: 'top',
@@ -377,9 +400,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 9999,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#f97316',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 3,
     marginTop: 10,

@@ -119,6 +119,11 @@ const Dashboard = () => {
     priority: 'Medium',
     audience: 'All Departments'
   });
+
+  // Submit Loading States
+  const [isSubmittingSchedule, setIsSubmittingSchedule] = useState(false);
+  const [isSubmittingNotice, setIsSubmittingNotice] = useState(false);
+
   const [confirmModal, setConfirmModal] = useState({
     show: false,
     title: '',
@@ -268,6 +273,7 @@ const Dashboard = () => {
 
   const handleScheduleSubmit = (e) => {
     e.preventDefault();
+    setIsSubmittingSchedule(true);
     const url = editingScheduleId 
       ? `/api/schedules/${editingScheduleId}`
       : '/api/schedules';
@@ -291,7 +297,8 @@ const Dashboard = () => {
           alert('Gagal menyimpan jadwal: ' + data.detail);
         }
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error(err))
+      .finally(() => setIsSubmittingSchedule(false));
   };
 
   // Notice CRUD functions
@@ -346,6 +353,7 @@ const Dashboard = () => {
 
   const handleNoticeSubmit = (e) => {
     e.preventDefault();
+    setIsSubmittingNotice(true);
     const url = editingNoticeId 
       ? `/api/notices/${editingNoticeId}`
       : '/api/notices';
@@ -364,7 +372,8 @@ const Dashboard = () => {
           alert('Gagal menyimpan pengumuman: ' + data.detail);
         }
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error(err))
+      .finally(() => setIsSubmittingNotice(false));
   };
 
   const formatImageUrl = (url) => {
@@ -590,16 +599,16 @@ const Dashboard = () => {
                         {sch.start_time} - {sch.end_time} • {sch.user_name || 'Semua'}
                       </span>
                     </div>
-                    {isAdmin && (
-                      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEditSchedule(sch)} className="p-1 hover:text-orange-600 text-gray-400 cursor-pointer">
-                          <Edit2 size={12} />
-                        </button>
-                        <button onClick={() => handleDeleteSchedule(sch.id)} className="p-1 hover:text-red-500 text-gray-400 cursor-pointer">
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    )}
+                      {isAdmin && (
+                        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEditSchedule(sch)} className="p-1 hover:text-orange-600 text-gray-400 cursor-pointer active:scale-90 transition-transform">
+                            <Edit2 size={12} />
+                          </button>
+                          <button onClick={() => handleDeleteSchedule(sch.id)} className="p-1 hover:text-red-500 text-gray-400 cursor-pointer active:scale-90 transition-transform">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      )}
                   </div>
                 </div>
               ))
@@ -780,20 +789,22 @@ const Dashboard = () => {
                   </label>
                   <input
                     type="time"
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, start_time: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                    value={scheduleForm.end_time}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, end_time: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white transition-all"
+                    required
                   />
                 </div>
               </div>
 
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                  {t.scheduleType}
+                  {t.scheduleType || 'Tipe Jadwal'}
                 </label>
                 <select
-                  value={scheduleForm.schedule_type}
+                  value={scheduleForm.schedule_type || 'Meeting'}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, schedule_type: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white transition-all"
                 >
                   <option value="Meeting">Meeting</option>
                   <option value="Shift">Shift Kerja</option>
@@ -804,14 +815,14 @@ const Dashboard = () => {
 
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                  {t.locationNotes}
+                  {t.locationNotes || 'Catatan Lokasi'}
                 </label>
                 <input
                   type="text"
                   placeholder="Contoh: Ruang Rapat Lt. 2 / Zoom Link"
-                  value={scheduleForm.notes}
+                  value={scheduleForm.notes || ''}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                  className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white transition-all"
                 />
               </div>
 
@@ -819,15 +830,25 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setShowScheduleModal(false)}
-                  className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold py-2 px-4 rounded-xl transition-all cursor-pointer"
+                  className="bg-red-50/80 hover:bg-red-100 active:scale-95 text-red-600 border border-red-200 font-bold py-2 px-4 rounded-xl transition-all cursor-pointer"
                 >
                   {t.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1 shadow-md shadow-orange-500/20 cursor-pointer transition-all"
+                  disabled={isSubmittingSchedule}
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Check size={14} /> {t.save}
+                  {isSubmittingSchedule ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} /> {t.save}
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -881,15 +902,25 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setShowNoticeModal(false)}
-                  className="bg-red-50/80 hover:bg-red-100 text-red-600 border border-red-200 font-bold py-2 px-4 rounded-xl transition-all cursor-pointer"
+                  className="bg-red-50/80 hover:bg-red-100 active:scale-95 text-red-600 border border-red-200 font-bold py-2 px-4 rounded-xl transition-all cursor-pointer"
                 >
                   {t.cancel}
                 </button>
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1 shadow-md shadow-orange-500/20 cursor-pointer transition-all"
+                  disabled={isSubmittingNotice}
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-md shadow-orange-500/20 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Check size={14} /> {t.save}
+                  {isSubmittingNotice ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} /> {t.save}
+                    </>
+                  )}
                 </button>
               </div>
             </form>

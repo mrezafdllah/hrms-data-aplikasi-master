@@ -1,8 +1,17 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabLayout() {
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem('role').then((r) => setRole(r));
+  }, []);
+
+  const isEmployee = role === 'Karyawan';
+
   return (
     <Tabs 
       screenOptions={{ 
@@ -49,7 +58,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="users"
         options={{
-          title: 'Karyawan',
+          title: isEmployee ? 'Rekan Kerja' : 'Karyawan',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'people' : 'people-outline'} size={22} color={color} />

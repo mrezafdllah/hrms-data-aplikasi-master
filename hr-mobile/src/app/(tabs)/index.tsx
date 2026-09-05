@@ -255,53 +255,92 @@ export default function DashboardScreen() {
 
       {/* 2. HR PORTAL MANAGEMENT MENU GRID */}
       <View style={styles.menuGridContainer}>
-        <Text style={styles.menuGridTitle}>{t.hrManagement}</Text>
+        <Text style={styles.menuGridTitle}>{role === 'Karyawan' ? 'Menu Akses Cepat' : 'Manajemen HR Portal'}</Text>
         <View style={styles.menuGrid}>
           {role === 'Karyawan' ? (
-            <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/profile')}>
-              <View style={[styles.menuIconContainer, { backgroundColor: '#fff7ed' }]}>
-                <Ionicons name="person" size={22} color="#f97316" />
-              </View>
-              <Text style={styles.menuItemLabel}>Profil Saya</Text>
-            </TouchableOpacity>
-          ) : (
             <>
-              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/roles')}>
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/profile')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fff7ed' }]}>
-                  <Ionicons name="shield-checkmark" size={22} color="#f97316" />
+                  <Ionicons name="person" size={22} color="#f97316" />
                 </View>
-                <Text style={styles.menuItemLabel}>Peran</Text>
+                <Text style={styles.menuItemLabel}>Profil Saya</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/companies')}>
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/users')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#eff6ff' }]}>
-                  <Ionicons name="business" size={22} color="#3b82f6" />
+                  <Ionicons name="people" size={22} color="#3b82f6" />
                 </View>
-                <Text style={styles.menuItemLabel}>Perusahaan</Text>
+                <Text style={styles.menuItemLabel}>Rekan Kerja</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/jobs')}>
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/jobs')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdf4' }]}>
                   <Ionicons name="briefcase" size={22} color="#10b981" />
                 </View>
                 <Text style={styles.menuItemLabel}>Divisi</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/positions')}>
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/positions')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fffbeb' }]}>
                   <Ionicons name="git-branch" size={22} color="#d97706" />
                 </View>
                 <Text style={styles.menuItemLabel}>Jabatan</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/users')}>
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/companies')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#f5f3ff' }]}>
+                  <Ionicons name="business" size={22} color="#8b5cf6" />
+                </View>
+                <Text style={styles.menuItemLabel}>Perusahaan</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/profile')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#ecfdf5' }]}>
+                  <Ionicons name="shield-checkmark" size={22} color="#059669" />
+                </View>
+                <Text style={styles.menuItemLabel}>Keamanan</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              {role === 'Super Admin' && (
+                <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/roles')}>
+                  <View style={[styles.menuIconContainer, { backgroundColor: '#fff7ed' }]}>
+                    <Ionicons name="shield-checkmark" size={22} color="#f97316" />
+                  </View>
+                  <Text style={styles.menuItemLabel}>Peran</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/companies')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#eff6ff' }]}>
+                  <Ionicons name="business" size={22} color="#3b82f6" />
+                </View>
+                <Text style={styles.menuItemLabel}>Perusahaan</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/jobs')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdf4' }]}>
+                  <Ionicons name="briefcase" size={22} color="#10b981" />
+                </View>
+                <Text style={styles.menuItemLabel}>Divisi</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/positions')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#fffbeb' }]}>
+                  <Ionicons name="git-branch" size={22} color="#d97706" />
+                </View>
+                <Text style={styles.menuItemLabel}>Jabatan</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/users')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#fff1f2' }]}>
                   <Ionicons name="people" size={22} color="#f43f5e" />
                 </View>
                 <Text style={styles.menuItemLabel}>Karyawan</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={menuItemStyle} onPress={() => router.push('/profile')}>
+              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/profile')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdfa' }]}>
                   <Ionicons name="person" size={22} color="#0d9488" />
                 </View>
@@ -673,30 +712,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#f1f5f9',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
+    borderRadius: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0f172a',
+    shadowColor: '#1e293b',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
     elevation: 2,
   },
   menuIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 1,
   },
   menuItemLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#1e293b',
+    fontWeight: '700',
+    color: '#334155',
     textAlign: 'center',
+    letterSpacing: -0.2,
   },
   // Chart Card
   chartCard: {
@@ -772,7 +817,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
+    borderColor: '#f1f5f9',
+    shadowColor: '#1e293b',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   metricTitle: {
     fontSize: 10,
@@ -803,8 +853,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
+    borderColor: '#f1f5f9',
     marginBottom: 20,
+    shadowColor: '#1e293b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
   },
   scheduleList: {
     gap: 12,
@@ -812,12 +867,17 @@ const styles = StyleSheet.create({
   },
   scheduleItem: {
     flexDirection: 'row',
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#f3f4f6',
-    borderRadius: 16,
-    padding: 12,
+    borderColor: '#f1f5f9',
+    borderRadius: 18,
+    padding: 14,
     gap: 12,
+    shadowColor: '#1e293b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
   },
   timeWrapper: {
     alignItems: 'center',
