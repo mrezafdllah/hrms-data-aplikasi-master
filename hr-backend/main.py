@@ -232,9 +232,12 @@ def login(req: LoginRequest):
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute("""
-            SELECT u.*, r.role_name 
+            SELECT u.*, r.role_name, j.company_id, c.company_name 
             FROM users u 
             LEFT JOIN roles r ON u.role_id = r.id 
+            LEFT JOIN positions p ON u.position_id = p.id
+            LEFT JOIN jobs j ON p.job_id = j.id
+            LEFT JOIN companies c ON j.company_id = c.id
             WHERE u.email = %s;
         """, (req.email,))
         user = cursor.fetchone()
@@ -253,7 +256,9 @@ def login(req: LoginRequest):
             "token_type": "bearer", 
             "role": role_name, 
             "name": user['full_name'],
-            "user_id": user['id']
+            "user_id": user['id'],
+            "company_id": user.get('company_id'),
+            "company_name": user.get('company_name')
         }
     finally:
         cursor.close()
@@ -400,7 +405,7 @@ def get_my_profile(current_user: dict = Depends(get_current_user)):
                    COALESCE(u.joined_date, u.created_at::date) as joined_date,
                    u.birth_place, u.birth_date, u.address, u.profile_picture, u.position_id,
                    r.role_name, c.company_name, p.position_name,
-                   j.job_name
+                   j.job_name, j.company_id
             FROM users u 
             LEFT JOIN roles r ON u.role_id = r.id 
             LEFT JOIN positions p ON u.position_id = p.id 

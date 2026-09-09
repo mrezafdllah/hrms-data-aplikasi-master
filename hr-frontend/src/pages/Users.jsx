@@ -24,6 +24,7 @@ const Users = () => {
 
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [searchFilter, setSearchFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const currentRole = localStorage.getItem('role');
@@ -49,8 +50,41 @@ const Users = () => {
 
   useEffect(() => { fetchUsers(); fetchDropdowns(); }, []);
 
+  const validateForm = () => {
+    const errs = {};
+    if (!formData.full_name || !formData.full_name.trim()) {
+      errs.full_name = 'Nama lengkap wajib diisi.';
+    }
+    if (!formData.email || !formData.email.trim()) {
+      errs.email = 'Email wajib diisi.';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        errs.email = 'Format email tidak valid (contoh: nama@domain.com).';
+      }
+    }
+    if (!editingId) {
+      if (!formData.hashed_password) {
+        errs.hashed_password = 'Password wajib diisi untuk karyawan baru.';
+      } else if (formData.hashed_password.length < 6) {
+        errs.hashed_password = 'Password minimal harus 6 karakter.';
+      }
+    }
+    if (currentRole === 'Super Admin' && !formData.company_id) {
+      errs.company_id = 'Pilih unit perusahaan.';
+    }
+    if (!formData.position_id) {
+      errs.position_id = 'Pilih jabatan (posisi) karyawan.';
+    }
+    setFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
     setConfirmModal({
       show: true,
       title: editingId ? 'Konfirmasi Edit Karyawan' : 'Konfirmasi Tambah Karyawan',
@@ -104,6 +138,7 @@ const Users = () => {
   };
 
   const handleEdit = (user) => {
+    setFormErrors({});
     setFormData({
       employee_id: user.employee_id || '',
       company_id: user.company_id || '',
@@ -143,6 +178,7 @@ const Users = () => {
   };
 
   const openAddModal = () => {
+    setFormErrors({});
     const defaultCompanyId = currentRole === 'Admin HR' && currentUserProfile?.company_id 
       ? currentUserProfile.company_id.toString() 
       : '';
@@ -316,99 +352,217 @@ const Users = () => {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in p-4">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl border border-gray-100 animate-slide-up">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">{editingId ? "Edit User" : "Tambah User"}</h2>
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl border border-gray-100 animate-slide-up">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
               <div>
-                <label className="block mb-1.5">ID Karyawan</label>
-                <input type="text" placeholder="Contoh: EMP-001" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                  value={formData.employee_id} onChange={e => setFormData({...formData, employee_id: e.target.value})} />
+                <h2 className="text-lg font-bold text-gray-800">{editingId ? "Edit Karyawan" : "Tambah Karyawan Baru"}</h2>
+                <p className="text-gray-400 text-xs mt-0.5">Lengkapi data akun dan detail penempatan karyawan</p>
               </div>
-              <div>
-                <label className="block mb-1.5">Nama Lengkap</label>
-                <input type="text" placeholder="Nama lengkap" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                  value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} />
-              </div>
-              <div>
-                <label className="block mb-1.5">Email</label>
-                <input type="email" placeholder="Email" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                  value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-              </div>
-              {!editingId && (
+              <button 
+                type="button" 
+                onClick={() => setShowModal(false)} 
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 font-bold transition-colors cursor-pointer text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {Object.keys(formErrors).length > 0 && (
+              <div className="p-3 mb-3 bg-red-50/90 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2.5">
+                <span className="text-base">⚠️</span>
                 <div>
-                  <label className="block mb-1.5">Password</label>
-                  <input type="password" placeholder="Password" required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                    value={formData.hashed_password} onChange={e => setFormData({...formData, hashed_password: e.target.value})} />
+                  <p className="font-bold">Form belum lengkap atau ada data yang tidak valid</p>
+                  <p className="text-[11px] text-red-600 font-normal">Mohon lengkapi dan periksa kolom yang ditandai merah di bawah.</p>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-3.5 text-xs font-semibold text-gray-500">
+              {/* Kolom 1: Akun & Identitas */}
+              <div>
+                <label className="block mb-1 text-gray-700">ID Karyawan <span className="text-gray-400 font-normal text-[10px]">(Opsional)</span></label>
+                <input 
+                  type="text" 
+                  placeholder="Contoh: EMP-001" 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 text-xs" 
+                  value={formData.employee_id} 
+                  onChange={e => setFormData({...formData, employee_id: e.target.value})} 
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-gray-700">Nama Lengkap <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  placeholder="Nama lengkap karyawan" 
+                  className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.full_name ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                  value={formData.full_name} 
+                  onChange={e => { 
+                    setFormData({...formData, full_name: e.target.value}); 
+                    if (formErrors.full_name) setFormErrors(prev => ({...prev, full_name: ''})); 
+                  }} 
+                />
+                {formErrors.full_name && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.full_name}</p>}
+              </div>
+
+              <div>
+                <label className="block mb-1 text-gray-700">Email <span className="text-red-500">*</span></label>
+                <input 
+                  type="email" 
+                  placeholder="nama@perusahaan.com" 
+                  className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.email ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                  value={formData.email} 
+                  onChange={e => { 
+                    setFormData({...formData, email: e.target.value}); 
+                    if (formErrors.email) setFormErrors(prev => ({...prev, email: ''})); 
+                  }} 
+                />
+                {formErrors.email && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.email}</p>}
+              </div>
+
+              {!editingId ? (
+                <div>
+                  <label className="block mb-1 text-gray-700">Password <span className="text-red-500">*</span></label>
+                  <input 
+                    type="password" 
+                    placeholder="Minimal 6 karakter" 
+                    className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.hashed_password ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                    value={formData.hashed_password} 
+                    onChange={e => { 
+                      setFormData({...formData, hashed_password: e.target.value}); 
+                      if (formErrors.hashed_password) setFormErrors(prev => ({...prev, hashed_password: ''})); 
+                    }} 
+                  />
+                  {formErrors.hashed_password && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.hashed_password}</p>}
+                </div>
+              ) : (
+                <div>
+                  <label className="block mb-1 text-gray-700">Password</label>
+                  <input 
+                    type="text" 
+                    readOnly 
+                    disabled 
+                    value="•••••••• (Tidak diubah)" 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-400 cursor-not-allowed text-xs" 
+                  />
                 </div>
               )}
+
+              {/* Kolom 2: Peran, Penempatan & Status */}
               <div>
-                <label className="block mb-1.5">Peran (Role)</label>
+                <label className="block mb-1 text-gray-700">Peran (Role)</label>
                 {currentRole === 'Admin HR' ? (
-                  <input type="text" readOnly disabled value="Karyawan" className="w-full px-3 py-2 border rounded-xl bg-gray-100 text-gray-500 font-bold cursor-not-allowed" />
+                  <input 
+                    type="text" 
+                    readOnly 
+                    disabled 
+                    value="Karyawan" 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-500 font-bold cursor-not-allowed text-xs" 
+                  />
                 ) : (
-                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                    value={formData.role_id} onChange={e => setFormData({...formData, role_id: e.target.value})}>
+                  <select 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 cursor-pointer text-xs" 
+                    value={formData.role_id} 
+                    onChange={e => setFormData({...formData, role_id: e.target.value})}
+                  >
                     <option value="">-- Pilih Peran --</option>
                     {selectableRoles.map(r => <option key={r.id} value={r.id}>{r.role_name}</option>)}
                   </select>
                 )}
               </div>
+
               <div>
-                <label className="block mb-1.5">Perusahaan</label>
+                <label className="block mb-1 text-gray-700">Perusahaan <span className="text-red-500">*</span></label>
                 {currentRole === 'Admin HR' ? (
-                  <input type="text" readOnly disabled value={currentUserProfile?.company_name || 'Perusahaan Admin HR'} className="w-full px-3 py-2 border rounded-xl bg-gray-100 text-gray-500 font-bold cursor-not-allowed" />
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      disabled 
+                      value={currentUserProfile?.company_name || localStorage.getItem('company_name') || 'Perusahaan Anda'} 
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-600 font-bold cursor-not-allowed text-xs" 
+                    />
+                    <span className="absolute right-2.5 top-2 text-[10px] text-orange-600 bg-orange-50 px-2 py-0.5 rounded font-bold border border-orange-200">
+                      🔒 Otomatis
+                    </span>
+                  </div>
                 ) : (
-                  <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                    value={formData.company_id} 
-                    onChange={e => {
-                      const newCompanyId = e.target.value;
-                      let newPositionId = formData.position_id;
-                      if (newCompanyId && formData.position_id) {
-                        const selectedPos = positions.find(p => p.id === parseInt(formData.position_id));
-                        if (selectedPos && selectedPos.company_id !== parseInt(newCompanyId)) {
-                          newPositionId = '';
+                  <>
+                    <select 
+                      className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 cursor-pointer text-xs ${formErrors.company_id ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                      value={formData.company_id} 
+                      onChange={e => {
+                        const newCompanyId = e.target.value;
+                        let newPositionId = formData.position_id;
+                        if (newCompanyId && formData.position_id) {
+                          const selectedPos = positions.find(p => p.id === parseInt(formData.position_id));
+                          if (selectedPos && selectedPos.company_id !== parseInt(newCompanyId)) {
+                            newPositionId = '';
+                          }
                         }
-                      }
-                      setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
-                    }}>
-                    <option value="">-- Pilih Perusahaan --</option>
-                    {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
-                  </select>
+                        setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
+                        if (formErrors.company_id) setFormErrors(prev => ({...prev, company_id: ''}));
+                      }}
+                    >
+                      <option value="">-- Pilih Perusahaan --</option>
+                      {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
+                    </select>
+                    {formErrors.company_id && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.company_id}</p>}
+                  </>
                 )}
               </div>
+
               <div>
-                <label className="block mb-1.5">Jabatan</label>
-                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                  value={formData.position_id} onChange={e => setFormData({...formData, position_id: e.target.value})}>
+                <label className="block mb-1 text-gray-700">Jabatan <span className="text-red-500">*</span></label>
+                <select 
+                  className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 cursor-pointer text-xs ${formErrors.position_id ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                  value={formData.position_id} 
+                  onChange={e => { 
+                    setFormData({...formData, position_id: e.target.value}); 
+                    if (formErrors.position_id) setFormErrors(prev => ({...prev, position_id: ''})); 
+                  }}
+                >
                   <option value="">-- Pilih Jabatan --</option>
                   {filteredPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
                 </select>
+                {formErrors.position_id && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.position_id}</p>}
               </div>
+
               <div>
-                <label className="block mb-1.5">Tanggal Bergabung</label>
-                <input type="date" className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                  value={formData.joined_date} onChange={e => setFormData({...formData, joined_date: e.target.value})} />
+                <label className="block mb-1 text-gray-700">Tanggal Bergabung</label>
+                <input 
+                  type="date" 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 text-xs" 
+                  value={formData.joined_date} 
+                  onChange={e => setFormData({...formData, joined_date: e.target.value})} 
+                />
               </div>
+
               <div>
-                <label className="block mb-1.5">Status</label>
-                <select className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                  value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
+                <label className="block mb-1 text-gray-700">Status Karyawan</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 cursor-pointer text-xs" 
+                  value={formData.status} 
+                  onChange={e => setFormData({...formData, status: e.target.value})}
+                >
                   <option value="Active">Aktif</option>
                   <option value="Inactive">Nonaktif</option>
                 </select>
               </div>
-              <div className="flex justify-end gap-2.5 mt-6 pt-4 border-t border-gray-50">
+
+              {/* Action Buttons: spans 2 columns */}
+              <div className="md:col-span-2 flex justify-end gap-2.5 mt-3 pt-3 border-t border-gray-100">
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)} 
-                  className="px-4 py-2.5 bg-red-50/80 hover:bg-red-100 active:scale-95 text-red-600 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                  className="px-4 py-2 bg-red-50/80 hover:bg-red-100 active:scale-95 text-red-600 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
                 >
                   Batal
                 </button>
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 cursor-pointer transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
@@ -416,7 +570,7 @@ const Users = () => {
                       <span>Menyimpan...</span>
                     </>
                   ) : (
-                    <span>Simpan</span>
+                    <span>{editingId ? "Simpan Perubahan" : "Simpan Karyawan"}</span>
                   )}
                 </button>
               </div>

@@ -27,6 +27,7 @@ export default function UsersScreen() {
     hashed_password: '',
     status: 'Active'
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string>('');
@@ -71,10 +72,35 @@ export default function UsersScreen() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!formData.full_name || !formData.email || (!editingId && !formData.hashed_password)) {
-      showAlert('warning', 'Peringatan', 'Nama, Email, dan Password wajib diisi.');
+    const newErrors: Record<string, string> = {};
+    if (!formData.full_name?.trim()) {
+      newErrors.full_name = 'Nama lengkap wajib diisi';
+    }
+    if (!formData.email?.trim()) {
+      newErrors.email = 'Email wajib diisi';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = 'Format email tidak valid (contoh: user@company.com)';
+    }
+    if (!editingId) {
+      if (!formData.hashed_password) {
+        newErrors.hashed_password = 'Password wajib diisi';
+      } else if (formData.hashed_password.length < 6) {
+        newErrors.hashed_password = 'Password minimal 6 karakter';
+      }
+    }
+    if (!formData.role_id) {
+      newErrors.role_id = 'Role wajib dipilih';
+    }
+    if (!formData.position_id) {
+      newErrors.position_id = 'Jabatan / Divisi wajib dipilih';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      showAlert('warning', 'Peringatan Form', 'Mohon lengkapi dan periksa kolom yang bertanda merah.');
       return;
     }
+    setErrors({});
 
     showAlert(
       'confirm',
@@ -127,6 +153,7 @@ export default function UsersScreen() {
       hashed_password: '',
       status: user.status
     });
+    setErrors({});
     setEditingId(user.id);
     setModalVisible(true);
   };
@@ -150,6 +177,7 @@ export default function UsersScreen() {
 
   const openAddModal = () => {
     setFormData({ employee_id: '', role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
+    setErrors({});
     setEditingId(null);
     setModalVisible(true);
   };
@@ -332,24 +360,31 @@ export default function UsersScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Nama Lengkap</Text>
+                <Text style={styles.label}>Nama Lengkap *</Text>
                 <TextInput
-                  style={[styles.input, focusedField === 'full_name' && styles.inputFocused]}
+                  style={[styles.input, focusedField === 'full_name' && styles.inputFocused, errors.full_name ? { borderColor: '#ef4444' } : null]}
                   value={formData.full_name}
-                  onChangeText={(text) => setFormData({ ...formData, full_name: text })}
+                  onChangeText={(text) => {
+                    setFormData({ ...formData, full_name: text });
+                    if (errors.full_name) setErrors({ ...errors, full_name: '' });
+                  }}
                   onFocus={() => setFocusedField('full_name')}
                   onBlur={() => setFocusedField(null)}
                   placeholder="Nama Lengkap"
                   placeholderTextColor="#9ca3af"
                 />
+                {errors.full_name && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.full_name}</Text>}
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Email</Text>
+                <Text style={styles.label}>Email *</Text>
                 <TextInput
-                  style={[styles.input, focusedField === 'email' && styles.inputFocused]}
+                  style={[styles.input, focusedField === 'email' && styles.inputFocused, errors.email ? { borderColor: '#ef4444' } : null]}
                   value={formData.email}
-                  onChangeText={(text) => setFormData({ ...formData, email: text })}
+                  onChangeText={(text) => {
+                    setFormData({ ...formData, email: text });
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
                   onFocus={() => setFocusedField('email')}
                   onBlur={() => setFocusedField(null)}
                   placeholder="name@company.com"
@@ -357,42 +392,63 @@ export default function UsersScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
+                {errors.email && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.email}</Text>}
               </View>
 
               {!editingId && (
                 <View style={styles.formGroup}>
-                  <Text style={styles.label}>Password</Text>
+                  <Text style={styles.label}>Password *</Text>
                   <TextInput
-                    style={[styles.input, focusedField === 'hashed_password' && styles.inputFocused]}
+                    style={[styles.input, focusedField === 'hashed_password' && styles.inputFocused, errors.hashed_password ? { borderColor: '#ef4444' } : null]}
                     value={formData.hashed_password}
-                    onChangeText={(text) => setFormData({ ...formData, hashed_password: text })}
+                    onChangeText={(text) => {
+                      setFormData({ ...formData, hashed_password: text });
+                      if (errors.hashed_password) setErrors({ ...errors, hashed_password: '' });
+                    }}
                     onFocus={() => setFocusedField('hashed_password')}
                     onBlur={() => setFocusedField(null)}
                     placeholder="Minimal 6 karakter"
                     placeholderTextColor="#9ca3af"
                     secureTextEntry
                   />
+                  {errors.hashed_password && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.hashed_password}</Text>}
                 </View>
               )}
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Role</Text>
-                <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setRoleModalVisible(true)}>
+                <Text style={styles.label}>Role *</Text>
+                <TouchableOpacity 
+                  activeOpacity={0.7} 
+                  style={[styles.selector, errors.role_id ? { borderColor: '#ef4444' } : null]} 
+                  onPress={() => {
+                    if (errors.role_id) setErrors({ ...errors, role_id: '' });
+                    setRoleModalVisible(true);
+                  }}
+                >
                   <Text style={styles.selectorText}>
                     {formData.role_id ? getRoleName(formData.role_id) : 'Pilih Role...'}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#6b7280" />
                 </TouchableOpacity>
+                {errors.role_id && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.role_id}</Text>}
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Posisi / Jabatan</Text>
-                <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setPositionModalVisible(true)}>
+                <Text style={styles.label}>Posisi / Jabatan *</Text>
+                <TouchableOpacity 
+                  activeOpacity={0.7} 
+                  style={[styles.selector, errors.position_id ? { borderColor: '#ef4444' } : null]} 
+                  onPress={() => {
+                    if (errors.position_id) setErrors({ ...errors, position_id: '' });
+                    setPositionModalVisible(true);
+                  }}
+                >
                   <Text style={styles.selectorText}>
                     {formData.position_id ? getPositionName(formData.position_id) : 'Pilih Posisi / Jabatan...'}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#6b7280" />
                 </TouchableOpacity>
+                {errors.position_id && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.position_id}</Text>}
               </View>
 
               <View style={styles.formGroup}>

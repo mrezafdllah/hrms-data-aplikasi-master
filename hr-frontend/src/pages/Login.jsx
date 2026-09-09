@@ -86,6 +86,8 @@ const Login = () => {
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('role', data.role);
         localStorage.setItem('name', data.name);
+        if (data.company_id) localStorage.setItem('company_id', data.company_id.toString());
+        if (data.company_name) localStorage.setItem('company_name', data.company_name);
         localStorage.setItem('lastActiveTime', Date.now().toString());
         navigate('/');
       } else {

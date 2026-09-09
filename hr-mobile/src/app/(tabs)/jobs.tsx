@@ -17,6 +17,7 @@ export default function JobsScreen() {
   const [companyModalVisible, setCompanyModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ company_id: '', job_name: '', description: '' });
+  const [userCompanyId, setUserCompanyId] = useState<string>('');
 
   // CustomAlert state
   const [alertVisible, setAlertVisible] = useState(false);
@@ -32,6 +33,20 @@ export default function JobsScreen() {
     try {
       const storedRole = await AsyncStorage.getItem('role');
       if (storedRole) setUserRole(storedRole);
+
+      let storedCompId = await AsyncStorage.getItem('company_id');
+      if (!storedCompId) {
+        try {
+          const profRes = await api.get('/profile');
+          const pCompId = profRes.data?.data?.company_id;
+          if (pCompId) {
+            const cStr = pCompId.toString();
+            storedCompId = cStr;
+            await AsyncStorage.setItem('company_id', cStr);
+          }
+        } catch (e) {}
+      }
+      if (storedCompId) setUserCompanyId(storedCompId);
 
       const [jobsRes, compsRes] = await Promise.all([
         api.get('/jobs'),
@@ -122,7 +137,11 @@ export default function JobsScreen() {
   };
 
   const openAddModal = () => {
-    setFormData({ company_id: '', job_name: '', description: '' });
+    setFormData({
+      company_id: (userRole === 'Admin HR' && userCompanyId) ? userCompanyId : '',
+      job_name: '',
+      description: ''
+    });
     setEditingId(null);
     setModalVisible(true);
   };
@@ -132,10 +151,11 @@ export default function JobsScreen() {
     return comp ? comp.company_name : 'Pilih Perusahaan...';
   };
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item, index }: { item: any; index: number }) => (
     <View style={styles.card}>
       <View style={styles.cardInfo}>
         <View style={styles.badgeContainer}>
+          <Text style={[styles.companyBadge, { backgroundColor: '#f1f5f9', color: '#475569', fontWeight: '700' }]}>No. {index + 1}</Text>
           <Text style={styles.companyBadge}>{item.company_name || 'No Company'}</Text>
         </View>
         <Text style={styles.jobName}>{item.job_name}</Text>
@@ -206,12 +226,29 @@ export default function JobsScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Perusahaan</Text>
-              <TouchableOpacity activeOpacity={0.7} style={styles.selector} onPress={() => setCompanyModalVisible(true)}>
-                <Text style={styles.selectorText}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <Text style={styles.label}>Perusahaan</Text>
+                {userRole === 'Admin HR' && (
+                  <Text style={{ fontSize: 11, color: '#f97316', fontWeight: '600' }}>🔒 Terkunci (Sesuai Penempatan)</Text>
+                )}
+              </View>
+              <TouchableOpacity 
+                activeOpacity={userRole === 'Admin HR' ? 1 : 0.7} 
+                style={[styles.selector, userRole === 'Admin HR' && { backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }]} 
+                onPress={() => {
+                  if (userRole !== 'Admin HR') {
+                    setCompanyModalVisible(true);
+                  }
+                }}
+              >
+                <Text style={[styles.selectorText, userRole === 'Admin HR' && { color: '#64748b' }]}>
                   {formData.company_id ? getCompanyName(formData.company_id) : 'Pilih Perusahaan...'}
                 </Text>
-                <Ionicons name="chevron-down" size={16} color="#6b7280" />
+                {userRole !== 'Admin HR' ? (
+                  <Ionicons name="chevron-down" size={16} color="#6b7280" />
+                ) : (
+                  <Ionicons name="lock-closed" size={14} color="#94a3b8" />
+                )}
               </TouchableOpacity>
             </View>
 

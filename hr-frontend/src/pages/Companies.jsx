@@ -127,7 +127,7 @@ const Companies = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold tracking-wider uppercase">
-                <th className="p-4 rounded-tl-2xl">ID</th>
+                <th className="p-4 rounded-tl-2xl">No</th>
                 <th className="p-4">Nama Perusahaan</th>
                 <th className="p-4">Alamat</th>
                 <th className="p-4">Telepon</th>
@@ -136,9 +136,9 @@ const Companies = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
-              {companies.map((company) => (
+              {companies.map((company, index) => (
                 <tr key={company.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-orange-600 font-bold">{company.id}</td>
+                  <td className="p-4 text-orange-600 font-bold">{index + 1}</td>
                   <td className="p-4 font-bold text-gray-800">{company.company_name}</td>
                   <td className="p-4 text-gray-400 max-w-xs truncate">{company.address || '-'}</td>
                   <td className="p-4 text-gray-500">{company.phone || '-'}</td>

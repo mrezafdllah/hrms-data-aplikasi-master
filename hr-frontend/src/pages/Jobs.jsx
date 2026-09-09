@@ -20,6 +20,8 @@ const Jobs = () => {
     onConfirm: null
   });
 
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
+
   const fetchJobs = () => {
     setLoading(true);
     apiFetch('/api/jobs')
@@ -39,7 +41,16 @@ const Jobs = () => {
       });
   };
 
-  useEffect(() => { fetchJobs(); fetchCompanies(); }, []);
+  useEffect(() => { 
+    fetchJobs(); 
+    fetchCompanies(); 
+    apiFetch('/api/profile')
+      .then(res => res.json())
+      .then(d => {
+        if (d.status === "Success") setCurrentUserProfile(d.data);
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -61,7 +72,11 @@ const Jobs = () => {
       : '/api/jobs';
     const method = isEdit ? 'PUT' : 'POST';
 
-    const payload = { ...formData, company_id: parseInt(formData.company_id) };
+    const companyIdToSend = currentRole === 'Admin HR'
+      ? (currentUserProfile?.company_id || localStorage.getItem('company_id') || formData.company_id)
+      : formData.company_id;
+
+    const payload = { ...formData, company_id: parseInt(companyIdToSend) };
     setIsSubmitting(true);
     apiFetch(url, {
       method,
@@ -118,7 +133,10 @@ const Jobs = () => {
   };
 
   const openAddModal = () => {
-    setFormData({ company_id: '', job_name: '', description: '' });
+    const defaultCompanyId = currentRole === 'Admin HR'
+      ? (currentUserProfile?.company_id?.toString() || localStorage.getItem('company_id') || '')
+      : '';
+    setFormData({ company_id: defaultCompanyId, job_name: '', description: '' });
     setEditingId(null);
     setShowModal(true);
   };
@@ -142,7 +160,7 @@ const Jobs = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold tracking-wider uppercase">
-                <th className="p-4 rounded-tl-2xl">ID</th>
+                <th className="p-4 rounded-tl-2xl">No</th>
                 <th className="p-4">Nama Divisi</th>
                 <th className="p-4">Perusahaan</th>
                 <th className="p-4">Deskripsi</th>
@@ -150,9 +168,9 @@ const Jobs = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
-              {jobs.map((job) => (
+              {jobs.map((job, index) => (
                 <tr key={job.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 text-orange-600 font-bold">{job.id}</td>
+                  <td className="p-4 text-orange-600 font-bold">{index + 1}</td>
                   <td className="p-4 font-bold text-gray-800">{job.job_name}</td>
                   <td className="p-4 text-gray-500">{job.company_name || '-'}</td>
                   <td className="p-4 text-gray-400 max-w-xs truncate">{job.description || '-'}</td>
@@ -183,11 +201,26 @@ const Jobs = () => {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-gray-500">
               <div>
                 <label className="block mb-1.5">Perusahaan</label>
-                <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
-                  value={formData.company_id} onChange={e => setFormData({...formData, company_id: e.target.value})}>
-                  <option value="">-- Pilih Perusahaan --</option>
-                  {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
-                </select>
+                {currentRole === 'Admin HR' ? (
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      disabled 
+                      value={companies.find(c => c.id.toString() === formData.company_id.toString())?.company_name || currentUserProfile?.company_name || localStorage.getItem('company_name') || 'Perusahaan Anda'} 
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-600 font-bold cursor-not-allowed text-xs"
+                    />
+                    <span className="absolute right-2.5 top-2 text-[10px] text-orange-600 bg-orange-50 px-2 py-0.5 rounded font-bold border border-orange-200">
+                      🔒 Otomatis
+                    </span>
+                  </div>
+                ) : (
+                  <select required className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white text-gray-700" 
+                    value={formData.company_id} onChange={e => setFormData({...formData, company_id: e.target.value})}>
+                    <option value="">-- Pilih Perusahaan --</option>
+                    {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
+                  </select>
+                )}
               </div>
               <div>
                 <label className="block mb-1.5">Nama Divisi</label>

@@ -54,6 +54,12 @@ export default function LoginScreen() {
         await AsyncStorage.setItem('role', response.data.role);
         await AsyncStorage.setItem('name', response.data.name);
         await AsyncStorage.setItem('employee_id', response.data.user_id.toString());
+        if (response.data.company_id) {
+          await AsyncStorage.setItem('company_id', response.data.company_id.toString());
+        }
+        if (response.data.company_name) {
+          await AsyncStorage.setItem('company_name', response.data.company_name);
+        }
         
         router.replace('/');
       } else {

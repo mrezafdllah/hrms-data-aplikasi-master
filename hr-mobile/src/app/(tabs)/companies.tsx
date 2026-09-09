@@ -115,11 +115,11 @@ export default function CompaniesScreen() {
     setModalVisible(true);
   };
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item, index }: { item: any; index: number }) => (
     <View style={styles.card}>
       <View style={styles.cardInfo}>
         <View style={styles.badgeContainer}>
-          <Text style={styles.cardId}>ID: {item.id}</Text>
+          <Text style={styles.cardId}>No. {index + 1}</Text>
         </View>
         <Text style={styles.companyName}>{item.company_name}</Text>
         {item.email ? (

@@ -131,10 +131,11 @@ export default function PositionsScreen() {
     return job ? `${job.job_name} (${job.company_name})` : 'Pilih Divisi...';
   };
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item, index }: { item: any; index: number }) => (
     <View style={styles.card}>
       <View style={styles.cardInfo}>
         <View style={styles.badgeContainer}>
+          <Text style={[styles.jobBadge, { backgroundColor: '#f1f5f9', color: '#475569', fontWeight: '700' }]}>No. {index + 1}</Text>
           <Text style={styles.jobBadge}>{item.job_name} - {item.company_name || 'No Company'}</Text>
         </View>
         <Text style={styles.positionName}>{item.position_name}</Text>
