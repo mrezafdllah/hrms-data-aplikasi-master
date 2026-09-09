@@ -100,7 +100,7 @@ const Jobs = () => {
     setConfirmModal({
       show: true,
       title: 'Konfirmasi Hapus Divisi',
-      message: `Apakah Anda yakin ingin menghapus divisi "${jobName}"?\nSemua jabatan (position) terkait akan ikut terhapus secara permanen.`,
+      message: `Apakah Anda yakin ingin menghapus divisi "${jobName}"?`,
       type: 'delete',
       onConfirm: () => {
         apiFetch(`/api/jobs/${id}`, { method: 'DELETE' })

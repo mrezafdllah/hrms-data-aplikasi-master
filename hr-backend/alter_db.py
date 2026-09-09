@@ -48,6 +48,11 @@ def alter_db():
         cursor.execute("ALTER TABLE companies ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES users(id) ON DELETE SET NULL;")
         cursor.execute("ALTER TABLE companies ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;")
         print("Kolom soft delete berhasil ditambahkan ke tabel companies jika belum ada.")
+
+        # Add columns to jobs table for soft delete
+        cursor.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES users(id) ON DELETE SET NULL;")
+        cursor.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;")
+        print("Kolom soft delete berhasil ditambahkan ke tabel jobs jika belum ada.")
         
         conn.commit()
         print("Migrasi database sukses!")

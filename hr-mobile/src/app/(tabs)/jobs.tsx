@@ -108,7 +108,7 @@ export default function JobsScreen() {
     showAlert(
       'delete',
       'Konfirmasi Hapus',
-      'Apakah Anda yakin ingin menghapus divisi ini? Data yang dihapus tidak dapat dikembalikan.',
+      'Apakah Anda yakin ingin menghapus divisi ini?',
       async () => {
         try {
           await api.delete(`/jobs/${id}`);

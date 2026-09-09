@@ -581,11 +581,11 @@ def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
                     SELECT COUNT(*) 
                     FROM positions p
                     JOIN jobs j ON p.job_id = j.id
-                    WHERE j.company_id = %s;
+                    WHERE j.company_id = %s AND j.deleted_at IS NULL;
                 """, (comp_id,))
                 total_positions = cursor.fetchone()['count']
 
-                cursor.execute("SELECT COUNT(*) FROM jobs WHERE company_id = %s;", (comp_id,))
+                cursor.execute("SELECT COUNT(*) FROM jobs WHERE company_id = %s AND deleted_at IS NULL;", (comp_id,))
                 total_jobs = cursor.fetchone()['count']
 
                 cursor.execute("""
@@ -634,10 +634,15 @@ def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
             cursor.execute("SELECT COUNT(*) FROM companies WHERE deleted_at IS NULL;")
             total_companies = cursor.fetchone()['count']
             
-            cursor.execute("SELECT COUNT(*) FROM positions;")
+            cursor.execute("""
+                SELECT COUNT(*) 
+                FROM positions p
+                LEFT JOIN jobs j ON p.job_id = j.id
+                WHERE (j.id IS NULL OR j.deleted_at IS NULL);
+            """)
             total_positions = cursor.fetchone()['count']
             
-            cursor.execute("SELECT COUNT(*) FROM jobs;")
+            cursor.execute("SELECT COUNT(*) FROM jobs WHERE deleted_at IS NULL;")
             total_jobs = cursor.fetchone()['count']
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'Active';")
@@ -845,7 +850,7 @@ def get_all_jobs(current_user: dict = Depends(get_current_user)):
             SELECT j.*, c.company_name 
             FROM jobs j 
             LEFT JOIN companies c ON j.company_id = c.id 
-            WHERE (c.id IS NULL OR c.deleted_at IS NULL)
+            WHERE (c.id IS NULL OR c.deleted_at IS NULL) AND j.deleted_at IS NULL
         """
         params = []
         if current_user.get("role") in ["Admin HR", "Karyawan"]:
@@ -897,11 +902,14 @@ def update_job(id: int, job: JobUpdate, current_user: dict = Depends(require_adm
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        cursor.execute("SELECT company_id FROM jobs WHERE id = %s AND deleted_at IS NULL;", (id,))
+        j_row = cursor.fetchone()
+        if not j_row:
+            raise HTTPException(status_code=404, detail="Divisi tidak ditemukan")
+
         if current_user.get("role") == "Admin HR":
             comp_id = get_user_company_id(current_user['user_id'], cursor)
-            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (id,))
-            j_row = cursor.fetchone()
-            if not j_row or (j_row[0] != comp_id):
+            if j_row[0] != comp_id:
                 raise HTTPException(status_code=403, detail="Anda hanya dapat mengubah divisi di perusahaan Anda sendiri.")
             job.company_id = comp_id
 
@@ -925,14 +933,22 @@ def delete_job(id: int, current_user: dict = Depends(require_admin_hr_or_super))
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        cursor.execute("SELECT company_id FROM jobs WHERE id = %s AND deleted_at IS NULL;", (id,))
+        j_row = cursor.fetchone()
+        if not j_row:
+            raise HTTPException(status_code=404, detail="Divisi tidak ditemukan")
+
         if current_user.get("role") == "Admin HR":
             comp_id = get_user_company_id(current_user['user_id'], cursor)
-            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (id,))
-            j_row = cursor.fetchone()
-            if not j_row or (j_row[0] != comp_id):
+            if j_row[0] != comp_id:
                 raise HTTPException(status_code=403, detail="Anda hanya dapat menghapus divisi di perusahaan Anda sendiri.")
 
-        cursor.execute("DELETE FROM jobs WHERE id = %s;", (id,))
+        cursor.execute("""
+            UPDATE jobs 
+            SET deleted_at = CURRENT_TIMESTAMP, 
+                deleted_by = %s 
+            WHERE id = %s;
+        """, (current_user['user_id'], id))
         conn.commit()
         return {"status": "Success", "message": "Job berhasil dihapus"}
     except HTTPException:
@@ -955,7 +971,7 @@ def get_all_positions(current_user: dict = Depends(get_current_user)):
             FROM positions p 
             LEFT JOIN jobs j ON p.job_id = j.id 
             LEFT JOIN companies c ON j.company_id = c.id 
-            WHERE (c.id IS NULL OR c.deleted_at IS NULL)
+            WHERE (c.id IS NULL OR c.deleted_at IS NULL) AND (j.id IS NULL OR j.deleted_at IS NULL)
         """
         params = []
         if current_user.get("role") in ["Admin HR", "Karyawan"]:
@@ -981,11 +997,14 @@ def add_position(position: PositionCreate, current_user: dict = Depends(require_
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        cursor.execute("SELECT company_id FROM jobs WHERE id = %s AND deleted_at IS NULL;", (position.job_id,))
+        j_res = cursor.fetchone()
+        if not j_res:
+            raise HTTPException(status_code=404, detail="Divisi tidak ditemukan atau sudah dinonaktifkan.")
+
         if current_user.get("role") == "Admin HR":
             comp_id = get_user_company_id(current_user['user_id'], cursor)
-            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (position.job_id,))
-            j_res = cursor.fetchone()
-            if not j_res or j_res[0] != comp_id:
+            if j_res[0] != comp_id:
                 raise HTTPException(status_code=403, detail="Anda hanya dapat menambahkan jabatan pada divisi di perusahaan Anda.")
 
         cursor.execute(
@@ -1008,6 +1027,11 @@ def update_position(id: int, position: PositionUpdate, current_user: dict = Depe
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        cursor.execute("SELECT company_id FROM jobs WHERE id = %s AND deleted_at IS NULL;", (position.job_id,))
+        new_j = cursor.fetchone()
+        if not new_j:
+            raise HTTPException(status_code=404, detail="Divisi tujuan tidak ditemukan atau sudah dinonaktifkan.")
+
         if current_user.get("role") == "Admin HR":
             comp_id = get_user_company_id(current_user['user_id'], cursor)
             cursor.execute("""
@@ -1019,9 +1043,7 @@ def update_position(id: int, position: PositionUpdate, current_user: dict = Depe
             p_res = cursor.fetchone()
             if not p_res or p_res[0] != comp_id:
                 raise HTTPException(status_code=403, detail="Anda hanya dapat mengubah jabatan di perusahaan Anda sendiri.")
-            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (position.job_id,))
-            new_j = cursor.fetchone()
-            if not new_j or new_j[0] != comp_id:
+            if new_j[0] != comp_id:
                 raise HTTPException(status_code=403, detail="Divisi tujuan tidak berada pada perusahaan Anda.")
 
         cursor.execute(
@@ -1082,7 +1104,7 @@ def get_all_users(current_user: dict = Depends(get_current_user)):
             FROM users u 
             LEFT JOIN roles r ON u.role_id = r.id 
             LEFT JOIN positions p ON u.position_id = p.id 
-            LEFT JOIN jobs j ON p.job_id = j.id
+            LEFT JOIN jobs j ON p.job_id = j.id AND j.deleted_at IS NULL
             LEFT JOIN companies c ON j.company_id = c.id AND c.deleted_at IS NULL
         """
         params = []
