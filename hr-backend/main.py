@@ -539,37 +539,120 @@ def change_password(data: ChangePasswordRequest, current_user: dict = Depends(ge
         cursor.close()
         conn.close()
 
+# Helper to get user's company_id
+def get_user_company_id(user_id: int, cursor) -> Optional[int]:
+    cursor.execute("""
+        SELECT j.company_id 
+        FROM users u 
+        LEFT JOIN positions p ON u.position_id = p.id 
+        LEFT JOIN jobs j ON p.job_id = j.id 
+        WHERE u.id = %s;
+    """, (user_id,))
+    res = cursor.fetchone()
+    if not res:
+        return None
+    if isinstance(res, dict):
+        return res.get('company_id')
+    return res[0]
+
 # ================= DASHBOARD =================
 @app.get("/api/dashboard-stats")
 def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("SELECT COUNT(*) FROM users;")
-        total_users = cursor.fetchone()['count']
-        
-        cursor.execute("SELECT COUNT(*) FROM companies WHERE deleted_at IS NULL;")
-        total_companies = cursor.fetchone()['count']
-        
-        cursor.execute("SELECT COUNT(*) FROM positions;")
-        total_positions = cursor.fetchone()['count']
-        
-        cursor.execute("SELECT COUNT(*) FROM jobs;")
-        total_jobs = cursor.fetchone()['count']
-        
-        cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'Active';")
-        active_users = cursor.fetchone()['count']
-        
-        cursor.execute("SELECT COUNT(*) FROM users WHERE status != 'Active';")
-        inactive_users = cursor.fetchone()['count']
-        
-        cursor.execute("""
-            SELECT r.role_name as name, COUNT(u.id) as value 
-            FROM roles r 
-            LEFT JOIN users u ON u.role_id = r.id 
-            GROUP BY r.role_name;
-        """)
-        role_stats = cursor.fetchall()
+        user_role = current_user.get("role")
+        if user_role in ["Admin HR", "Karyawan"]:
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if comp_id:
+                cursor.execute("""
+                    SELECT COUNT(*) 
+                    FROM users u
+                    JOIN roles r ON u.role_id = r.id
+                    JOIN positions p ON u.position_id = p.id
+                    JOIN jobs j ON p.job_id = j.id
+                    WHERE j.company_id = %s AND (r.role_name = 'Karyawan' OR u.id = %s);
+                """, (comp_id, current_user['user_id']))
+                total_users = cursor.fetchone()['count']
+
+                total_companies = 1
+
+                cursor.execute("""
+                    SELECT COUNT(*) 
+                    FROM positions p
+                    JOIN jobs j ON p.job_id = j.id
+                    WHERE j.company_id = %s;
+                """, (comp_id,))
+                total_positions = cursor.fetchone()['count']
+
+                cursor.execute("SELECT COUNT(*) FROM jobs WHERE company_id = %s;", (comp_id,))
+                total_jobs = cursor.fetchone()['count']
+
+                cursor.execute("""
+                    SELECT COUNT(*) 
+                    FROM users u
+                    JOIN roles r ON u.role_id = r.id
+                    JOIN positions p ON u.position_id = p.id
+                    JOIN jobs j ON p.job_id = j.id
+                    WHERE j.company_id = %s AND (r.role_name = 'Karyawan' OR u.id = %s) AND u.status = 'Active';
+                """, (comp_id, current_user['user_id']))
+                active_users = cursor.fetchone()['count']
+
+                cursor.execute("""
+                    SELECT COUNT(*) 
+                    FROM users u
+                    JOIN roles r ON u.role_id = r.id
+                    JOIN positions p ON u.position_id = p.id
+                    JOIN jobs j ON p.job_id = j.id
+                    WHERE j.company_id = %s AND (r.role_name = 'Karyawan' OR u.id = %s) AND u.status != 'Active';
+                """, (comp_id, current_user['user_id']))
+                inactive_users = cursor.fetchone()['count']
+
+                cursor.execute("""
+                    SELECT r.role_name as name, COUNT(u.id) as value 
+                    FROM roles r 
+                    JOIN users u ON u.role_id = r.id 
+                    JOIN positions p ON u.position_id = p.id
+                    JOIN jobs j ON p.job_id = j.id
+                    WHERE j.company_id = %s AND (r.role_name = 'Karyawan' OR u.id = %s)
+                    GROUP BY r.role_name;
+                """, (comp_id, current_user['user_id']))
+                role_stats = cursor.fetchall()
+            else:
+                total_users = 1
+                total_companies = 0
+                total_positions = 0
+                total_jobs = 0
+                active_users = 1
+                inactive_users = 0
+                role_stats = []
+        else:
+            # Super Admin
+            cursor.execute("SELECT COUNT(*) FROM users;")
+            total_users = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) FROM companies WHERE deleted_at IS NULL;")
+            total_companies = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) FROM positions;")
+            total_positions = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) FROM jobs;")
+            total_jobs = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE status = 'Active';")
+            active_users = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE status != 'Active';")
+            inactive_users = cursor.fetchone()['count']
+            
+            cursor.execute("""
+                SELECT r.role_name as name, COUNT(u.id) as value 
+                FROM roles r 
+                LEFT JOIN users u ON u.role_id = r.id 
+                GROUP BY r.role_name;
+            """)
+            role_stats = cursor.fetchall()
 
         return {
             "status": "Success",
@@ -676,7 +759,18 @@ def get_all_companies(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("SELECT * FROM companies WHERE deleted_at IS NULL ORDER BY id ASC;")
+        base_query = "SELECT * FROM companies WHERE deleted_at IS NULL"
+        params = []
+        if current_user.get("role") in ["Admin HR", "Karyawan"]:
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if comp_id:
+                base_query += " AND id = %s"
+                params.append(comp_id)
+            else:
+                base_query += " AND 1=0"
+
+        base_query += " ORDER BY id ASC;"
+        cursor.execute(base_query, params)
         companies = cursor.fetchall()
         return {"status": "Success", "data": companies}
     except Exception as e:
@@ -747,13 +841,23 @@ def get_all_jobs(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("""
+        base_query = """
             SELECT j.*, c.company_name 
             FROM jobs j 
             LEFT JOIN companies c ON j.company_id = c.id 
-            WHERE c.id IS NULL OR c.deleted_at IS NULL
-            ORDER BY j.id ASC;
-        """)
+            WHERE (c.id IS NULL OR c.deleted_at IS NULL)
+        """
+        params = []
+        if current_user.get("role") in ["Admin HR", "Karyawan"]:
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if comp_id:
+                base_query += " AND j.company_id = %s"
+                params.append(comp_id)
+            else:
+                base_query += " AND 1=0"
+
+        base_query += " ORDER BY j.id ASC;"
+        cursor.execute(base_query, params)
         jobs = cursor.fetchall()
         return {"status": "Success", "data": jobs}
     except Exception as e:
@@ -767,12 +871,20 @@ def add_job(job: JobCreate, current_user: dict = Depends(require_admin_hr_or_sup
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        if current_user.get("role") == "Admin HR":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if not comp_id:
+                raise HTTPException(status_code=400, detail="Admin HR belum terhubung ke perusahaan manapun.")
+            job.company_id = comp_id
+
         cursor.execute(
             "INSERT INTO jobs (company_id, job_name, description) VALUES (%s, %s, %s) RETURNING id;",
             (job.company_id, job.job_name, job.description)
         )
         conn.commit()
         return {"status": "Success", "message": "Job berhasil ditambahkan"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -785,12 +897,22 @@ def update_job(id: int, job: JobUpdate, current_user: dict = Depends(require_adm
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        if current_user.get("role") == "Admin HR":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (id,))
+            j_row = cursor.fetchone()
+            if not j_row or (j_row[0] != comp_id):
+                raise HTTPException(status_code=403, detail="Anda hanya dapat mengubah divisi di perusahaan Anda sendiri.")
+            job.company_id = comp_id
+
         cursor.execute(
             "UPDATE jobs SET company_id = %s, job_name = %s, description = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;",
             (job.company_id, job.job_name, job.description, id)
         )
         conn.commit()
         return {"status": "Success", "message": "Job berhasil diupdate"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -803,9 +925,18 @@ def delete_job(id: int, current_user: dict = Depends(require_admin_hr_or_super))
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        if current_user.get("role") == "Admin HR":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (id,))
+            j_row = cursor.fetchone()
+            if not j_row or (j_row[0] != comp_id):
+                raise HTTPException(status_code=403, detail="Anda hanya dapat menghapus divisi di perusahaan Anda sendiri.")
+
         cursor.execute("DELETE FROM jobs WHERE id = %s;", (id,))
         conn.commit()
         return {"status": "Success", "message": "Job berhasil dihapus"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -819,14 +950,24 @@ def get_all_positions(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        cursor.execute("""
+        base_query = """
             SELECT p.*, j.job_name, j.company_id, c.company_name 
             FROM positions p 
             LEFT JOIN jobs j ON p.job_id = j.id 
             LEFT JOIN companies c ON j.company_id = c.id 
-            WHERE c.id IS NULL OR c.deleted_at IS NULL
-            ORDER BY p.id ASC;
-        """)
+            WHERE (c.id IS NULL OR c.deleted_at IS NULL)
+        """
+        params = []
+        if current_user.get("role") in ["Admin HR", "Karyawan"]:
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if comp_id:
+                base_query += " AND j.company_id = %s"
+                params.append(comp_id)
+            else:
+                base_query += " AND 1=0"
+
+        base_query += " ORDER BY p.id ASC;"
+        cursor.execute(base_query, params)
         positions = cursor.fetchall()
         return {"status": "Success", "data": positions}
     except Exception as e:
@@ -840,12 +981,21 @@ def add_position(position: PositionCreate, current_user: dict = Depends(require_
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        if current_user.get("role") == "Admin HR":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (position.job_id,))
+            j_res = cursor.fetchone()
+            if not j_res or j_res[0] != comp_id:
+                raise HTTPException(status_code=403, detail="Anda hanya dapat menambahkan jabatan pada divisi di perusahaan Anda.")
+
         cursor.execute(
             "INSERT INTO positions (job_id, position_name, description) VALUES (%s, %s, %s) RETURNING id;",
             (position.job_id, position.position_name, position.description)
         )
         conn.commit()
         return {"status": "Success", "message": "Position berhasil ditambahkan"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -858,12 +1008,30 @@ def update_position(id: int, position: PositionUpdate, current_user: dict = Depe
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        if current_user.get("role") == "Admin HR":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            cursor.execute("""
+                SELECT j.company_id 
+                FROM positions p
+                JOIN jobs j ON p.job_id = j.id
+                WHERE p.id = %s;
+            """, (id,))
+            p_res = cursor.fetchone()
+            if not p_res or p_res[0] != comp_id:
+                raise HTTPException(status_code=403, detail="Anda hanya dapat mengubah jabatan di perusahaan Anda sendiri.")
+            cursor.execute("SELECT company_id FROM jobs WHERE id = %s;", (position.job_id,))
+            new_j = cursor.fetchone()
+            if not new_j or new_j[0] != comp_id:
+                raise HTTPException(status_code=403, detail="Divisi tujuan tidak berada pada perusahaan Anda.")
+
         cursor.execute(
             "UPDATE positions SET job_id = %s, position_name = %s, description = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;",
             (position.job_id, position.position_name, position.description, id)
         )
         conn.commit()
         return {"status": "Success", "message": "Position berhasil diupdate"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -876,9 +1044,23 @@ def delete_position(id: int, current_user: dict = Depends(require_admin_hr_or_su
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        if current_user.get("role") == "Admin HR":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            cursor.execute("""
+                SELECT j.company_id 
+                FROM positions p
+                JOIN jobs j ON p.job_id = j.id
+                WHERE p.id = %s;
+            """, (id,))
+            p_res = cursor.fetchone()
+            if not p_res or p_res[0] != comp_id:
+                raise HTTPException(status_code=403, detail="Anda hanya dapat menghapus jabatan di perusahaan Anda sendiri.")
+
         cursor.execute("DELETE FROM positions WHERE id = %s;", (id,))
         conn.commit()
         return {"status": "Success", "message": "Position berhasil dihapus"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -888,7 +1070,7 @@ def delete_position(id: int, current_user: dict = Depends(require_admin_hr_or_su
 
 # ================= USERS (Super Admin & Admin HR) =================
 @app.get("/api/users")
-def get_all_users(current_user: dict = Depends(require_admin_hr_or_super)):
+def get_all_users(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
@@ -904,18 +1086,25 @@ def get_all_users(current_user: dict = Depends(require_admin_hr_or_super)):
             LEFT JOIN companies c ON j.company_id = c.id AND c.deleted_at IS NULL
         """
         params = []
-        if current_user.get("role") == "Admin HR":
-            cursor.execute("""
-                SELECT j.company_id 
-                FROM users u 
-                LEFT JOIN positions p ON u.position_id = p.id 
-                LEFT JOIN jobs j ON p.job_id = j.id 
-                WHERE u.id = %s;
-            """, (current_user['user_id'],))
-            admin_comp = cursor.fetchone()
-            if admin_comp and admin_comp['company_id']:
-                base_query += " WHERE j.company_id = %s"
-                params.append(admin_comp['company_id'])
+        user_role = current_user.get("role")
+        if user_role == "Admin HR":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if comp_id:
+                # Admin HR only sees Karyawan in their company, plus their own record.
+                # Strictly excludes other Admin HRs and Super Admin!
+                base_query += " WHERE j.company_id = %s AND (r.role_name = 'Karyawan' OR u.id = %s)"
+                params.extend([comp_id, current_user['user_id']])
+            else:
+                base_query += " WHERE u.id = %s"
+                params.append(current_user['user_id'])
+        elif user_role == "Karyawan":
+            comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if comp_id:
+                base_query += " WHERE j.company_id = %s AND (r.role_name = 'Karyawan' OR u.id = %s)"
+                params.extend([comp_id, current_user['user_id']])
+            else:
+                base_query += " WHERE u.id = %s"
+                params.append(current_user['user_id'])
 
         base_query += " ORDER BY u.employee_id ASC, u.id ASC;"
         cursor.execute(base_query, params)
@@ -939,12 +1128,28 @@ def add_user(user: UserCreate, current_user: dict = Depends(require_admin_hr_or_
             if r_db and r_db[0] == 'Super Admin':
                 raise HTTPException(status_code=400, detail="Role Super Admin tidak dapat ditambahkan melalui form.")
 
-        # Admin HR automatically creates Karyawan role users
+        # Admin HR automatically creates Karyawan role users and checks company
         if current_user.get("role") == "Admin HR":
             cursor.execute("SELECT id FROM roles WHERE role_name = 'Karyawan';")
             karyawan_role = cursor.fetchone()
             if karyawan_role:
                 user.role_id = karyawan_role[0]
+
+            admin_comp_id = get_user_company_id(current_user['user_id'], cursor)
+            if not admin_comp_id:
+                raise HTTPException(status_code=400, detail="Admin HR belum terhubung ke perusahaan manapun.")
+
+            if user.position_id:
+                cursor.execute("""
+                    SELECT j.company_id 
+                    FROM positions p
+                    JOIN jobs j ON p.job_id = j.id
+                    WHERE p.id = %s;
+                """, (user.position_id,))
+                pos_res = cursor.fetchone()
+                pos_comp_id = pos_res[0] if pos_res else None
+                if pos_comp_id != admin_comp_id:
+                    raise HTTPException(status_code=403, detail="Anda hanya dapat menambahkan karyawan pada jabatan di perusahaan Anda.")
 
         # Validasi keselarasan Company dan Position
         if user.position_id:
@@ -987,6 +1192,35 @@ def update_user(id: int, user: UserUpdate, current_user: dict = Depends(require_
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        # Admin HR boundary check
+        if current_user.get("role") == "Admin HR":
+            cursor.execute("""
+                SELECT u.id, r.role_name, j.company_id 
+                FROM users u 
+                LEFT JOIN roles r ON u.role_id = r.id 
+                LEFT JOIN positions p ON u.position_id = p.id 
+                LEFT JOIN jobs j ON p.job_id = j.id 
+                WHERE u.id = %s;
+            """, (id,))
+            target_user = cursor.fetchone()
+            if not target_user:
+                raise HTTPException(status_code=404, detail="User tidak ditemukan")
+
+            target_role = target_user[1] if isinstance(target_user, tuple) else target_user['role_name']
+            target_comp_id = target_user[2] if isinstance(target_user, tuple) else target_user['company_id']
+            admin_comp_id = get_user_company_id(current_user['user_id'], cursor)
+
+            if id != current_user['user_id']:
+                if target_role in ['Super Admin', 'Admin HR']:
+                    raise HTTPException(status_code=403, detail="Anda tidak memiliki izin untuk mengedit Admin HR lain atau Super Admin.")
+                if target_comp_id != admin_comp_id:
+                    raise HTTPException(status_code=403, detail="Anda hanya dapat mengedit karyawan di perusahaan Anda sendiri.")
+                # Force role to stay Karyawan
+                cursor.execute("SELECT id FROM roles WHERE role_name = 'Karyawan';")
+                k_role = cursor.fetchone()
+                if k_role:
+                    user.role_id = k_role[0]
+
         # Validasi keselarasan Company dan Position
         if user.position_id:
             cursor.execute("""
@@ -1032,6 +1266,27 @@ def delete_user(id: int, current_user: dict = Depends(require_admin_hr_or_super)
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        if current_user.get("role") == "Admin HR":
+            cursor.execute("""
+                SELECT u.id, r.role_name, j.company_id 
+                FROM users u 
+                LEFT JOIN roles r ON u.role_id = r.id 
+                LEFT JOIN positions p ON u.position_id = p.id 
+                LEFT JOIN jobs j ON p.job_id = j.id 
+                WHERE u.id = %s;
+            """, (id,))
+            target_user = cursor.fetchone()
+            if not target_user:
+                raise HTTPException(status_code=404, detail="User tidak ditemukan")
+            target_role = target_user[1] if isinstance(target_user, tuple) else target_user['role_name']
+            target_comp_id = target_user[2] if isinstance(target_user, tuple) else target_user['company_id']
+            admin_comp_id = get_user_company_id(current_user['user_id'], cursor)
+
+            if target_role in ['Super Admin', 'Admin HR']:
+                raise HTTPException(status_code=403, detail="Anda tidak memiliki izin untuk menghapus user dengan peran ini.")
+            if target_comp_id != admin_comp_id:
+                raise HTTPException(status_code=403, detail="Anda hanya dapat menghapus karyawan di perusahaan Anda sendiri.")
+
         cursor.execute("DELETE FROM users WHERE id = %s;", (id,))
         conn.commit()
         return {"status": "Success", "message": "User berhasil dihapus"}

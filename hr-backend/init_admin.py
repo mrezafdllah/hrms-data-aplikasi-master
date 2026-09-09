@@ -52,6 +52,7 @@ def init_admin():
     jobs = [
         ("PT Cybers Blitz Nusantara", "Engineering", "Development and operations department"),
         ("PT Cybers Blitz Nusantara", "Product Design", "UI/UX research and design department"),
+        ("PT Cybers Blitz Nusantara", "Human Resources", "Divisi Human Resources PT Cybers Blitz Nusantara"),
         ("Blitz Digital Studio", "Finance", "Accounting and finance department"),
         ("Blitz Digital Studio", "Creative Studio", "Media production and art studio")
     ]
@@ -77,6 +78,7 @@ def init_admin():
         ("Engineering", "PT Cybers Blitz Nusantara", "Sr. Software Engineer", "Responsible for software architecture and leading teams"),
         ("Product Design", "PT Cybers Blitz Nusantara", "UI/UX Designer", "Responsible for creating UI/UX layouts"),
         ("Product Design", "PT Cybers Blitz Nusantara", "UX Researcher", "Responsible for user testing and research"),
+        ("Human Resources", "PT Cybers Blitz Nusantara", "HR Specialist", "Spesialis Pengelola HR PT Cybers Blitz Nusantara"),
         ("Finance", "Blitz Digital Studio", "Financial Analyst", "Responsible for analyzing studio finances"),
         ("Finance", "Blitz Digital Studio", "Accountant", "Responsible for accounting and corporate cash flow")
     ]
@@ -103,7 +105,7 @@ def init_admin():
     # 5. Buat users jika belum ada (atau update)
     admin_users = [
         ("Super Administrator", "mreza.fadhilah88@gmail.com", "admin123", "Super Admin", None, None, None, "ADM-001"),
-        ("HR Specialist", "muhammadrezacaster13@gmail.com", "hr123", "Admin HR", None, None, None, "HR-001"),
+        ("HR Specialist", "muhammadrezacaster13@gmail.com", "hr123", "Admin HR", "HR Specialist", "Human Resources", "PT Cybers Blitz Nusantara", "HR-001"),
     ]
     
     employees = [

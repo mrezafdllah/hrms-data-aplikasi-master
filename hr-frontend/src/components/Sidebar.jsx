@@ -9,8 +9,8 @@ const Sidebar = () => {
 
   const allMenuItems = [
     { path: '/', name: 'Ringkasan', icon: <Home size={18} />, roles: ['Super Admin', 'Admin HR', 'Karyawan'] },
-    { path: '/roles', name: 'Peran (Roles)', icon: <Shield size={18} />, roles: ['Super Admin', 'Admin HR'] },
-    { path: '/companies', name: 'Perusahaan', icon: <Building2 size={18} />, roles: ['Super Admin', 'Admin HR'] },
+    { path: '/roles', name: 'Peran (Roles)', icon: <Shield size={18} />, roles: ['Super Admin'] },
+    { path: '/companies', name: 'Perusahaan', icon: <Building2 size={18} />, roles: ['Super Admin'] },
     { path: '/jobs', name: 'Divisi', icon: <Briefcase size={18} />, roles: ['Super Admin', 'Admin HR'] },
     { path: '/positions', name: 'Jabatan', icon: <MapPin size={18} />, roles: ['Super Admin', 'Admin HR'] },
     { path: '/users', name: 'Karyawan', icon: <Users size={18} />, roles: ['Super Admin', 'Admin HR'] },

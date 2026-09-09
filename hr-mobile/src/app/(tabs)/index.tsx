@@ -312,12 +312,14 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/companies')}>
-                <View style={[styles.menuIconContainer, { backgroundColor: '#eff6ff' }]}>
-                  <Ionicons name="business" size={22} color="#3b82f6" />
-                </View>
-                <Text style={styles.menuItemLabel}>Perusahaan</Text>
-              </TouchableOpacity>
+              {role === 'Super Admin' && (
+                <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/companies')}>
+                  <View style={[styles.menuIconContainer, { backgroundColor: '#eff6ff' }]}>
+                    <Ionicons name="business" size={22} color="#3b82f6" />
+                  </View>
+                  <Text style={styles.menuItemLabel}>Perusahaan</Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity activeOpacity={0.7} style={menuItemStyle} onPress={() => router.push('/jobs')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#f0fdf4' }]}>
