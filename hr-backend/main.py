@@ -138,6 +138,7 @@ class UserUpdate(BaseModel):
     position_id: Optional[int] = None
     full_name: str
     email: str
+    hashed_password: Optional[str] = None
     status: str = "Active"
     birth_place: Optional[str] = None
     birth_date: Optional[date] = None
@@ -1262,14 +1263,28 @@ def update_user(id: int, user: UserUpdate, current_user: dict = Depends(require_
                 if user.company_id and user.company_id != pos_company_id:
                     raise HTTPException(status_code=400, detail="Posisi yang dipilih tidak sesuai dengan Perusahaan yang dipilih")
 
-        cursor.execute(
-            """UPDATE users SET employee_id = %s, role_id = %s, position_id = %s, 
-               full_name = %s, email = %s, status = %s, 
-               birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, joined_date = %s,
-               updated_at = CURRENT_TIMESTAMP 
-               WHERE id = %s;""",
-            (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date, id)
-        )
+        if user.hashed_password and user.hashed_password.strip():
+            if len(user.hashed_password.strip()) < 6:
+                raise HTTPException(status_code=400, detail="Password baru minimal harus 6 karakter")
+            new_hashed_pw = get_password_hash(user.hashed_password.strip())
+            cursor.execute(
+                """UPDATE users SET employee_id = %s, role_id = %s, position_id = %s, 
+                   full_name = %s, email = %s, status = %s, 
+                   birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, joined_date = %s,
+                   hashed_password = %s,
+                   updated_at = CURRENT_TIMESTAMP 
+                   WHERE id = %s;""",
+                (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date, new_hashed_pw, id)
+            )
+        else:
+            cursor.execute(
+                """UPDATE users SET employee_id = %s, role_id = %s, position_id = %s, 
+                   full_name = %s, email = %s, status = %s, 
+                   birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, joined_date = %s,
+                   updated_at = CURRENT_TIMESTAMP 
+                   WHERE id = %s;""",
+                (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date, id)
+            )
         conn.commit()
         return {"status": "Success", "message": "User berhasil diupdate"}
     except HTTPException:

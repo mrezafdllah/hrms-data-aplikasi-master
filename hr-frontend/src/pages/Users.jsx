@@ -69,6 +69,10 @@ const Users = () => {
       } else if (formData.hashed_password.length < 6) {
         errs.hashed_password = 'Password minimal harus 6 karakter.';
       }
+    } else {
+      if (formData.hashed_password && formData.hashed_password.length < 6) {
+        errs.hashed_password = 'Password baru minimal harus 6 karakter.';
+      }
     }
     if (currentRole === 'Super Admin' && !formData.company_id) {
       errs.company_id = 'Pilih unit perusahaan.';
@@ -110,8 +114,8 @@ const Users = () => {
       position_id: formData.position_id ? parseInt(formData.position_id) : null,
     };
     
-    // Remove password from update payload
-    if (editingId) {
+    // Remove password from update payload if not provided
+    if (editingId && !formData.hashed_password) {
       delete payload.hashed_password;
     }
 
@@ -420,33 +424,26 @@ const Users = () => {
                 {formErrors.email && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.email}</p>}
               </div>
 
-              {!editingId ? (
-                <div>
-                  <label className="block mb-1 text-gray-700">Password <span className="text-red-500">*</span></label>
-                  <input 
-                    type="password" 
-                    placeholder="Minimal 6 karakter" 
-                    className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.hashed_password ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
-                    value={formData.hashed_password} 
-                    onChange={e => { 
-                      setFormData({...formData, hashed_password: e.target.value}); 
-                      if (formErrors.hashed_password) setFormErrors(prev => ({...prev, hashed_password: ''})); 
-                    }} 
-                  />
-                  {formErrors.hashed_password && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.hashed_password}</p>}
-                </div>
-              ) : (
-                <div>
-                  <label className="block mb-1 text-gray-700">Password</label>
-                  <input 
-                    type="text" 
-                    readOnly 
-                    disabled 
-                    value="•••••••• (Tidak diubah)" 
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-400 cursor-not-allowed text-xs" 
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block mb-1 text-gray-700">
+                  Password {editingId ? <span className="text-[10px] text-gray-400 font-normal">(Opsional - Ganti Baru)</span> : <span className="text-red-500">*</span>}
+                </label>
+                <input 
+                  type="password" 
+                  placeholder={editingId ? "Kosongkan jika tidak ingin ganti" : "Minimal 6 karakter"} 
+                  className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.hashed_password ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                  value={formData.hashed_password} 
+                  onChange={e => { 
+                    setFormData({...formData, hashed_password: e.target.value}); 
+                    if (formErrors.hashed_password) setFormErrors(prev => ({...prev, hashed_password: ''})); 
+                  }} 
+                />
+                {formErrors.hashed_password ? (
+                  <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.hashed_password}</p>
+                ) : editingId ? (
+                  <p className="text-[10px] text-gray-400 mt-1">Biarkan kosong jika tidak ingin mengubah password.</p>
+                ) : null}
+              </div>
 
               {/* Kolom 2: Peran, Penempatan & Status */}
               <div>

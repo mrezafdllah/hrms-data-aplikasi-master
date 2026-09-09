@@ -87,6 +87,10 @@ export default function UsersScreen() {
       } else if (formData.hashed_password.length < 6) {
         newErrors.hashed_password = 'Password minimal 6 karakter';
       }
+    } else {
+      if (formData.hashed_password && formData.hashed_password.length < 6) {
+        newErrors.hashed_password = 'Password baru minimal 6 karakter';
+      }
     }
     if (!formData.role_id) {
       newErrors.role_id = 'Role wajib dipilih';
@@ -119,7 +123,7 @@ export default function UsersScreen() {
       position_id: formData.position_id ? parseInt(formData.position_id) : null,
     };
 
-    if (editingId) {
+    if (editingId && !payload.hashed_password) {
       delete (payload as any).hashed_password;
     }
 
@@ -395,25 +399,28 @@ export default function UsersScreen() {
                 {errors.email && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.email}</Text>}
               </View>
 
-              {!editingId && (
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Password *</Text>
-                  <TextInput
-                    style={[styles.input, focusedField === 'hashed_password' && styles.inputFocused, errors.hashed_password ? { borderColor: '#ef4444' } : null]}
-                    value={formData.hashed_password}
-                    onChangeText={(text) => {
-                      setFormData({ ...formData, hashed_password: text });
-                      if (errors.hashed_password) setErrors({ ...errors, hashed_password: '' });
-                    }}
-                    onFocus={() => setFocusedField('hashed_password')}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="Minimal 6 karakter"
-                    placeholderTextColor="#9ca3af"
-                    secureTextEntry
-                  />
-                  {errors.hashed_password && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.hashed_password}</Text>}
+              <View style={styles.formGroup}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={styles.label}>Password {editingId ? '' : '*'}</Text>
+                  {editingId && (
+                    <Text style={{ fontSize: 11, color: '#94a3b8' }}>Opsional (Ganti Baru)</Text>
+                  )}
                 </View>
-              )}
+                <TextInput
+                  style={[styles.input, focusedField === 'hashed_password' && styles.inputFocused, errors.hashed_password ? { borderColor: '#ef4444' } : null]}
+                  value={formData.hashed_password}
+                  onChangeText={(text) => {
+                    setFormData({ ...formData, hashed_password: text });
+                    if (errors.hashed_password) setErrors({ ...errors, hashed_password: '' });
+                  }}
+                  onFocus={() => setFocusedField('hashed_password')}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder={editingId ? "Kosongkan jika tidak ingin ganti" : "Minimal 6 karakter"}
+                  placeholderTextColor="#9ca3af"
+                  secureTextEntry
+                />
+                {errors.hashed_password && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.hashed_password}</Text>}
+              </View>
 
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Role *</Text>
