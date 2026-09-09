@@ -753,7 +753,7 @@ def delete_role(id: int, current_user: dict = Depends(require_super_admin)):
         cursor.close()
         conn.close()
 
-# ================= COMPANIES (Super Admin only) =================
+# ================= COMPANIES (Super Admin only for mutations, Read-only for Admin HR) =================
 @app.get("/api/companies")
 def get_all_companies(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
@@ -761,7 +761,7 @@ def get_all_companies(current_user: dict = Depends(get_current_user)):
     try:
         base_query = "SELECT * FROM companies WHERE deleted_at IS NULL"
         params = []
-        if current_user.get("role") in ["Admin HR", "Karyawan"]:
+        if current_user.get("role") == "Karyawan":
             comp_id = get_user_company_id(current_user['user_id'], cursor)
             if comp_id:
                 base_query += " AND id = %s"
