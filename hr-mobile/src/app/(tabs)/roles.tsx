@@ -110,14 +110,14 @@ export default function RolesScreen() {
     setModalVisible(true);
   };
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
     const isSuperAdminRole = item.role_name === 'Super Admin' || item.id === 1;
 
     return (
       <View style={styles.roleCard}>
         <View style={styles.cardInfo}>
           <View style={styles.badgeContainer}>
-            <Text style={styles.roleId}>ID: {item.id}</Text>
+            <Text style={styles.roleId}>No. {index + 1}</Text>
           </View>
           <Text style={styles.roleName}>{item.role_name}</Text>
           <Text style={styles.roleDesc}>{item.description || '-'}</Text>

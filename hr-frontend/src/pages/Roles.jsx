@@ -122,18 +122,18 @@ const Roles = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold tracking-wider uppercase">
-                <th className="p-4 rounded-tl-2xl">ID</th>
+                <th className="p-4 rounded-tl-2xl">No</th>
                 <th className="p-4">Nama Role</th>
                 <th className="p-4">Deskripsi</th>
                 <th className="p-4 rounded-tr-2xl">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-600">
-              {roles.map((roleItem) => {
+              {roles.map((roleItem, index) => {
                 const isSuperAdminRole = roleItem.role_name === 'Super Admin' || roleItem.id === 1;
                 return (
                   <tr key={roleItem.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4 text-orange-600 font-bold">{roleItem.id}</td>
+                    <td className="p-4 text-orange-600 font-bold">{index + 1}</td>
                     <td className="p-4 font-bold text-gray-800">{roleItem.role_name}</td>
                     <td className="p-4 text-gray-500">{roleItem.description || '-'}</td>
                     <td className="p-4 flex gap-3 items-center">
