@@ -46,6 +46,46 @@ const t = {
   employee: "Karyawan",
 };
 
+const MONTH_NAMES = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+const MONTH_SHORT = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+  'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS_LIST = Array.from({ length: 66 }, (_, i) => (CURRENT_YEAR - 10) - i); // e.g. 2016 down to 1951
+
+const formatDateIndonesian = (dateStr?: string | null): string => {
+  if (!dateStr) return '-';
+  try {
+    const cleanStr = String(dateStr).split('T')[0].trim();
+    if (!cleanStr || cleanStr === 'null' || cleanStr === 'undefined') return '-';
+    
+    const parts = cleanStr.split(/[-/]/);
+    let d: Date;
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      } else if (parts[2].length === 4) {
+        d = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      } else {
+        d = new Date(cleanStr);
+      }
+    } else {
+      d = new Date(cleanStr);
+    }
+    
+    if (isNaN(d.getTime())) return cleanStr;
+    return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+  } catch {
+    return String(dateStr || '-');
+  }
+};
+
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [positions, setPositions] = useState<any[]>([]);
@@ -54,6 +94,47 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
+
+  // Date Picker Modal State
+  const [showDatePickerModal, setShowDatePickerModal] = useState(false);
+  const [pickerYear, setPickerYear] = useState(1995);
+  const [pickerMonth, setPickerMonth] = useState(1);
+  const [pickerDay, setPickerDay] = useState(1);
+  const [pickerTab, setPickerTab] = useState<'year' | 'month' | 'day'>('year');
+  const [showManualDateInput, setShowManualDateInput] = useState(false);
+
+  const openDatePicker = () => {
+    let y = 1995;
+    let m = 1;
+    let d = 1;
+    if (formData.birth_date) {
+      const parts = String(formData.birth_date).split('T')[0].split(/[-/]/);
+      if (parts.length === 3) {
+        if (parts[0].length === 4) {
+          y = parseInt(parts[0], 10) || 1995;
+          m = parseInt(parts[1], 10) || 1;
+          d = parseInt(parts[2], 10) || 1;
+        } else if (parts[2].length === 4) {
+          y = parseInt(parts[2], 10) || 1995;
+          m = parseInt(parts[1], 10) || 1;
+          d = parseInt(parts[0], 10) || 1;
+        }
+      }
+    }
+    setPickerYear(y);
+    setPickerMonth(m);
+    setPickerDay(d);
+    setPickerTab('year');
+    setShowDatePickerModal(true);
+  };
+
+  const applySelectedDate = () => {
+    const maxDays = new Date(pickerYear, pickerMonth, 0).getDate();
+    const safeDay = Math.min(pickerDay, maxDays);
+    const formatted = `${pickerYear}-${String(pickerMonth).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`;
+    setFormData(prev => ({ ...prev, birth_date: formatted }));
+    setShowDatePickerModal(false);
+  };
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<any>({ type: 'info', title: '', message: '' });
@@ -192,9 +273,17 @@ export default function ProfileScreen() {
   const executeSave = async () => {
     setSaving(true);
     try {
+      let cleanBirthDate = formData.birth_date ? formData.birth_date.trim() : null;
+      if (cleanBirthDate) {
+        const dmyMatch = cleanBirthDate.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+        if (dmyMatch) {
+          cleanBirthDate = `${dmyMatch[3]}-${dmyMatch[2].padStart(2, '0')}-${dmyMatch[1].padStart(2, '0')}`;
+        }
+      }
+
       const payload = {
         ...formData,
-        birth_date: formData.birth_date || null,
+        birth_date: cleanBirthDate || null,
         position_id: formData.position_id ? parseInt(formData.position_id) : null,
       };
       const res = await api.put('/profile', payload);
@@ -207,7 +296,13 @@ export default function ProfileScreen() {
         showAlert('error', 'Gagal', res.data?.detail || 'Gagal memperbarui profil');
       }
     } catch (error: any) {
-      showAlert('error', 'Error', error.response?.data?.detail || 'Terjadi kesalahan');
+      const errorDetail = error.response?.data?.detail;
+      const errorMessage = typeof errorDetail === 'string'
+        ? errorDetail
+        : Array.isArray(errorDetail)
+        ? errorDetail.map((e: any) => e.msg || e.detail || JSON.stringify(e)).join('\n')
+        : 'Terjadi kesalahan saat memperbarui profil';
+      showAlert('error', 'Error', errorMessage);
     } finally {
       setSaving(false);
     }
@@ -429,12 +524,59 @@ export default function ProfileScreen() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t.birthDate}</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={formData.birth_date}
-                  onChangeText={txt => setFormData(prev => ({ ...prev, birth_date: txt }))}
-                  placeholder="YYYY-MM-DD"
-                />
+                
+                <TouchableOpacity
+                  style={styles.dateSelectorBtn}
+                  onPress={openDatePicker}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.dateSelectorLeft}>
+                    <View style={styles.dateIconWrapper}>
+                      <Ionicons name="calendar" size={18} color="#f97316" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={formData.birth_date ? styles.dateSelectorValue : styles.dateSelectorPlaceholder}>
+                        {formData.birth_date ? formatDateIndonesian(formData.birth_date) : "Pilih Tanggal Lahir"}
+                      </Text>
+                      {formData.birth_date ? (
+                        <Text style={styles.dateIsoHint}>{formData.birth_date}</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {formData.birth_date ? (
+                      <TouchableOpacity
+                        onPress={() => setFormData(prev => ({ ...prev, birth_date: '' }))}
+                        style={styles.clearDateBtn}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                      </TouchableOpacity>
+                    ) : null}
+                    <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+                  </View>
+                </TouchableOpacity>
+
+                {/* Optional Manual Entry Toggle */}
+                <TouchableOpacity
+                  onPress={() => setShowManualDateInput(!showManualDateInput)}
+                  style={styles.manualToggleBtn}
+                >
+                  <Ionicons name={showManualDateInput ? "chevron-up" : "create-outline"} size={12} color="#f97316" />
+                  <Text style={styles.manualToggleText}>
+                    {showManualDateInput ? "Tutup input manual" : "Atau ketik manual (YYYY-MM-DD)"}
+                  </Text>
+                </TouchableOpacity>
+
+                {showManualDateInput && (
+                  <TextInput
+                    style={[styles.textInput, { marginTop: 4 }]}
+                    value={formData.birth_date}
+                    onChangeText={txt => setFormData(prev => ({ ...prev, birth_date: txt }))}
+                    placeholder="YYYY-MM-DD (Contoh: 1995-05-15)"
+                    placeholderTextColor="#9ca3af"
+                  />
+                )}
               </View>
 
               <View style={styles.inputGroup}>
@@ -503,7 +645,7 @@ export default function ProfileScreen() {
                 <Text style={styles.detailLabel}>{t.birthPlace}, {t.birthDate}</Text>
                 <Text style={styles.detailValue}>
                   {profile.birth_place || '-'}
-                  {profile.birth_date ? `, ${new Date(profile.birth_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
+                  {profile.birth_date ? `, ${formatDateIndonesian(profile.birth_date)}` : ''}
                 </Text>
               </View>
               <View style={styles.detailItem}>
@@ -513,7 +655,7 @@ export default function ProfileScreen() {
               <View style={[styles.detailItem, { borderBottomWidth: 0 }]}>
                 <Text style={styles.detailLabel}>{t.joinedSince}</Text>
                 <Text style={styles.detailValue}>
-                  {(profile.joined_date || profile.created_at) ? new Date(profile.joined_date || profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                  {formatDateIndonesian(profile.joined_date || profile.created_at)}
                 </Text>
               </View>
             </View>
@@ -678,6 +820,150 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowPositionPicker(false)}>
               <Text style={styles.modalCancelText}>{t.close}</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ====== MODAL: Date Picker ====== */}
+      <Modal visible={showDatePickerModal} transparent animationType="slide" onRequestClose={() => setShowDatePickerModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '82%' }]}>
+            {/* Modal Header */}
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={styles.dateIconWrapper}>
+                  <Ionicons name="calendar" size={16} color="#f97316" />
+                </View>
+                <Text style={styles.modalTitleText}>Pilih Tanggal Lahir</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowDatePickerModal(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="close" size={24} color="#1e2022" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Selected Date Preview Card */}
+            <View style={styles.datePreviewCard}>
+              <Text style={styles.datePreviewLabel}>Tanggal Terpilih</Text>
+              <Text style={styles.datePreviewText}>
+                {pickerDay} {MONTH_NAMES[pickerMonth - 1]} {pickerYear}
+              </Text>
+              <Text style={styles.datePreviewIso}>
+                {pickerYear}-{String(pickerMonth).padStart(2, '0')}-{String(pickerDay).padStart(2, '0')}
+              </Text>
+            </View>
+
+            {/* Picker Step Tabs: Tahun / Bulan / Tanggal */}
+            <View style={styles.pickerTabsRow}>
+              <TouchableOpacity
+                style={[styles.pickerTabBtn, pickerTab === 'year' && styles.pickerTabBtnActive]}
+                onPress={() => setPickerTab('year')}
+              >
+                <Text style={[styles.pickerTabBtnText, pickerTab === 'year' && styles.pickerTabBtnTextActive]}>
+                  Tahun ({pickerYear})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.pickerTabBtn, pickerTab === 'month' && styles.pickerTabBtnActive]}
+                onPress={() => setPickerTab('month')}
+              >
+                <Text style={[styles.pickerTabBtnText, pickerTab === 'month' && styles.pickerTabBtnTextActive]}>
+                  Bulan ({MONTH_SHORT[pickerMonth - 1]})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.pickerTabBtn, pickerTab === 'day' && styles.pickerTabBtnActive]}
+                onPress={() => setPickerTab('day')}
+              >
+                <Text style={[styles.pickerTabBtnText, pickerTab === 'day' && styles.pickerTabBtnTextActive]}>
+                  Hari ({pickerDay})
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Tab 1: Year Grid */}
+            {pickerTab === 'year' && (
+              <ScrollView style={styles.pickerScrollArea} showsVerticalScrollIndicator={false}>
+                <View style={styles.gridContainer}>
+                  {YEARS_LIST.map((yr) => (
+                    <TouchableOpacity
+                      key={yr}
+                      style={[styles.gridChip, pickerYear === yr && styles.gridChipActive]}
+                      onPress={() => {
+                        setPickerYear(yr);
+                        setPickerTab('month');
+                      }}
+                    >
+                      <Text style={[styles.gridChipText, pickerYear === yr && styles.gridChipTextActive]}>
+                        {yr}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
+
+            {/* Tab 2: Month Grid */}
+            {pickerTab === 'month' && (
+              <ScrollView style={styles.pickerScrollArea} showsVerticalScrollIndicator={false}>
+                <View style={styles.gridContainer}>
+                  {MONTH_NAMES.map((name, idx) => {
+                    const mNum = idx + 1;
+                    return (
+                      <TouchableOpacity
+                        key={name}
+                        style={[styles.monthChip, pickerMonth === mNum && styles.gridChipActive]}
+                        onPress={() => {
+                          setPickerMonth(mNum);
+                          setPickerTab('day');
+                        }}
+                      >
+                        <Text style={[styles.gridChipText, pickerMonth === mNum && styles.gridChipTextActive]}>
+                          {name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            )}
+
+            {/* Tab 3: Day Grid */}
+            {pickerTab === 'day' && (
+              <ScrollView style={styles.pickerScrollArea} showsVerticalScrollIndicator={false}>
+                <View style={styles.daysGridContainer}>
+                  {Array.from({ length: new Date(pickerYear, pickerMonth, 0).getDate() }, (_, i) => i + 1).map((d) => (
+                    <TouchableOpacity
+                      key={d}
+                      style={[styles.dayChip, pickerDay === d && styles.gridChipActive]}
+                      onPress={() => setPickerDay(d)}
+                    >
+                      <Text style={[styles.gridChipText, pickerDay === d && styles.gridChipTextActive]}>
+                        {d}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity
+                style={styles.modalCancelBtnSoft}
+                onPress={() => {
+                  setFormData(prev => ({ ...prev, birth_date: '' }));
+                  setShowDatePickerModal(false);
+                }}
+              >
+                <Text style={styles.modalCancelBtnSoftText}>Kosongkan</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSubmitBtn}
+                onPress={applySelectedDate}
+              >
+                <Text style={styles.modalSubmitBtnText}>Terapkan Tanggal</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1237,5 +1523,175 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 13,
+  },
+  // Date Picker & Selector Styles
+  dateSelectorBtn: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateSelectorLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  dateIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#fff7ed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateSelectorValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e2022',
+  },
+  dateSelectorPlaceholder: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#9ca3af',
+  },
+  dateIsoHint: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#f97316',
+    marginTop: 1,
+  },
+  clearDateBtn: {
+    padding: 2,
+  },
+  manualToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+    paddingHorizontal: 2,
+  },
+  manualToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#f97316',
+  },
+  datePreviewCard: {
+    backgroundColor: '#fff7ed',
+    borderColor: '#ffedd5',
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  datePreviewLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#c2410c',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  datePreviewText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e2022',
+    marginTop: 2,
+  },
+  datePreviewIso: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#ea580c',
+    marginTop: 2,
+  },
+  pickerTabsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 12,
+  },
+  pickerTabBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 10,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickerTabBtnActive: {
+    backgroundColor: '#f97316',
+  },
+  pickerTabBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6b7280',
+  },
+  pickerTabBtnTextActive: {
+    color: '#ffffff',
+  },
+  pickerScrollArea: {
+    maxHeight: 200,
+    marginVertical: 4,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
+  gridChip: {
+    width: '30%',
+    paddingVertical: 10,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthChip: {
+    width: '47%',
+    paddingVertical: 10,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  daysGridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    justifyContent: 'flex-start',
+    paddingVertical: 4,
+  },
+  dayChip: {
+    width: '12%',
+    aspectRatio: 1,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridChipActive: {
+    backgroundColor: '#f97316',
+    borderColor: '#ea580c',
+  },
+  gridChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  gridChipTextActive: {
+    color: '#ffffff',
   },
 });

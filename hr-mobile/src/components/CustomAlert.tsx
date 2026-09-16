@@ -8,7 +8,7 @@ interface CustomAlertProps {
   visible: boolean;
   type?: AlertType;
   title: string;
-  message: string;
+  message: any;
   onClose: () => void;
   onConfirm?: () => void;
   confirmText?: string;
@@ -83,6 +83,25 @@ export default function CustomAlert({
   const hasConfirm = !!onConfirm;
   const displayConfirmText = confirmText || (type === 'delete' ? 'Hapus' : 'Ya, Lanjutkan');
   const displayCancelText = cancelText || 'Batal';
+  const formatAlertMessage = (msg: any): string => {
+    if (msg === null || msg === undefined) return '';
+    if (typeof msg === 'string') return msg;
+    if (Array.isArray(msg)) {
+      return msg
+        .map(item => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object') {
+            return item.msg || item.message || item.detail || JSON.stringify(item);
+          }
+          return String(item);
+        })
+        .join('\n');
+    }
+    if (typeof msg === 'object') {
+      return msg.msg || msg.message || msg.detail || JSON.stringify(msg);
+    }
+    return String(msg);
+  };
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -95,7 +114,7 @@ export default function CustomAlert({
 
           {/* Text */}
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+          <Text style={styles.message}>{formatAlertMessage(message)}</Text>
 
           {/* Buttons */}
           <View style={hasConfirm ? styles.buttonRow : styles.buttonSingle}>

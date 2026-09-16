@@ -5,7 +5,7 @@ import base64
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import date, time, datetime, timedelta
 import psycopg2
@@ -115,6 +115,20 @@ class PositionUpdate(BaseModel):
     position_name: str
     description: Optional[str] = None
 
+def parse_flexible_date(v):
+    if not v or v == "" or v == "null":
+        return None
+    if isinstance(v, date):
+        return v
+    if isinstance(v, str):
+        v_clean = v.strip().split('T')[0]
+        for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y', '%Y/%m/%d'):
+            try:
+                return datetime.strptime(v_clean, fmt).date()
+            except ValueError:
+                continue
+    return v
+
 # -- Users --
 class UserCreate(BaseModel):
     employee_id: Optional[str] = None
@@ -131,6 +145,11 @@ class UserCreate(BaseModel):
     profile_picture: Optional[str] = None
     joined_date: Optional[date] = None
 
+    @field_validator('birth_date', 'joined_date', mode='before')
+    @classmethod
+    def validate_dates(cls, v):
+        return parse_flexible_date(v)
+
 class UserUpdate(BaseModel):
     employee_id: Optional[str] = None
     company_id: Optional[int] = None
@@ -146,6 +165,11 @@ class UserUpdate(BaseModel):
     profile_picture: Optional[str] = None
     joined_date: Optional[date] = None
 
+    @field_validator('birth_date', 'joined_date', mode='before')
+    @classmethod
+    def validate_dates(cls, v):
+        return parse_flexible_date(v)
+
 # -- Profile --
 class ProfileUpdate(BaseModel):
     employee_id: Optional[str] = None
@@ -157,6 +181,11 @@ class ProfileUpdate(BaseModel):
     profile_picture: Optional[str] = None
     position_id: Optional[int] = None
     joined_date: Optional[date] = None
+
+    @field_validator('birth_date', 'joined_date', mode='before')
+    @classmethod
+    def validate_dates(cls, v):
+        return parse_flexible_date(v)
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
