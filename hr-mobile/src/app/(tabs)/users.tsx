@@ -18,6 +18,12 @@ export default function UsersScreen() {
   const [positionModalVisible, setPositionModalVisible] = useState(false);
   
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [resetModalVisible, setResetModalVisible] = useState(false);
+  const [selectedUserForReset, setSelectedUserForReset] = useState<any>(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetSubmitting, setResetSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     employee_id: '',
     role_id: '',
@@ -73,6 +79,9 @@ export default function UsersScreen() {
 
   const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
+    if (!formData.employee_id?.trim()) {
+      newErrors.employee_id = 'ID Karyawan wajib diisi';
+    }
     if (!formData.full_name?.trim()) {
       newErrors.full_name = 'Nama lengkap wajib diisi';
     }
@@ -87,16 +96,6 @@ export default function UsersScreen() {
       } else if (formData.hashed_password.length < 6) {
         newErrors.hashed_password = 'Password minimal 6 karakter';
       }
-    } else {
-      if (formData.hashed_password && formData.hashed_password.length < 6) {
-        newErrors.hashed_password = 'Password baru minimal 6 karakter';
-      }
-    }
-    if (!formData.role_id) {
-      newErrors.role_id = 'Role wajib dipilih';
-    }
-    if (!formData.position_id) {
-      newErrors.position_id = 'Jabatan / Divisi wajib dipilih';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -119,11 +118,15 @@ export default function UsersScreen() {
   const executeSubmit = async () => {
     const payload = {
       ...formData,
+      employee_id: formData.employee_id.trim(),
+      full_name: formData.full_name.trim(),
+      email: formData.email.trim(),
       role_id: formData.role_id ? parseInt(formData.role_id) : null,
       position_id: formData.position_id ? parseInt(formData.position_id) : null,
     };
 
-    if (editingId && !payload.hashed_password) {
+    // Never send password when editing user
+    if (editingId) {
       delete (payload as any).hashed_password;
     }
 
@@ -179,6 +182,42 @@ export default function UsersScreen() {
     );
   };
 
+  const handleOpenResetPassword = (user: any) => {
+    setSelectedUserForReset(user);
+    setResetPassword('');
+    setResetConfirmPassword('');
+    setResetError('');
+    setResetModalVisible(true);
+  };
+
+  const handleExecuteResetPassword = async () => {
+    if (!resetPassword.trim()) {
+      setResetError('Kata sandi baru wajib diisi');
+      return;
+    }
+    if (resetPassword.length < 6) {
+      setResetError('Kata sandi baru minimal 6 karakter');
+      return;
+    }
+    if (resetPassword !== resetConfirmPassword) {
+      setResetError('Konfirmasi kata sandi tidak cocok');
+      return;
+    }
+
+    setResetSubmitting(true);
+    try {
+      await api.post(`/users/${selectedUserForReset.id}/reset-password`, {
+        new_password: resetPassword
+      });
+      setResetModalVisible(false);
+      showAlert('success', 'Sukses', `Kata sandi untuk "${selectedUserForReset.full_name}" berhasil diperbarui.`);
+    } catch (err: any) {
+      setResetError(err.response?.data?.detail || 'Gagal mereset kata sandi');
+    } finally {
+      setResetSubmitting(false);
+    }
+  };
+
   const openAddModal = () => {
     setFormData({ employee_id: '', role_id: '', position_id: '', full_name: '', email: '', hashed_password: '', status: 'Active' });
     setErrors({});
@@ -187,13 +226,15 @@ export default function UsersScreen() {
   };
 
   const getRoleName = (roleId: string) => {
+    if (!roleId) return 'Pilih Role (Opsional)...';
     const r: any = roles.find((item: any) => item.id.toString() === roleId);
-    return r ? r.role_name : 'Pilih Role...';
+    return r ? r.role_name : 'Pilih Role (Opsional)...';
   };
 
   const getPositionName = (posId: string) => {
+    if (!posId) return 'Pilih Posisi / Jabatan (Opsional)...';
     const p: any = positions.find((item: any) => item.id.toString() === posId);
-    return p ? `${p.position_name} (${p.company_name})` : 'Pilih Posisi...';
+    return p ? `${p.position_name} (${p.company_name})` : 'Pilih Posisi / Jabatan (Opsional)...';
   };
 
   const isAdmin = currentUserRole === 'Super Admin' || currentUserRole === 'Admin HR';
@@ -267,6 +308,9 @@ export default function UsersScreen() {
             <>
               <TouchableOpacity activeOpacity={0.7} style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEdit(item)}>
                 <Ionicons name="create-outline" size={16} color="#f97316" />
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.7} style={[styles.actionBtn, { backgroundColor: '#fef3c7' }]} onPress={() => handleOpenResetPassword(item)}>
+                <Ionicons name="key-outline" size={15} color="#d97706" />
               </TouchableOpacity>
               <TouchableOpacity activeOpacity={0.7} style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
                 <Ionicons name="trash-outline" size={16} color="#ef4444" />
@@ -354,16 +398,20 @@ export default function UsersScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ maxHeight: 380 }} contentContainerStyle={{ paddingBottom: 10 }}>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>ID Karyawan</Text>
+                <Text style={styles.label}>ID Karyawan *</Text>
                 <TextInput
-                  style={[styles.input, focusedField === 'employee_id' && styles.inputFocused]}
+                  style={[styles.input, focusedField === 'employee_id' && styles.inputFocused, errors.employee_id ? { borderColor: '#ef4444' } : null]}
                   value={formData.employee_id}
-                  onChangeText={(text) => setFormData({ ...formData, employee_id: text })}
+                  onChangeText={(text) => {
+                    setFormData({ ...formData, employee_id: text });
+                    if (errors.employee_id) setErrors({ ...errors, employee_id: '' });
+                  }}
                   onFocus={() => setFocusedField('employee_id')}
                   onBlur={() => setFocusedField(null)}
-                  placeholder="EMP-001"
+                  placeholder="Contoh: EMP-001"
                   placeholderTextColor="#9ca3af"
                 />
+                {errors.employee_id && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.employee_id}</Text>}
               </View>
 
               <View style={styles.formGroup}>
@@ -402,31 +450,35 @@ export default function UsersScreen() {
                 {errors.email && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.email}</Text>}
               </View>
 
-              <View style={styles.formGroup}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Text style={styles.label}>Password {editingId ? '' : '*'}</Text>
-                  {editingId && (
-                    <Text style={{ fontSize: 11, color: '#94a3b8' }}>Opsional (Ganti Baru)</Text>
-                  )}
+              {!editingId ? (
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Password *</Text>
+                  <TextInput
+                    style={[styles.input, focusedField === 'hashed_password' && styles.inputFocused, errors.hashed_password ? { borderColor: '#ef4444' } : null]}
+                    value={formData.hashed_password}
+                    onChangeText={(text) => {
+                      setFormData({ ...formData, hashed_password: text });
+                      if (errors.hashed_password) setErrors({ ...errors, hashed_password: '' });
+                    }}
+                    onFocus={() => setFocusedField('hashed_password')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder="Minimal 6 karakter"
+                    placeholderTextColor="#9ca3af"
+                    secureTextEntry
+                  />
+                  {errors.hashed_password && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.hashed_password}</Text>}
                 </View>
-                <TextInput
-                  style={[styles.input, focusedField === 'hashed_password' && styles.inputFocused, errors.hashed_password ? { borderColor: '#ef4444' } : null]}
-                  value={formData.hashed_password}
-                  onChangeText={(text) => {
-                    setFormData({ ...formData, hashed_password: text });
-                    if (errors.hashed_password) setErrors({ ...errors, hashed_password: '' });
-                  }}
-                  onFocus={() => setFocusedField('hashed_password')}
-                  onBlur={() => setFocusedField(null)}
-                  placeholder={editingId ? "Kosongkan jika tidak ingin ganti" : "Minimal 6 karakter"}
-                  placeholderTextColor="#9ca3af"
-                  secureTextEntry
-                />
-                {errors.hashed_password && <Text style={{ color: '#ef4444', fontSize: 11, marginTop: 4 }}>⚠️ {errors.hashed_password}</Text>}
-              </View>
+              ) : (
+                <View style={{ backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fef3c7', borderRadius: 12, padding: 12, marginBottom: 16 }}>
+                  <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#b45309' }}>Kata Sandi Terpisah</Text>
+                  <Text style={{ fontSize: 11, color: '#d97706', marginTop: 2 }}>
+                    Kata sandi tidak dapat diubah di form ini. Gunakan tombol kunci 🔑 pada daftar karyawan untuk reset sandi.
+                  </Text>
+                </View>
+              )}
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Role *</Text>
+                <Text style={styles.label}>Role (Opsional)</Text>
                 <TouchableOpacity 
                   activeOpacity={0.7} 
                   style={[styles.selector, errors.role_id ? { borderColor: '#ef4444' } : null]} 
@@ -435,8 +487,8 @@ export default function UsersScreen() {
                     setRoleModalVisible(true);
                   }}
                 >
-                  <Text style={styles.selectorText}>
-                    {formData.role_id ? getRoleName(formData.role_id) : 'Pilih Role...'}
+                  <Text style={[styles.selectorText, !formData.role_id && { color: '#9ca3af' }]}>
+                    {formData.role_id ? getRoleName(formData.role_id) : 'Pilih Role (Opsional)...'}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#6b7280" />
                 </TouchableOpacity>
@@ -444,7 +496,7 @@ export default function UsersScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Posisi / Jabatan *</Text>
+                <Text style={styles.label}>Posisi / Jabatan (Opsional)</Text>
                 <TouchableOpacity 
                   activeOpacity={0.7} 
                   style={[styles.selector, errors.position_id ? { borderColor: '#ef4444' } : null]} 
@@ -453,8 +505,8 @@ export default function UsersScreen() {
                     setPositionModalVisible(true);
                   }}
                 >
-                  <Text style={styles.selectorText}>
-                    {formData.position_id ? getPositionName(formData.position_id) : 'Pilih Posisi / Jabatan...'}
+                  <Text style={[styles.selectorText, !formData.position_id && { color: '#9ca3af' }]}>
+                    {formData.position_id ? getPositionName(formData.position_id) : 'Pilih Posisi / Jabatan (Opsional)...'}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#6b7280" />
                 </TouchableOpacity>
@@ -465,14 +517,14 @@ export default function UsersScreen() {
                 <Text style={styles.label}>Status</Text>
                 <View style={styles.statusOptions}>
                   <TouchableOpacity 
-                    activeOpacity={0.7}
+                    activeOpacity={0.7} 
                     style={[styles.statusOption, formData.status === 'Active' && styles.statusOptionActive]}
                     onPress={() => setFormData({ ...formData, status: 'Active' })}
                   >
                     <Text style={[styles.statusOptionText, formData.status === 'Active' && styles.statusOptionTextActive]}>Active</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    activeOpacity={0.7}
+                    activeOpacity={0.7} 
                     style={[styles.statusOption, formData.status === 'Inactive' && styles.statusOptionActiveRed]}
                     onPress={() => setFormData({ ...formData, status: 'Inactive' })}
                   >
@@ -508,22 +560,31 @@ export default function UsersScreen() {
                 <Ionicons name="close" size={24} color="#1e2022" />
               </TouchableOpacity>
             </View>
-            <FlatList
-              data={roles.filter((r: any) => r.role_name !== 'Super Admin')}
-              keyExtractor={(item: any) => item.id.toString()}
-              renderItem={({ item }: { item: any }) => (
+            <ScrollView style={{ maxHeight: 300 }}>
+              <TouchableOpacity 
+                style={[styles.selectorItem, !formData.role_id && { backgroundColor: '#f8fafc' }]} 
+                onPress={() => {
+                  setFormData({ ...formData, role_id: '' });
+                  setRoleModalVisible(false);
+                }}
+              >
+                <Text style={[styles.selectorItemText, { color: '#94a3b8', fontStyle: 'italic' }]}>-- Tanpa Role (Kosongkan) --</Text>
+              </TouchableOpacity>
+              {roles.filter((r: any) => r.role_name !== 'Super Admin').map((item: any) => (
                 <TouchableOpacity 
-                  style={styles.selectorItem} 
+                  key={item.id.toString()}
+                  style={[styles.selectorItem, formData.role_id === item.id.toString() && { backgroundColor: '#fff7ed' }]} 
                   onPress={() => {
                     setFormData({ ...formData, role_id: item.id.toString() });
                     setRoleModalVisible(false);
                   }}
                 >
-                  <Text style={styles.selectorItemText}>{item.role_name}</Text>
+                  <Text style={[styles.selectorItemText, formData.role_id === item.id.toString() && { color: '#f97316', fontWeight: 'bold' }]}>
+                    {item.role_name}
+                  </Text>
                 </TouchableOpacity>
-              )}
-              style={{ maxHeight: 300 }}
-            />
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -538,24 +599,105 @@ export default function UsersScreen() {
                 <Ionicons name="close" size={24} color="#1e2022" />
               </TouchableOpacity>
             </View>
-            <FlatList
-              data={positions}
-              keyExtractor={(item: any) => item.id.toString()}
-              renderItem={({ item }: { item: any }) => (
+            <ScrollView style={{ maxHeight: 300 }}>
+              <TouchableOpacity 
+                style={[styles.selectorItem, !formData.position_id && { backgroundColor: '#f8fafc' }]} 
+                onPress={() => {
+                  setFormData({ ...formData, position_id: '' });
+                  setPositionModalVisible(false);
+                }}
+              >
+                <Text style={[styles.selectorItemText, { color: '#94a3b8', fontStyle: 'italic' }]}>-- Tanpa Posisi (Kosongkan) --</Text>
+              </TouchableOpacity>
+              {positions.map((item: any) => (
                 <TouchableOpacity 
-                  style={styles.selectorItem} 
+                  key={item.id.toString()}
+                  style={[styles.selectorItem, formData.position_id === item.id.toString() && { backgroundColor: '#fff7ed' }]} 
                   onPress={() => {
                     setFormData({ ...formData, position_id: item.id.toString() });
                     setPositionModalVisible(false);
                   }}
                 >
-                  <Text style={styles.selectorItemText}>{item.position_name} ({item.company_name})</Text>
+                  <Text style={[styles.selectorItemText, formData.position_id === item.id.toString() && { color: '#f97316', fontWeight: 'bold' }]}>
+                    {item.position_name} ({item.company_name})
+                  </Text>
                 </TouchableOpacity>
-              )}
-              style={{ maxHeight: 300 }}
-            />
+              ))}
+            </ScrollView>
           </View>
         </View>
+      </Modal>
+
+      {/* Reset Password Modal */}
+      <Modal visible={resetModalVisible} transparent animationType="fade">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxWidth: 360 }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#fef3c7', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="key" size={16} color="#d97706" />
+                </View>
+                <View>
+                  <Text style={styles.modalTitle}>Reset Kata Sandi</Text>
+                  <Text style={{ fontSize: 11, color: '#9ca3af', fontWeight: '600' }}>{selectedUserForReset?.full_name}</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setResetModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#1e2022" />
+              </TouchableOpacity>
+            </View>
+
+            {resetError ? (
+              <View style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fee2e2', borderRadius: 10, padding: 10, marginBottom: 12 }}>
+                <Text style={{ fontSize: 11, color: '#ef4444', fontWeight: 'bold' }}>⚠️ {resetError}</Text>
+              </View>
+            ) : null}
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Kata Sandi Baru *</Text>
+              <TextInput
+                style={styles.input}
+                value={resetPassword}
+                onChangeText={txt => { setResetPassword(txt); setResetError(''); }}
+                placeholder="Minimal 6 karakter"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Konfirmasi Kata Sandi Baru *</Text>
+              <TextInput
+                style={styles.input}
+                value={resetConfirmPassword}
+                onChangeText={txt => { setResetConfirmPassword(txt); setResetError(''); }}
+                placeholder="Ketik ulang kata sandi baru"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry
+              />
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+              <TouchableOpacity 
+                style={[styles.submitBtn, { flex: 1, backgroundColor: '#f3f4f6' }]} 
+                onPress={() => setResetModalVisible(false)}
+              >
+                <Text style={[styles.submitBtnText, { color: '#4b5563' }]}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.submitBtn, { flex: 1.5 }, resetSubmitting && { opacity: 0.7 }]} 
+                onPress={handleExecuteResetPassword}
+                disabled={resetSubmitting}
+              >
+                {resetSubmitting ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitBtnText}>Simpan Sandi</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <CustomAlert

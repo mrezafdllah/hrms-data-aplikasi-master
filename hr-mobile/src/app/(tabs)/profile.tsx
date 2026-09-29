@@ -202,6 +202,7 @@ export default function ProfileScreen() {
   });
 
   const role = profile?.role_name || '';
+  const isSuperAdmin = role === 'Super Admin';
   const isAdmin = role === 'Super Admin' || role === 'Admin HR';
 
   const fetchProfile = useCallback(() => {
@@ -281,11 +282,17 @@ export default function ProfileScreen() {
         }
       }
 
-      const payload = {
+      const payload: any = {
         ...formData,
         birth_date: cleanBirthDate || null,
         position_id: formData.position_id ? parseInt(formData.position_id) : null,
       };
+      if (!isSuperAdmin) {
+        delete payload.employee_id;
+      }
+      if (!isAdmin) {
+        delete payload.position_id;
+      }
       const res = await api.put('/profile', payload);
       if (res.data?.status === 'Success') {
         await AsyncStorage.setItem('name', formData.full_name);
@@ -482,13 +489,31 @@ export default function ProfileScreen() {
           {isEditing ? (
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t.employeeId}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={styles.inputLabel}>{t.employeeId}</Text>
+                  {!isSuperAdmin && (
+                    <View style={styles.lockedBadge}>
+                      <Ionicons name="lock-closed" size={10} color="#64748b" />
+                      <Text style={styles.lockedBadgeText}>Terkunci (Diatur Admin)</Text>
+                    </View>
+                  )}
+                </View>
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    !isSuperAdmin && styles.disabledInput
+                  ]}
                   value={formData.employee_id}
+                  editable={isSuperAdmin}
                   onChangeText={txt => setFormData(prev => ({ ...prev, employee_id: txt }))}
                   placeholder="EMP-001"
+                  placeholderTextColor="#9ca3af"
                 />
+                {!isSuperAdmin && (
+                  <Text style={styles.fieldHelpText}>
+                    ID Karyawan hanya dapat diubah oleh Super Admin/Admin HR melalui menu Manajemen Karyawan.
+                  </Text>
+                )}
               </View>
 
               <View style={styles.inputGroup}>
@@ -502,10 +527,21 @@ export default function ProfileScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t.email}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={styles.inputLabel}>{t.email}</Text>
+                  {!isAdmin && (
+                    <View style={styles.permanentBadge}>
+                      <Text style={styles.permanentBadgeText}>Permanen</Text>
+                    </View>
+                  )}
+                </View>
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    !isAdmin && styles.disabledInput
+                  ]}
                   value={formData.email}
+                  editable={isAdmin}
                   onChangeText={txt => setFormData(prev => ({ ...prev, email: txt }))}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -664,8 +700,10 @@ export default function ProfileScreen() {
 
         {/* Security & Password Card / Menu Item */}
         <TouchableOpacity 
-          style={styles.securityCard} 
+          style={[styles.securityCard, isEditing && { opacity: 0.6, backgroundColor: '#f8fafc' }]} 
+          disabled={isEditing}
           onPress={() => {
+            if (isEditing) return;
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
@@ -673,17 +711,19 @@ export default function ProfileScreen() {
           }}
         >
           <View style={styles.securityLeft}>
-            <View style={styles.securityIconContainer}>
-              <Ionicons name="key" size={20} color="#d97706" />
+            <View style={[styles.securityIconContainer, isEditing && { backgroundColor: '#f1f5f9' }]}>
+              <Ionicons name="key" size={20} color={isEditing ? "#94a3b8" : "#d97706"} />
             </View>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={styles.securityTitle}>Keamanan Akun & Sandi</Text>
+                <Text style={[styles.securityTitle, isEditing && { color: '#94a3b8' }]}>Keamanan Akun & Sandi</Text>
                 <View style={styles.securityBadge}>
-                  <Text style={styles.securityBadgeText}>Terlindungi</Text>
+                  <Text style={styles.securityBadgeText}>{isEditing ? "Terkunci saat Edit" : "Terlindungi"}</Text>
                 </View>
               </View>
-              <Text style={styles.securitySubtitle}>Perbarui kata sandi akun secara langsung</Text>
+              <Text style={styles.securitySubtitle}>
+                {isEditing ? "Selesaikan edit profil untuk ubah sandi" : "Perbarui kata sandi akun secara langsung"}
+              </Text>
             </View>
           </View>
           <View style={styles.securityArrow}>
@@ -1204,6 +1244,45 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#374151',
+  },
+  disabledInput: {
+    backgroundColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
+    color: '#64748b',
+  },
+  lockedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  lockedBadgeText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#64748b',
+  },
+  permanentBadge: {
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  permanentBadgeText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#d97706',
+  },
+  fieldHelpText: {
+    fontSize: 10,
+    color: '#9ca3af',
+    marginTop: 2,
   },
   textArea: {
     minHeight: 70,

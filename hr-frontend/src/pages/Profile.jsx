@@ -153,6 +153,7 @@ const Profile = () => {
   };
 
   const role = localStorage.getItem('role');
+  const isSuperAdmin = role === 'Super Admin';
   const isAdmin = role === 'Super Admin' || role === 'Admin HR';
 
   const fetchProfile = () => {
@@ -271,9 +272,11 @@ const Profile = () => {
 
   const executeSubmit = () => {
     const payload = { ...formData };
+    if (!isSuperAdmin) {
+      delete payload.employee_id;
+    }
     if (!isAdmin) {
       delete payload.position_id;
-      delete payload.employee_id;
     } else {
       payload.position_id = payload.position_id === "" ? null : parseInt(payload.position_id);
     }
@@ -404,19 +407,29 @@ const Profile = () => {
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">{t.employeeId}</label>
+                    {!isSuperAdmin && (
+                      <span className="text-[9px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                        🔒 Terkunci (Diatur Admin)
+                      </span>
+                    )}
                   </div>
                   <input
                     type="text"
                     name="employee_id"
                     value={formData.employee_id}
                     onChange={handleChange}
-                    disabled={!isAdmin}
+                    disabled={!isSuperAdmin}
                     className={`w-full border rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
-                      !isAdmin 
-                        ? 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed' 
+                      !isSuperAdmin 
+                        ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed select-none' 
                         : 'bg-gray-50 border-gray-100 text-gray-700 focus:outline-none focus:border-orange-500 focus:bg-white'
                     }`}
                   />
+                  {!isSuperAdmin && (
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      ID Karyawan hanya dapat diubah oleh Super Admin/Admin HR melalui menu Manajemen Karyawan.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
@@ -597,16 +610,29 @@ const Profile = () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
-            setShowPasswordModal(true);
-          }}
-          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-2 shadow-md shadow-orange-500/20 hover:shadow-lg transition-all cursor-pointer whitespace-nowrap"
-        >
-          <Key size={14} /> Perbarui Kata Sandi
-        </button>
+        <div className="flex flex-col items-start md:items-end">
+          <button
+            type="button"
+            disabled={isEditing}
+            onClick={() => {
+              if (isEditing) return;
+              setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
+              setShowPasswordModal(true);
+            }}
+            className={`font-bold text-xs py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all whitespace-nowrap ${
+              isEditing
+                ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/20 hover:shadow-lg cursor-pointer'
+            }`}
+          >
+            <Key size={14} /> Perbarui Kata Sandi
+          </button>
+          {isEditing && (
+            <span className="text-[10px] text-amber-600 font-semibold mt-1">
+              ⚠️ Selesaikan edit profil sebelum ubah kata sandi
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ====== MODAL: UBAH KATA SANDI ====== */}

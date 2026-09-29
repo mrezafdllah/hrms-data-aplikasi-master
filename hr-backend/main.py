@@ -131,7 +131,7 @@ def parse_flexible_date(v):
 
 # -- Users --
 class UserCreate(BaseModel):
-    employee_id: Optional[str] = None
+    employee_id: str
     company_id: Optional[int] = None
     role_id: Optional[int] = None
     position_id: Optional[int] = None
@@ -460,13 +460,20 @@ def update_my_profile(profile: ProfileUpdate, current_user: dict = Depends(get_c
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        is_admin = current_user['role'] in ['Super Admin', 'Admin HR']
-        if is_admin:
+        is_super_admin = current_user.get('role') == 'Super Admin'
+        is_admin = current_user.get('role') in ['Super Admin', 'Admin HR']
+        if is_super_admin:
             cursor.execute("""
                 UPDATE users 
                 SET employee_id = COALESCE(%s, employee_id), full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, position_id = COALESCE(%s, position_id), joined_date = COALESCE(%s, joined_date), updated_at = CURRENT_TIMESTAMP
                 WHERE email = %s;
             """, (profile.employee_id, profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, profile.position_id, profile.joined_date, current_user['email']))
+        elif is_admin:
+            cursor.execute("""
+                UPDATE users 
+                SET full_name = %s, email = %s, birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, position_id = COALESCE(%s, position_id), joined_date = COALESCE(%s, joined_date), updated_at = CURRENT_TIMESTAMP
+                WHERE email = %s;
+            """, (profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, profile.position_id, profile.joined_date, current_user['email']))
         else:
             cursor.execute("""
                 UPDATE users 
@@ -475,9 +482,16 @@ def update_my_profile(profile: ProfileUpdate, current_user: dict = Depends(get_c
             """, (profile.full_name, profile.email, profile.birth_place, profile.birth_date, profile.address, profile.profile_picture, current_user['email']))
         conn.commit()
         return {"status": "Success", "message": "Profil berhasil diperbarui"}
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        err_str = str(e)
+        if "users_employee_id_key" in err_str:
+            raise HTTPException(status_code=400, detail="ID Karyawan sudah digunakan oleh karyawan lain.")
+        if "users_email_key" in err_str:
+            raise HTTPException(status_code=400, detail="Email sudah terdaftar pada sistem.")
+        raise HTTPException(status_code=500, detail=err_str)
     finally:
         cursor.close()
         conn.close()
@@ -1178,6 +1192,16 @@ def add_user(user: UserCreate, current_user: dict = Depends(require_admin_hr_or_
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        # Validasi field wajib sesuai schema database
+        if not user.employee_id or not user.employee_id.strip():
+            raise HTTPException(status_code=400, detail="ID Karyawan wajib diisi.")
+        if not user.full_name or not user.full_name.strip():
+            raise HTTPException(status_code=400, detail="Nama lengkap wajib diisi.")
+        if not user.email or not user.email.strip():
+            raise HTTPException(status_code=400, detail="Email wajib diisi.")
+        if not user.hashed_password or len(user.hashed_password.strip()) < 6:
+            raise HTTPException(status_code=400, detail="Password wajib diisi minimal 6 karakter.")
+
         # Block adding Super Admin role via form
         if user.role_id:
             cursor.execute("SELECT role_name FROM roles WHERE id = %s;", (user.role_id,))
@@ -1292,28 +1316,14 @@ def update_user(id: int, user: UserUpdate, current_user: dict = Depends(require_
                 if user.company_id and user.company_id != pos_company_id:
                     raise HTTPException(status_code=400, detail="Posisi yang dipilih tidak sesuai dengan Perusahaan yang dipilih")
 
-        if user.hashed_password and user.hashed_password.strip():
-            if len(user.hashed_password.strip()) < 6:
-                raise HTTPException(status_code=400, detail="Password baru minimal harus 6 karakter")
-            new_hashed_pw = get_password_hash(user.hashed_password.strip())
-            cursor.execute(
-                """UPDATE users SET employee_id = %s, role_id = %s, position_id = %s, 
-                   full_name = %s, email = %s, status = %s, 
-                   birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, joined_date = %s,
-                   hashed_password = %s,
-                   updated_at = CURRENT_TIMESTAMP 
-                   WHERE id = %s;""",
-                (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date, new_hashed_pw, id)
-            )
-        else:
-            cursor.execute(
-                """UPDATE users SET employee_id = %s, role_id = %s, position_id = %s, 
-                   full_name = %s, email = %s, status = %s, 
-                   birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, joined_date = %s,
-                   updated_at = CURRENT_TIMESTAMP 
-                   WHERE id = %s;""",
-                (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date, id)
-            )
+        cursor.execute(
+            """UPDATE users SET employee_id = %s, role_id = %s, position_id = %s, 
+               full_name = %s, email = %s, status = %s, 
+               birth_place = %s, birth_date = %s, address = %s, profile_picture = %s, joined_date = %s,
+               updated_at = CURRENT_TIMESTAMP 
+               WHERE id = %s;""",
+            (user.employee_id, user.role_id, user.position_id, user.full_name, user.email, user.status, user.birth_place, user.birth_date, user.address, user.profile_picture, user.joined_date, id)
+        )
         conn.commit()
         return {"status": "Success", "message": "User berhasil diupdate"}
     except HTTPException:
@@ -1326,6 +1336,57 @@ def update_user(id: int, user: UserUpdate, current_user: dict = Depends(require_
         if "users_email_key" in err_str:
             raise HTTPException(status_code=400, detail="Email sudah terdaftar pada sistem.")
         raise HTTPException(status_code=500, detail=err_str)
+    finally:
+        cursor.close()
+        conn.close()
+
+class ResetUserPasswordRequest(BaseModel):
+    new_password: str
+
+@app.post("/api/users/{id}/reset-password")
+def reset_user_password(id: int, req: ResetUserPasswordRequest, current_user: dict = Depends(require_admin_hr_or_super)):
+    if not req.new_password or len(req.new_password.strip()) < 6:
+        raise HTTPException(status_code=400, detail="Kata sandi baru minimal harus 6 karakter")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        # Check permissions for Admin HR
+        if current_user.get("role") == "Admin HR":
+            cursor.execute("""
+                SELECT u.id, r.role_name, j.company_id 
+                FROM users u 
+                LEFT JOIN roles r ON u.role_id = r.id 
+                LEFT JOIN positions p ON u.position_id = p.id 
+                LEFT JOIN jobs j ON p.job_id = j.id 
+                WHERE u.id = %s;
+            """, (id,))
+            target_user = cursor.fetchone()
+            if not target_user:
+                raise HTTPException(status_code=404, detail="User tidak ditemukan")
+            
+            target_role = target_user['role_name']
+            target_comp_id = target_user['company_id']
+            admin_comp_id = get_user_company_id(current_user['user_id'], cursor)
+            
+            if id != current_user['user_id']:
+                if target_role in ['Super Admin', 'Admin HR']:
+                    raise HTTPException(status_code=403, detail="Anda tidak memiliki izin untuk mereset kata sandi Admin HR lain atau Super Admin.")
+                if target_comp_id != admin_comp_id:
+                    raise HTTPException(status_code=403, detail="Anda hanya dapat mereset kata sandi karyawan di perusahaan Anda sendiri.")
+
+        new_hashed_pw = get_password_hash(req.new_password.strip())
+        cursor.execute(
+            "UPDATE users SET hashed_password = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;",
+            (new_hashed_pw, id)
+        )
+        conn.commit()
+        return {"status": "Success", "message": "Kata sandi user berhasil direset"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
         conn.close()

@@ -22,6 +22,15 @@ const Users = () => {
     onConfirm: null
   });
 
+  const [resetPasswordModal, setResetPasswordModal] = useState({
+    show: false,
+    user: null,
+    newPassword: '',
+    confirmPassword: '',
+    error: '',
+    isSubmitting: false
+  });
+
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -52,6 +61,9 @@ const Users = () => {
 
   const validateForm = () => {
     const errs = {};
+    if (!formData.employee_id || !formData.employee_id.trim()) {
+      errs.employee_id = 'ID Karyawan wajib diisi.';
+    }
     if (!formData.full_name || !formData.full_name.trim()) {
       errs.full_name = 'Nama lengkap wajib diisi.';
     }
@@ -69,16 +81,9 @@ const Users = () => {
       } else if (formData.hashed_password.length < 6) {
         errs.hashed_password = 'Password minimal harus 6 karakter.';
       }
-    } else {
-      if (formData.hashed_password && formData.hashed_password.length < 6) {
-        errs.hashed_password = 'Password baru minimal harus 6 karakter.';
-      }
     }
-    if (currentRole === 'Super Admin' && !formData.company_id) {
-      errs.company_id = 'Pilih unit perusahaan.';
-    }
-    if (!formData.position_id) {
-      errs.position_id = 'Pilih jabatan (posisi) karyawan.';
+    if (!formData.status) {
+      errs.status = 'Status wajib dipilih.';
     }
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
@@ -109,13 +114,18 @@ const Users = () => {
 
     const payload = {
       ...formData,
+      employee_id: formData.employee_id.trim(),
+      full_name: formData.full_name.trim(),
+      email: formData.email.trim(),
       company_id: formData.company_id ? parseInt(formData.company_id) : null,
       role_id: formData.role_id ? parseInt(formData.role_id) : null,
       position_id: formData.position_id ? parseInt(formData.position_id) : null,
+      joined_date: formData.joined_date || null,
+      status: formData.status || 'Active',
     };
     
-    // Remove password from update payload if not provided
-    if (editingId && !formData.hashed_password) {
+    // Never send password in profile update payload
+    if (editingId) {
       delete payload.hashed_password;
     }
 
@@ -124,21 +134,40 @@ const Users = () => {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    }).then(() => {
-      setShowModal(false);
-      setEditingId(null);
-      fetchUsers();
-      setConfirmModal({
-        show: true,
-        title: 'Sukses',
-        message: isEdit ? 'Data karyawan berhasil diperbarui.' : 'Data karyawan berhasil ditambahkan.',
-        type: 'success'
+    })
+      .then(res => res.json())
+      .then((data) => {
+        if (data.status === "Success") {
+          setShowModal(false);
+          setEditingId(null);
+          fetchUsers();
+          setConfirmModal({
+            show: true,
+            title: 'Sukses',
+            message: isEdit ? 'Data karyawan berhasil diperbarui.' : 'Data karyawan berhasil ditambahkan.',
+            type: 'success'
+          });
+        } else {
+          setConfirmModal({
+            show: true,
+            title: 'Gagal',
+            message: data.detail || 'Gagal menyimpan data karyawan.',
+            type: 'error'
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setConfirmModal({
+          show: true,
+          title: 'Gagal',
+          message: err.message || 'Terjadi kesalahan saat menyimpan data.',
+          type: 'error'
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-    }).catch(err => {
-      console.error(err);
-    }).finally(() => {
-      setIsSubmitting(false);
-    });
   };
 
   const handleEdit = (user) => {
@@ -179,6 +208,58 @@ const Users = () => {
           });
       }
     });
+  };
+
+  const handleOpenResetPassword = (user) => {
+    setResetPasswordModal({
+      show: true,
+      user,
+      newPassword: '',
+      confirmPassword: '',
+      error: '',
+      isSubmitting: false
+    });
+  };
+
+  const handleExecuteResetPassword = (e) => {
+    e.preventDefault();
+    if (!resetPasswordModal.newPassword) {
+      setResetPasswordModal(prev => ({ ...prev, error: 'Kata sandi baru wajib diisi.' }));
+      return;
+    }
+    if (resetPasswordModal.newPassword.length < 6) {
+      setResetPasswordModal(prev => ({ ...prev, error: 'Kata sandi baru minimal 6 karakter.' }));
+      return;
+    }
+    if (resetPasswordModal.newPassword !== resetPasswordModal.confirmPassword) {
+      setResetPasswordModal(prev => ({ ...prev, error: 'Konfirmasi kata sandi tidak cocok.' }));
+      return;
+    }
+
+    setResetPasswordModal(prev => ({ ...prev, isSubmitting: true, error: '' }));
+    apiFetch(`/api/users/${resetPasswordModal.user.id}/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_password: resetPasswordModal.newPassword })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'Success') {
+          const userName = resetPasswordModal.user.full_name;
+          setResetPasswordModal({ show: false, user: null, newPassword: '', confirmPassword: '', error: '', isSubmitting: false });
+          setConfirmModal({
+            show: true,
+            title: 'Berhasil',
+            message: `Kata sandi untuk "${userName}" berhasil diperbarui.`,
+            type: 'success'
+          });
+        } else {
+          setResetPasswordModal(prev => ({ ...prev, error: data.detail || 'Gagal mereset kata sandi.', isSubmitting: false }));
+        }
+      })
+      .catch(err => {
+        setResetPasswordModal(prev => ({ ...prev, error: err.message || 'Terjadi kesalahan saat mereset kata sandi.', isSubmitting: false }));
+      });
   };
 
   const openAddModal = () => {
@@ -328,6 +409,9 @@ const Users = () => {
                     ) : isAdmin ? (
                       <>
                         <button onClick={() => handleEdit(user)} className="text-orange-600 hover:text-orange-700 active:scale-95 font-bold cursor-pointer transition-transform">Edit</button>
+                        <button onClick={() => handleOpenResetPassword(user)} className="text-amber-600 hover:text-amber-700 active:scale-95 font-bold cursor-pointer transition-transform text-xs" title="Reset Kata Sandi">
+                          🔑 Sandi
+                        </button>
                         <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 active:scale-95 font-bold cursor-pointer transition-transform">Hapus</button>
                       </>
                     ) : (
@@ -384,14 +468,18 @@ const Users = () => {
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-3.5 text-xs font-semibold text-gray-500">
               {/* Kolom 1: Akun & Identitas */}
               <div>
-                <label className="block mb-1 text-gray-700">ID Karyawan <span className="text-gray-400 font-normal text-[10px]">(Opsional)</span></label>
+                <label className="block mb-1 text-gray-700">ID Karyawan <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   placeholder="Contoh: EMP-001" 
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 text-xs" 
+                  className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.employee_id ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
                   value={formData.employee_id} 
-                  onChange={e => setFormData({...formData, employee_id: e.target.value})} 
+                  onChange={e => {
+                    setFormData({...formData, employee_id: e.target.value});
+                    if (formErrors.employee_id) setFormErrors(prev => ({...prev, employee_id: ''}));
+                  }} 
                 />
+                {formErrors.employee_id && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.employee_id}</p>}
               </div>
 
               <div>
@@ -424,30 +512,48 @@ const Users = () => {
                 {formErrors.email && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.email}</p>}
               </div>
 
-              <div>
-                <label className="block mb-1 text-gray-700">
-                  Password {editingId ? <span className="text-[10px] text-gray-400 font-normal">(Opsional - Ganti Baru)</span> : <span className="text-red-500">*</span>}
-                </label>
-                <input 
-                  type="password" 
-                  placeholder={editingId ? "Kosongkan jika tidak ingin ganti" : "Minimal 6 karakter"} 
-                  className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.hashed_password ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
-                  value={formData.hashed_password} 
-                  onChange={e => { 
-                    setFormData({...formData, hashed_password: e.target.value}); 
-                    if (formErrors.hashed_password) setFormErrors(prev => ({...prev, hashed_password: ''})); 
-                  }} 
-                />
-                {formErrors.hashed_password ? (
-                  <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.hashed_password}</p>
-                ) : editingId ? (
-                  <p className="text-[10px] text-gray-400 mt-1">Biarkan kosong jika tidak ingin mengubah password.</p>
-                ) : null}
-              </div>
+              {!editingId ? (
+                <div>
+                  <label className="block mb-1 text-gray-700">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="password" 
+                    placeholder="Minimal 6 karakter" 
+                    className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 text-xs ${formErrors.hashed_password ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                    value={formData.hashed_password} 
+                    onChange={e => { 
+                      setFormData({...formData, hashed_password: e.target.value}); 
+                      if (formErrors.hashed_password) setFormErrors(prev => ({...prev, hashed_password: ''})); 
+                    }} 
+                  />
+                  {formErrors.hashed_password && (
+                    <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.hashed_password}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-amber-800">Kata Sandi Terpisah</p>
+                    <p className="text-[10px] text-amber-600 font-medium">Kata sandi tidak dapat diubah di form ini.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      const userObj = users.find(u => u.id === editingId);
+                      if (userObj) handleOpenResetPassword(userObj);
+                    }}
+                    className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold text-[10px] rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    🔑 Reset Sandi
+                  </button>
+                </div>
+              )}
 
               {/* Kolom 2: Peran, Penempatan & Status */}
               <div>
-                <label className="block mb-1 text-gray-700">Peran (Role)</label>
+                <label className="block mb-1 text-gray-700">Peran (Role) <span className="text-gray-400 font-normal text-[10px]">(Opsional)</span></label>
                 {currentRole === 'Admin HR' ? (
                   <input 
                     type="text" 
@@ -462,14 +568,14 @@ const Users = () => {
                     value={formData.role_id} 
                     onChange={e => setFormData({...formData, role_id: e.target.value})}
                   >
-                    <option value="">-- Pilih Peran --</option>
+                    <option value="">-- Pilih Peran (Opsional) --</option>
                     {selectableRoles.map(r => <option key={r.id} value={r.id}>{r.role_name}</option>)}
                   </select>
                 )}
               </div>
 
               <div>
-                <label className="block mb-1 text-gray-700">Perusahaan <span className="text-red-500">*</span></label>
+                <label className="block mb-1 text-gray-700">Perusahaan <span className="text-gray-400 font-normal text-[10px]">(Opsional)</span></label>
                 {currentRole === 'Admin HR' ? (
                   <div className="relative">
                     <input 
@@ -484,49 +590,43 @@ const Users = () => {
                     </span>
                   </div>
                 ) : (
-                  <>
-                    <select 
-                      className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 cursor-pointer text-xs ${formErrors.company_id ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
-                      value={formData.company_id} 
-                      onChange={e => {
-                        const newCompanyId = e.target.value;
-                        let newPositionId = formData.position_id;
-                        if (newCompanyId && formData.position_id) {
-                          const selectedPos = positions.find(p => p.id === parseInt(formData.position_id));
-                          if (selectedPos && selectedPos.company_id !== parseInt(newCompanyId)) {
-                            newPositionId = '';
-                          }
+                  <select 
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 cursor-pointer text-xs" 
+                    value={formData.company_id} 
+                    onChange={e => {
+                      const newCompanyId = e.target.value;
+                      let newPositionId = formData.position_id;
+                      if (newCompanyId && formData.position_id) {
+                        const selectedPos = positions.find(p => p.id === parseInt(formData.position_id));
+                        if (selectedPos && selectedPos.company_id !== parseInt(newCompanyId)) {
+                          newPositionId = '';
                         }
-                        setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
-                        if (formErrors.company_id) setFormErrors(prev => ({...prev, company_id: ''}));
-                      }}
-                    >
-                      <option value="">-- Pilih Perusahaan --</option>
-                      {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
-                    </select>
-                    {formErrors.company_id && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.company_id}</p>}
-                  </>
+                      }
+                      setFormData({...formData, company_id: newCompanyId, position_id: newPositionId});
+                    }}
+                  >
+                    <option value="">-- Pilih Perusahaan (Opsional) --</option>
+                    {companies.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
+                  </select>
                 )}
               </div>
 
               <div>
-                <label className="block mb-1 text-gray-700">Jabatan <span className="text-red-500">*</span></label>
+                <label className="block mb-1 text-gray-700">Jabatan (Posisi) <span className="text-gray-400 font-normal text-[10px]">(Opsional)</span></label>
                 <select 
-                  className={`w-full px-3 py-2 border rounded-xl outline-none transition-all bg-white text-gray-700 cursor-pointer text-xs ${formErrors.position_id ? 'border-red-400 bg-red-50/20 ring-1 ring-red-400' : 'border-gray-200 focus:ring-2 focus:ring-orange-500'}`} 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 cursor-pointer text-xs" 
                   value={formData.position_id} 
                   onChange={e => { 
                     setFormData({...formData, position_id: e.target.value}); 
-                    if (formErrors.position_id) setFormErrors(prev => ({...prev, position_id: ''})); 
                   }}
                 >
-                  <option value="">-- Pilih Jabatan --</option>
-                  {filteredPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name})</option>)}
+                  <option value="">-- Pilih Jabatan (Opsional) --</option>
+                  {filteredPositions.map(p => <option key={p.id} value={p.id}>{p.position_name} ({p.job_name || '-'})</option>)}
                 </select>
-                {formErrors.position_id && <p className="text-[10px] text-red-500 font-medium mt-1">⚠️ {formErrors.position_id}</p>}
               </div>
 
               <div>
-                <label className="block mb-1 text-gray-700">Tanggal Bergabung</label>
+                <label className="block mb-1 text-gray-700">Tanggal Bergabung <span className="text-gray-400 font-normal text-[10px]">(Opsional)</span></label>
                 <input 
                   type="date" 
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 text-xs" 
@@ -536,7 +636,7 @@ const Users = () => {
               </div>
 
               <div>
-                <label className="block mb-1 text-gray-700">Status Karyawan</label>
+                <label className="block mb-1 text-gray-700">Status Karyawan <span className="text-red-500">*</span></label>
                 <select 
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white text-gray-700 cursor-pointer text-xs" 
                   value={formData.status} 
@@ -569,6 +669,77 @@ const Users = () => {
                   ) : (
                     <span>{editingId ? "Simpan Perubahan" : "Simpan Karyawan"}</span>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Reset Kata Sandi Karyawan */}
+      {resetPasswordModal.show && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 animate-scale-up">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 bg-amber-50 text-amber-600 rounded-xl text-lg">🔑</span>
+                <div>
+                  <h3 className="font-bold text-gray-800 text-sm">Reset Kata Sandi</h3>
+                  <p className="text-[11px] text-gray-400 font-semibold">{resetPasswordModal.user?.full_name}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResetPasswordModal({ show: false, user: null, newPassword: '', confirmPassword: '', error: '', isSubmitting: false })}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {resetPasswordModal.error && (
+              <div className="p-2.5 mb-3 bg-red-50 text-red-600 text-[11px] font-bold rounded-xl border border-red-200">
+                ⚠️ {resetPasswordModal.error}
+              </div>
+            )}
+
+            <form onSubmit={handleExecuteResetPassword} className="space-y-3 text-xs font-semibold text-gray-500">
+              <div>
+                <label className="block mb-1 text-gray-700">Kata Sandi Baru <span className="text-red-500">*</span></label>
+                <input
+                  type="password"
+                  placeholder="Minimal 6 karakter"
+                  value={resetPasswordModal.newPassword}
+                  onChange={e => setResetPasswordModal(prev => ({ ...prev, newPassword: e.target.value, error: '' }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 text-gray-700 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-gray-700">Konfirmasi Kata Sandi Baru <span className="text-red-500">*</span></label>
+                <input
+                  type="password"
+                  placeholder="Ketik ulang kata sandi baru"
+                  value={resetPasswordModal.confirmPassword}
+                  onChange={e => setResetPasswordModal(prev => ({ ...prev, confirmPassword: e.target.value, error: '' }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 text-gray-700 text-xs"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setResetPasswordModal({ show: false, user: null, newPassword: '', confirmPassword: '', error: '', isSubmitting: false })}
+                  className="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs rounded-xl cursor-pointer transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={resetPasswordModal.isSubmitting}
+                  className="px-4 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {resetPasswordModal.isSubmitting ? 'Menyimpan...' : 'Perbarui Sandi'}
                 </button>
               </div>
             </form>
